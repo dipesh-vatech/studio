@@ -11,9 +11,11 @@ export type Deal = {
   paid: boolean;
 };
 
+export type Platform = "Instagram" | "TikTok" | "YouTube";
+
 export type PerformancePost = {
   id: string;
-  platform: "Instagram" | "TikTok" | "YouTube";
+  platform: Platform;
   postTitle: string;
   likes: number;
   comments: number;
