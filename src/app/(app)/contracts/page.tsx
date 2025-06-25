@@ -1,10 +1,13 @@
+'use client';
+
+import { useState, type ChangeEvent } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -12,26 +15,88 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Upload, CheckCircle, XCircle, Loader } from "lucide-react";
-import { mockContracts } from "@/lib/mock-data";
-import { type Contract } from "@/lib/types";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Upload, CheckCircle, XCircle, Loader } from 'lucide-react';
+import { mockContracts } from '@/lib/mock-data';
+import { type Contract } from '@/lib/types';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
-const statusIcons: Record<Contract["status"], React.ElementType> = {
+const statusIcons: Record<Contract['status'], React.ElementType> = {
   Done: CheckCircle,
   Processing: Loader,
   Error: XCircle,
 };
 
-const statusColors: Record<Contract["status"], string> = {
-  Done: "text-green-500",
-  Processing: "text-blue-500 animate-spin",
-  Error: "text-destructive",
+const statusColors: Record<Contract['status'], string> = {
+  Done: 'text-green-500',
+  Processing: 'text-blue-500 animate-spin',
+  Error: 'text-destructive',
 };
 
 export default function ContractsPage() {
+  const [contracts, setContracts] = useState<Contract[]>(mockContracts);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+
+    setIsUploading(true);
+    const newContract: Contract = {
+      id: crypto.randomUUID(),
+      fileName: selectedFile.name,
+      uploadDate: new Date().toISOString().split('T')[0],
+      status: 'Processing',
+    };
+
+    setContracts([newContract, ...contracts]);
+    setIsDialogOpen(false);
+    setSelectedFile(null);
+
+    setTimeout(() => {
+      setContracts((prevContracts) =>
+        prevContracts.map((c) =>
+          c.id === newContract.id
+            ? {
+                ...c,
+                status: 'Done',
+                brandName: 'AI Extracted Brand',
+                startDate: '2024-08-01',
+                endDate: '2024-09-01',
+                payment: Math.floor(Math.random() * 2000) + 500,
+              }
+            : c
+        )
+      );
+      toast({
+        title: 'Success!',
+        description: `Contract "${newContract.fileName}" processed.`,
+      });
+      setIsUploading(false);
+    }, 3000);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -40,9 +105,46 @@ export default function ContractsPage() {
             <CardTitle>Contract Management</CardTitle>
             <CardDescription>Upload and track your agreements.</CardDescription>
           </div>
-          <Button>
-            <Upload className="mr-2 h-4 w-4" /> Upload Contract
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Upload className="mr-2 h-4 w-4" /> Upload Contract
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Upload New Contract</DialogTitle>
+                <DialogDescription>
+                  Select a PDF file to upload. We'll use AI to process it and
+                  extract key details.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleUpload}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="contract-file">Contract PDF</Label>
+                    <Input
+                      id="contract-file"
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="submit"
+                    disabled={isUploading || !selectedFile}
+                  >
+                    {isUploading && (
+                      <Loader className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Upload & Process
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </CardHeader>
       <CardContent>
@@ -57,25 +159,33 @@ export default function ContractsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockContracts.map((contract) => {
+            {contracts.map((contract) => {
               const Icon = statusIcons[contract.status];
               return (
                 <TableRow key={contract.id}>
-                  <TableCell className="font-medium">{contract.fileName}</TableCell>
+                  <TableCell className="font-medium">
+                    {contract.fileName}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Icon className={`h-4 w-4 ${statusColors[contract.status]}`} />
+                      <Icon
+                        className={`h-4 w-4 ${
+                          statusColors[contract.status]
+                        }`}
+                      />
                       <span>{contract.status}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{contract.brandName || "N/A"}</TableCell>
+                  <TableCell>{contract.brandName || 'N/A'}</TableCell>
                   <TableCell>
                     {contract.startDate && contract.endDate
                       ? `${contract.startDate} - ${contract.endDate}`
-                      : "N/A"}
+                      : 'N/A'}
                   </TableCell>
                   <TableCell className="text-right">
-                    {contract.payment ? `$${contract.payment.toLocaleString()}` : "N/A"}
+                    {contract.payment
+                      ? `$${contract.payment.toLocaleString()}`
+                      : 'N/A'}
                   </TableCell>
                 </TableRow>
               );
