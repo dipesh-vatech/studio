@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An AI agent that extracts (generates plausible) social media post data from a URL.
+ * @fileOverview An AI agent that simulates extracting social media post data from a URL by generating plausible metrics.
  *
  * - extractPostData - A function that handles the post data extraction.
  * - ExtractPostDataInput - The input type for the extractPostData function.
@@ -35,16 +35,18 @@ const prompt = ai.definePrompt({
     name: 'extractPostDataPrompt',
     input: {schema: ExtractPostDataInputSchema},
     output: {schema: ExtractPostDataOutputSchema},
-    prompt: `You are a social media analyst. Given a URL of a social media post, your task is to generate a plausible and realistic set of performance metrics for it.
-    
-    1.  **Infer the Platform**: Determine if the platform is Instagram, TikTok, or YouTube from the URL.
-    2.  **Generate a Title**: Create a compelling and realistic title for the post that would be suitable for the given URL.
-    3.  **Generate Metrics**: Generate realistic and positive engagement numbers (likes, comments, shares, saves). The numbers should look authentic for a successful influencer post.
-    4.  **Determine Conversion**: Decide whether the post likely led to a conversion.
-    
-    Post URL: {{{postUrl}}}
-    
-    Provide the output in the specified JSON format.
+    prompt: `You are an expert social media analyst. Your task is to analyze a social media post from a given URL and provide realistic performance metrics.
+
+**IMPORTANT**: You cannot access the URL directly. Instead, you must act as if you have seen the content and are generating a realistic summary.
+
+Analyze the provided URL: {{{postUrl}}}
+
+1.  **Infer Platform**: Identify whether the platform is Instagram, TikTok, or YouTube from the URL's domain.
+2.  **Generate a Contextual Title**: Based on any hints in the URL path (like slugs or IDs), create a plausible and creative title for the post. For example, a URL like \`.../p/Cq.../\` might inspire a title about a specific event or product. Make it sound like a real post title.
+3.  **Generate Realistic Metrics**: Generate a set of performance numbers (likes, comments, shares, saves) that are realistic for a *successful* post on the inferred platform. The numbers should be high but believable. For example, a successful Instagram post might have thousands of likes, while a viral TikTok could have hundreds of thousands.
+4.  **Estimate Conversion**: Based on the fictional title and metrics, make a plausible guess on whether the post led to a conversion (e.g., a sale or sign-up).
+
+Provide the output in the specified JSON format.
     `,
 });
 
