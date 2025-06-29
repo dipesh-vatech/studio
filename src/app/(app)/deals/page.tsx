@@ -6,6 +6,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import {
   Table,
   TableBody,
   TableCell,
@@ -73,7 +81,13 @@ const newDealSchema = z.object({
     .min(0, 'Payment must be a positive number'),
 });
 
-const DealTable = ({ deals }: { deals: Deal[] }) => {
+const DealTable = ({
+  deals,
+  onStatusChange,
+}: {
+  deals: Deal[];
+  onStatusChange: (dealId: string, newStatus: DealStatus) => void;
+}) => {
   if (deals.length === 0) {
     return (
       <div className="text-center text-muted-foreground p-8">
@@ -100,9 +114,28 @@ const DealTable = ({ deals }: { deals: Deal[] }) => {
             <TableCell className="font-medium">{deal.brandName}</TableCell>
             <TableCell>{deal.campaignName}</TableCell>
             <TableCell>
-              <Badge className={`${statusColors[deal.status]} border-none`}>
-                {deal.status}
-              </Badge>
+              <Select
+                value={deal.status}
+                onValueChange={(value) =>
+                  onStatusChange(deal.id, value as DealStatus)
+                }
+              >
+                <SelectTrigger
+                  className={cn(
+                    'w-[160px] border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 text-xs font-semibold',
+                    statusColors[deal.status]
+                  )}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.keys(statusColors).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </TableCell>
             <TableCell>{deal.deliverables}</TableCell>
             <TableCell>{deal.dueDate}</TableCell>
@@ -120,6 +153,18 @@ export default function DealsPage() {
   const [deals, setDeals] = useState<Deal[]>(mockDeals);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const handleStatusChange = (dealId: string, newStatus: DealStatus) => {
+    setDeals((prevDeals) =>
+      prevDeals.map((deal) =>
+        deal.id === dealId ? { ...deal, status: newStatus } : deal
+      )
+    );
+    toast({
+      title: 'Status Updated!',
+      description: `Deal status has been changed to "${newStatus}".`,
+    });
+  };
 
   const form = useForm<z.infer<typeof newDealSchema>>({
     resolver: zodResolver(newDealSchema),
@@ -279,7 +324,10 @@ export default function DealsPage() {
           </TabsList>
           {tabs.map((tab) => (
             <TabsContent key={tab.value} value={tab.value}>
-              <DealTable deals={getDealsByStatus(tab.value)} />
+              <DealTable
+                deals={getDealsByStatus(tab.value)}
+                onStatusChange={handleStatusChange}
+              />
             </TabsContent>
           ))}
         </Tabs>
