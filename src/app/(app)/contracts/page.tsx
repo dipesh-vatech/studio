@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Upload, CheckCircle, XCircle, Loader } from 'lucide-react';
-import { mockContracts } from '@/lib/mock-data';
 import { type Contract } from '@/lib/types';
 import {
   Dialog,
@@ -31,7 +30,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -40,6 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useAppData } from '@/components/app-provider';
 
 const statusIcons: Record<Contract['status'], React.ElementType> = {
   Done: CheckCircle,
@@ -60,11 +59,10 @@ const statusBadgeColors: Record<Contract['status'], string> = {
 };
 
 export default function ContractsPage() {
-  const [contracts, setContracts] = useState<Contract[]>(mockContracts);
+  const { contracts, processContract, updateContractStatus } = useAppData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -72,58 +70,15 @@ export default function ContractsPage() {
     }
   };
 
-  const handleStatusChange = (
-    contractId: string,
-    newStatus: Contract['status']
-  ) => {
-    setContracts((prevContracts) =>
-      prevContracts.map((contract) =>
-        contract.id === contractId ? { ...contract, status: newStatus } : contract
-      )
-    );
-    toast({
-      title: 'Status Updated!',
-      description: `Contract status has been changed to "${newStatus}".`,
-    });
-  };
-
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) return;
 
     setIsUploading(true);
-    const newContract: Contract = {
-      id: crypto.randomUUID(),
-      fileName: selectedFile.name,
-      uploadDate: new Date().toISOString().split('T')[0],
-      status: 'Processing',
-    };
-
-    setContracts([newContract, ...contracts]);
+    await processContract(selectedFile);
+    setIsUploading(false);
     setIsDialogOpen(false);
     setSelectedFile(null);
-
-    setTimeout(() => {
-      setContracts((prevContracts) =>
-        prevContracts.map((c) =>
-          c.id === newContract.id
-            ? {
-                ...c,
-                status: 'Done',
-                brandName: 'AI Extracted Brand',
-                startDate: '2024-08-01',
-                endDate: '2024-09-01',
-                payment: Math.floor(Math.random() * 2000) + 500,
-              }
-            : c
-        )
-      );
-      toast({
-        title: 'Success!',
-        description: `Contract "${newContract.fileName}" processed.`,
-      });
-      setIsUploading(false);
-    }, 3000);
   };
 
   return (
@@ -199,7 +154,10 @@ export default function ContractsPage() {
                     <Select
                       value={contract.status}
                       onValueChange={(value) =>
-                        handleStatusChange(contract.id, value as Contract['status'])
+                        updateContractStatus(
+                          contract.id,
+                          value as Contract['status']
+                        )
                       }
                     >
                       <SelectTrigger
@@ -208,9 +166,13 @@ export default function ContractsPage() {
                           statusBadgeColors[contract.status]
                         )}
                       >
-                         <div className="flex items-center gap-1.5">
-                            <Icon className={`h-4 w-4 ${statusColors[contract.status]}`} />
-                            <SelectValue />
+                        <div className="flex items-center gap-1.5">
+                          <Icon
+                            className={`h-4 w-4 ${
+                              statusColors[contract.status]
+                            }`}
+                          />
+                          <SelectValue />
                         </div>
                       </SelectTrigger>
                       <SelectContent>

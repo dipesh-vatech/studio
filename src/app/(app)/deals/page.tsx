@@ -35,7 +35,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { mockDeals } from '@/lib/mock-data';
 import { type Deal, type DealStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
@@ -57,8 +56,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { useAppData } from '@/components/app-provider';
 
 const statusColors: Record<DealStatus, string> = {
   Upcoming: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -150,21 +149,8 @@ const DealTable = ({
 };
 
 export default function DealsPage() {
-  const [deals, setDeals] = useState<Deal[]>(mockDeals);
+  const { deals, addDeal, updateDealStatus } = useAppData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
-
-  const handleStatusChange = (dealId: string, newStatus: DealStatus) => {
-    setDeals((prevDeals) =>
-      prevDeals.map((deal) =>
-        deal.id === dealId ? { ...deal, status: newStatus } : deal
-      )
-    );
-    toast({
-      title: 'Status Updated!',
-      description: `Deal status has been changed to "${newStatus}".`,
-    });
-  };
 
   const form = useForm<z.infer<typeof newDealSchema>>({
     resolver: zodResolver(newDealSchema),
@@ -178,17 +164,7 @@ export default function DealsPage() {
   });
 
   function onSubmit(values: z.infer<typeof newDealSchema>) {
-    const newDeal: Deal = {
-      id: crypto.randomUUID(),
-      status: 'Upcoming', // Default status for new deals
-      paid: false,
-      ...values,
-    };
-    setDeals([newDeal, ...deals]);
-    toast({
-      title: 'Success!',
-      description: `New deal with ${newDeal.brandName} has been added.`,
-    });
+    addDeal(values);
     form.reset();
     setIsDialogOpen(false);
   }
@@ -231,7 +207,10 @@ export default function DealsPage() {
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -253,7 +232,10 @@ export default function DealsPage() {
                         <FormItem>
                           <FormLabel>Campaign Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. Summer Launch" {...field} />
+                            <Input
+                              placeholder="e.g. Summer Launch"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -297,7 +279,11 @@ export default function DealsPage() {
                         <FormItem>
                           <FormLabel>Payment ($)</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="e.g. 1500" {...field} />
+                            <Input
+                              type="number"
+                              placeholder="e.g. 1500"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -326,7 +312,7 @@ export default function DealsPage() {
             <TabsContent key={tab.value} value={tab.value}>
               <DealTable
                 deals={getDealsByStatus(tab.value)}
-                onStatusChange={handleStatusChange}
+                onStatusChange={updateDealStatus}
               />
             </TabsContent>
           ))}
