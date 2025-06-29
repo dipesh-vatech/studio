@@ -32,6 +32,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 const statusIcons: Record<Contract['status'], React.ElementType> = {
   Done: CheckCircle,
@@ -45,6 +53,12 @@ const statusColors: Record<Contract['status'], string> = {
   Error: 'text-destructive',
 };
 
+const statusBadgeColors: Record<Contract['status'], string> = {
+  Done: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  Processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  Error: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+};
+
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>(mockContracts);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -56,6 +70,21 @@ export default function ContractsPage() {
     if (event.target.files && event.target.files[0]) {
       setSelectedFile(event.target.files[0]);
     }
+  };
+
+  const handleStatusChange = (
+    contractId: string,
+    newStatus: Contract['status']
+  ) => {
+    setContracts((prevContracts) =>
+      prevContracts.map((contract) =>
+        contract.id === contractId ? { ...contract, status: newStatus } : contract
+      )
+    );
+    toast({
+      title: 'Status Updated!',
+      description: `Contract status has been changed to "${newStatus}".`,
+    });
   };
 
   const handleUpload = async (e: React.FormEvent) => {
@@ -167,14 +196,35 @@ export default function ContractsPage() {
                     {contract.fileName}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Icon
-                        className={`h-4 w-4 ${
-                          statusColors[contract.status]
-                        }`}
-                      />
-                      <span>{contract.status}</span>
-                    </div>
+                    <Select
+                      value={contract.status}
+                      onValueChange={(value) =>
+                        handleStatusChange(contract.id, value as Contract['status'])
+                      }
+                    >
+                      <SelectTrigger
+                        className={cn(
+                          'w-[120px] border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 text-xs font-semibold',
+                          statusBadgeColors[contract.status]
+                        )}
+                      >
+                         <div className="flex items-center gap-1.5">
+                            <Icon className={`h-4 w-4 ${statusColors[contract.status]}`} />
+                            <SelectValue />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(
+                          Object.keys(statusIcons) as Array<
+                            keyof typeof statusIcons
+                          >
+                        ).map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>{contract.brandName || 'N/A'}</TableCell>
                   <TableCell>
