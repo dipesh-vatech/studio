@@ -1,3 +1,10 @@
+
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Table,
   TableBody,
@@ -5,36 +12,75 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs";
-import { mockDeals } from "@/lib/mock-data";
-import { type DealStatus } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+} from '@/components/ui/tabs';
+import { mockDeals } from '@/lib/mock-data';
+import { type Deal, type DealStatus } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 const statusColors: Record<DealStatus, string> = {
-  "Upcoming": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  "In Progress": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  "Awaiting Payment": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  "Completed": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  "Overdue": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  Upcoming: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  'In Progress':
+    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  'Awaiting Payment':
+    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  Completed:
+    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  Overdue: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 };
 
-const DealTable = ({ status }: { status?: DealStatus }) => {
-  const deals = status ? mockDeals.filter((deal) => deal.status === status) : mockDeals;
+const newDealSchema = z.object({
+  brandName: z.string().min(1, 'Brand name is required'),
+  campaignName: z.string().min(1, 'Campaign name is required'),
+  deliverables: z.string().min(1, 'Deliverables are required'),
+  dueDate: z.string().min(1, 'Due date is required'),
+  payment: z.coerce
+    .number({ invalid_type_error: 'Please enter a valid number.' })
+    .min(0, 'Payment must be a positive number'),
+});
+
+const DealTable = ({ deals }: { deals: Deal[] }) => {
+  if (deals.length === 0) {
+    return (
+      <div className="text-center text-muted-foreground p-8">
+        No deals to display.
+      </div>
+    );
+  }
 
   return (
     <Table>
@@ -54,11 +100,15 @@ const DealTable = ({ status }: { status?: DealStatus }) => {
             <TableCell className="font-medium">{deal.brandName}</TableCell>
             <TableCell>{deal.campaignName}</TableCell>
             <TableCell>
-              <Badge className={`${statusColors[deal.status]} border-none`}>{deal.status}</Badge>
+              <Badge className={`${statusColors[deal.status]} border-none`}>
+                {deal.status}
+              </Badge>
             </TableCell>
             <TableCell>{deal.deliverables}</TableCell>
             <TableCell>{deal.dueDate}</TableCell>
-            <TableCell className="text-right">${deal.payment.toLocaleString()}</TableCell>
+            <TableCell className="text-right">
+              ${deal.payment.toLocaleString()}
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -67,14 +117,50 @@ const DealTable = ({ status }: { status?: DealStatus }) => {
 };
 
 export default function DealsPage() {
-  const tabs: { value: DealStatus | "all", label: string }[] = [
-    { value: "all", label: "All" },
-    { value: "Upcoming", label: "Upcoming" },
-    { value: "In Progress", label: "In Progress" },
-    { value: "Awaiting Payment", label: "Awaiting Payment" },
-    { value: "Overdue", label: "Overdue" },
-    { value: "Completed", label: "Completed" },
+  const [deals, setDeals] = useState<Deal[]>(mockDeals);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof newDealSchema>>({
+    resolver: zodResolver(newDealSchema),
+    defaultValues: {
+      brandName: '',
+      campaignName: '',
+      deliverables: '',
+      dueDate: '',
+      payment: 0,
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof newDealSchema>) {
+    const newDeal: Deal = {
+      id: crypto.randomUUID(),
+      status: 'Upcoming', // Default status for new deals
+      paid: false,
+      ...values,
+    };
+    setDeals([newDeal, ...deals]);
+    toast({
+      title: 'Success!',
+      description: `New deal with ${newDeal.brandName} has been added.`,
+    });
+    form.reset();
+    setIsDialogOpen(false);
+  }
+
+  const tabs: { value: DealStatus | 'all'; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'Upcoming', label: 'Upcoming' },
+    { value: 'In Progress', label: 'In Progress' },
+    { value: 'Awaiting Payment', label: 'Awaiting Payment' },
+    { value: 'Overdue', label: 'Overdue' },
+    { value: 'Completed', label: 'Completed' },
   ];
+
+  const getDealsByStatus = (status: DealStatus | 'all') => {
+    if (status === 'all') return deals;
+    return deals.filter((deal) => deal.status === status);
+  };
 
   return (
     <Card>
@@ -82,27 +168,119 @@ export default function DealsPage() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Deal Tracker</CardTitle>
-            <CardDescription>Manage your brand collaborations.</CardDescription>
+            <CardDescription>
+              Manage your brand collaborations.
+            </CardDescription>
           </div>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add New Deal
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add New Deal
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add a New Deal</DialogTitle>
+                <DialogDescription>
+                  Enter the details of your new collaboration.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="brandName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Brand Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. BrandFresh" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="campaignName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Campaign Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. Summer Launch" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="deliverables"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Deliverables</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g. 2 posts, 3 stories"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="dueDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Due Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="payment"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Payment ($)</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="e.g. 1500" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit">Add Deal</Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all">
           <TabsList>
-            {tabs.map(tab => (
-              <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.label}
+              </TabsTrigger>
             ))}
           </TabsList>
-          <TabsContent value="all">
-            <DealTable />
-          </TabsContent>
-          {tabs.filter(t => t.value !== 'all').map(tab => (
-             <TabsContent key={tab.value} value={tab.value}>
-               <DealTable status={tab.value as DealStatus} />
-             </TabsContent>
+          {tabs.map((tab) => (
+            <TabsContent key={tab.value} value={tab.value}>
+              <DealTable deals={getDealsByStatus(tab.value)} />
+            </TabsContent>
           ))}
         </Tabs>
       </CardContent>
