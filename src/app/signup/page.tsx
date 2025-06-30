@@ -7,6 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { BriefcaseBusiness } from "lucide-react"
 
 const GoogleIcon = () => (
@@ -18,7 +20,7 @@ const GoogleIcon = () => (
     </svg>
 )
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary">
       <Card className="mx-auto max-w-sm w-full">
@@ -26,24 +28,44 @@ export default function LoginPage() {
             <div className="inline-flex items-center justify-center mb-4">
                 <BriefcaseBusiness className="h-8 w-8 text-primary"/>
             </div>
-          <CardTitle className="text-2xl">Welcome to CollabFlow</CardTitle>
+          <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>
-            Sign in to manage your collaborations seamlessly.
+            Enter your information to get started.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="full-name">Full name</Label>
+              <Input id="full-name" placeholder="Your Name" required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" />
+            </div>
+            <Button type="submit" className="w-full" asChild>
+                <Link href="/dashboard">Create account</Link>
+            </Button>
             <Button variant="outline" className="w-full" asChild>
-                <Link href="/dashboard">
-                    <GoogleIcon />
-                    Sign in with Google
-                </Link>
+              <Link href="/dashboard">
+                <GoogleIcon />
+                Sign up with Google
+              </Link>
             </Button>
           </div>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="underline text-primary">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/login" className="underline text-primary">
+              Login
             </Link>
           </div>
         </CardContent>
