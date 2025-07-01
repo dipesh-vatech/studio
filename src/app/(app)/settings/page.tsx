@@ -1,10 +1,11 @@
+
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -592,7 +593,13 @@ function BillingSettings() {
   );
 }
 
-export default function SettingsPage() {
+
+function SettingsPageContent() {
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab');
+  const validTabs = ['profile', 'account', 'notifications', 'billing'];
+  const defaultTab = tab && validTabs.includes(tab) ? tab : 'profile';
+
   return (
     <div className="space-y-6">
       <div>
@@ -602,7 +609,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="profile" className="w-full max-w-2xl">
+      <Tabs defaultValue={defaultTab} className="w-full max-w-2xl">
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
@@ -633,5 +640,20 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    // Using a Suspense boundary is best practice with useSearchParams
+    <Suspense
+      fallback={
+        <div className="flex h-[60vh] w-full items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <SettingsPageContent />
+    </Suspense>
   );
 }

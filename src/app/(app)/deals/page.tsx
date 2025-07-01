@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -37,7 +38,7 @@ import {
 } from '@/components/ui/tabs';
 import { type Deal, type DealStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -149,9 +151,11 @@ const DealTable = ({
 };
 
 export default function DealsPage() {
-  const { deals, addDeal, updateDealStatus } = useAppData();
+  const { deals, addDeal, updateDealStatus, userProfile } = useAppData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const dealLimitReached = userProfile?.plan === 'Free' && deals.length >= 10;
 
   const form = useForm<z.infer<typeof newDealSchema>>({
     resolver: zodResolver(newDealSchema),
@@ -206,106 +210,134 @@ export default function DealsPage() {
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add a New Deal</DialogTitle>
-                <DialogDescription>
-                  Enter the details of your new collaboration.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="brandName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Brand Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g. BrandFresh" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="campaignName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Campaign Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. Summer Launch"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="deliverables"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Deliverables</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="e.g. 2 posts, 3 stories"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="dueDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Due Date</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="payment"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Payment ($)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="e.g. 1500"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Add Deal
+              {dealLimitReached ? (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <AlertCircle className="text-destructive" />
+                      Free Plan Limit Reached
+                    </DialogTitle>
+                    <DialogDescription>
+                      You've reached the 10-deal limit for the Free plan. To add
+                      more deals, please upgrade to our Pro plan.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="!mt-4 sm:justify-start">
+                    <Button asChild>
+                      <Link href="/settings?tab=billing">Upgrade to Pro</Link>
                     </Button>
+                    <DialogClose asChild>
+                      <Button variant="ghost">Cancel</Button>
+                    </DialogClose>
                   </DialogFooter>
-                </form>
-              </Form>
+                </>
+              ) : (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>Add a New Deal</DialogTitle>
+                    <DialogDescription>
+                      Enter the details of your new collaboration.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="brandName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Brand Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g. BrandFresh"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="campaignName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Campaign Name</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g. Summer Launch"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="deliverables"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Deliverables</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="e.g. 2 posts, 3 stories"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="dueDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Due Date</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="payment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Payment ($)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="e.g. 1500"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          Add Deal
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </>
+              )}
             </DialogContent>
           </Dialog>
         </div>

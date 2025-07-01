@@ -319,6 +319,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
+    
+    if (userProfile?.plan === 'Free' && deals.length >= 10) {
+      toast({
+        title: 'Free Plan Limit Reached',
+        description: 'Upgrade to the Pro plan to add more than 10 deals.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       const newDealData = {
         ...values,
@@ -683,11 +693,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUserPlan = (plan: 'Free' | 'Pro') => {
-    if (!user) return;
+    if (!user || !db) return;
+    const originalProfile = {...userProfile};
+
     setUserProfile((prev) => (prev ? { ...prev, plan } : null));
-    toast({
-      title: 'Plan Updated!',
-      description: `This is a simulation. You are now on the ${plan} plan.`,
+
+    const userDocRef = doc(db, 'users', user.uid);
+    setDoc(userDocRef, { plan }, { merge: true }).then(() => {
+      toast({
+        title: 'Plan Updated!',
+        description: `This is a simulation. You are now on the ${plan} plan.`,
+      });
+    }).catch((error) => {
+        // Revert on failure
+        setUserProfile(originalProfile as UserProfile);
+        console.error('Error updating plan: ', error);
+        toast({
+            title: 'Error',
+            description: 'Could not update your plan. Please try again.',
+            variant: 'destructive',
+        });
     });
   };
 
