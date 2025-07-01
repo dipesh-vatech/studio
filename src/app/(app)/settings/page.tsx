@@ -200,7 +200,7 @@ export default function SettingsPage() {
               <CardDescription>
                 Configure how you receive notifications.
               </CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
               <p className="text-muted-foreground">
                 Control your email and in-app notification preferences for
@@ -217,7 +217,7 @@ export default function SettingsPage() {
               <CardDescription>
                 Manage your subscription and payment methods.
               </CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
                 View your current plan, upgrade, and manage payment details.
