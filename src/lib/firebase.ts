@@ -12,39 +12,34 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const isFirebaseConfigured =
-  firebaseConfig.apiKey &&
-  firebaseConfig.authDomain &&
-  firebaseConfig.projectId &&
-  firebaseConfig.storageBucket &&
-  firebaseConfig.messagingSenderId &&
-  firebaseConfig.appId;
+function initializeFirebaseServices() {
+  const isFirebaseConfigured =
+    firebaseConfig.apiKey &&
+    firebaseConfig.authDomain &&
+    firebaseConfig.projectId &&
+    firebaseConfig.storageBucket &&
+    firebaseConfig.messagingSenderId &&
+    firebaseConfig.appId;
 
-let app: FirebaseApp | undefined;
-let db: Firestore | undefined;
-let auth: Auth | undefined;
-let storage: Storage | undefined;
-
-if (isFirebaseConfigured) {
-  try {
-    if (!getApps().length) {
-      app = initializeApp(firebaseConfig);
-    } else {
-      app = getApps()[0];
-    }
-  
-    db = getFirestore(app);
-    auth = getAuth(app);
-    storage = getStorage(app);
-  } catch (e) {
-    console.error("Error initializing Firebase. Check your configuration.", e);
-    // Set to undefined so the rest of the app knows init failed
-    db = undefined; 
-    auth = undefined;
-    storage = undefined;
+  if (!isFirebaseConfigured) {
+    console.warn(
+      'Firebase config is incomplete. Firebase services will be disabled.'
+    );
+    return { db: undefined, auth: undefined, storage: undefined };
   }
-} else {
-  console.warn("Firebase config is incomplete. Firebase services will be disabled.");
+
+  try {
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+    return { db, auth, storage };
+  } catch (e) {
+    console.error('Error initializing Firebase. Check your configuration.', e);
+    return { db: undefined, auth: undefined, storage: undefined };
+  }
 }
+
+const { db, auth, storage } = initializeFirebaseServices();
 
 export { db, auth, storage };
