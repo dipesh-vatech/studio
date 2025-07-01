@@ -1,8 +1,9 @@
+
 {
   "name": "CollabFlow",
   "short_name": "CollabFlow",
   "description": "Streamline your influencer collaborations.",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",

@@ -1,3 +1,4 @@
+
 import 'dotenv/config';
 import type {NextConfig} from 'next';
 
@@ -5,7 +6,7 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
+  disable: false,
 });
 
 const nextConfig: NextConfig = {
@@ -25,6 +26,13 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // These modules are not used in the browser, so we can safely ignore them.
+      config.externals.push('handlebars');
+    }
+    return config;
   },
 };
 
