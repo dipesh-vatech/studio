@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -11,7 +10,7 @@ import {
 import type { Deal, Contract, DealStatus } from '@/lib/types';
 import { mockContracts, mockDeals } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import {
   collection,
   getDocs,
@@ -23,10 +22,14 @@ import {
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
+import { type User, onAuthStateChanged, signOut } from 'firebase/auth';
 
 interface AppDataContextType {
   deals: Deal[];
   contracts: Contract[];
+  user: User | null;
+  loadingAuth: boolean;
+  signOut: () => Promise<void>;
   addDeal: (values: Omit<Deal, 'id' | 'status' | 'paid'>) => Promise<void>;
   updateDealStatus: (dealId: string, newStatus: DealStatus) => Promise<void>;
   processContract: (file: File) => Promise<void>;
@@ -42,9 +45,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [contracts, setContracts] = useState<Contract[]>(mockContracts);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!auth) {
+      setLoadingAuth(false);
+      return;
+    }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoadingAuth(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setDeals([]);
+      setLoading(false);
+      return;
+    }
     const fetchDeals = async () => {
       if (!db) {
         console.warn('Firebase not configured. Using mock data for Deals.');
@@ -83,10 +105,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     fetchDeals();
-  }, [toast]);
+  }, [toast, user]);
 
   const addDeal = async (values: Omit<Deal, 'id' | 'status' | 'paid'>) => {
-    if (!db) {
+    if (!db || !user) {
       const newDeal: Deal = {
         id: crypto.randomUUID(),
         ...values,
@@ -107,6 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         status: 'Upcoming' as DealStatus,
         paid: false,
         createdAt: serverTimestamp(),
+        userId: user.uid, // Associate deal with user
       };
       const docRef = await addDoc(collection(db, 'deals'), newDealData);
 
@@ -230,9 +253,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const signOutUser = async () => {
+    if (auth) {
+      await signOut(auth);
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+    }
+  };
+
   return (
     <AppDataContext.Provider
       value={{
+        user,
+        loadingAuth,
+        signOut: signOutUser,
         deals,
         contracts,
         addDeal,
