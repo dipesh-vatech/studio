@@ -9,7 +9,7 @@ import {
   useEffect,
 } from 'react';
 import type { Deal, Contract, DealStatus } from '@/lib/types';
-import { mockContracts } from '@/lib/mock-data';
+import { mockContracts, mockDeals } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
 import {
@@ -46,6 +46,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const fetchDeals = async () => {
+      if (!db) {
+        console.warn('Firebase not configured. Using mock data for Deals.');
+        setDeals(mockDeals);
+        setLoading(false);
+        return;
+      }
       try {
         const dealsCollection = collection(db, 'deals');
         const q = query(dealsCollection, orderBy('createdAt', 'desc'));
@@ -66,10 +72,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Error fetching deals: ', error);
         toast({
-          title: 'Error',
-          description: 'Could not fetch deals. Check your Firebase setup.',
+          title: 'Firebase Error',
+          description: 'Could not fetch deals. Using mock data as fallback.',
           variant: 'destructive',
         });
+        setDeals(mockDeals);
       } finally {
         setLoading(false);
       }
@@ -79,6 +86,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [toast]);
 
   const addDeal = async (values: Omit<Deal, 'id' | 'status' | 'paid'>) => {
+    if (!db) {
+      const newDeal: Deal = {
+        id: crypto.randomUUID(),
+        ...values,
+        status: 'Upcoming',
+        paid: false,
+      };
+      setDeals((prev) => [newDeal, ...prev]);
+      toast({
+        title: 'Success (Offline)!',
+        description: `New deal with ${newDeal.brandName} has been added locally.`,
+      });
+      return;
+    }
     try {
       const newDealData = {
         ...values,
@@ -114,14 +135,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const updateDealStatus = async (dealId: string, newStatus: DealStatus) => {
-    const dealRef = doc(db, 'deals', dealId);
+    const originalDeals = deals;
     setDeals((prev) =>
       prev.map((deal) =>
         deal.id === dealId ? { ...deal, status: newStatus } : deal
       )
     );
 
+    if (!db) {
+      toast({
+        title: 'Status Updated (Offline)!',
+        description: `Deal status has been changed to "${newStatus}" locally.`,
+      });
+      return;
+    }
+
     try {
+      const dealRef = doc(db, 'deals', dealId);
       await updateDoc(dealRef, {
         status: newStatus,
       });
@@ -131,15 +161,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     } catch (error) {
       console.error('Error updating deal status: ', error);
-      // Revert optimistic update on error
-      // Note: A more robust solution might refetch or use a different state management pattern
-      setDeals((prev) =>
-        prev.map((deal) =>
-          deal.id === dealId
-            ? { ...deal, status: deal.status } // This is a simplified revert
-            : deal
-        )
-      );
+      setDeals(originalDeals);
       toast({
         title: 'Error updating status',
         description: 'Could not update the deal status in the database.',
