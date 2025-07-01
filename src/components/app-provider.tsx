@@ -92,10 +92,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const dealSnapshot = await getDocs(qDeals);
         const dealsList = dealSnapshot.docs.map((doc) => {
           const data = doc.data();
-          const dueDate = (data.dueDate as Timestamp)
-            .toDate()
-            .toISOString()
-            .split('T')[0];
+          let dueDate: string;
+          const dueDateVal = data.dueDate;
+
+          if (dueDateVal && typeof dueDateVal.toDate === 'function') {
+            dueDate = (dueDateVal as Timestamp).toDate().toISOString().split('T')[0];
+          } else if (typeof dueDateVal === 'string') {
+            dueDate = dueDateVal.split('T')[0];
+          } else {
+            dueDate = new Date().toISOString().split('T')[0];
+          }
+
           return {
             id: doc.id,
             ...data,
@@ -114,9 +121,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const contractSnapshot = await getDocs(qContracts);
         const contractsList = contractSnapshot.docs.map((doc) => {
           const data = doc.data();
-          const uploadDate = data.uploadDate
-            ? (data.uploadDate as Timestamp).toDate().toISOString().split('T')[0]
-            : new Date().toISOString().split('T')[0];
+          let uploadDate: string;
+          const uploadDateVal = data.uploadDate;
+
+          if (uploadDateVal && typeof uploadDateVal.toDate === 'function') {
+            uploadDate = (uploadDateVal as Timestamp)
+              .toDate()
+              .toISOString()
+              .split('T')[0];
+          } else if (typeof uploadDateVal === 'string') {
+            uploadDate = uploadDateVal.split('T')[0];
+          } else {
+            uploadDate = new Date().toISOString().split('T')[0];
+          }
+
           return {
             id: doc.id,
             ...data,
