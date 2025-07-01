@@ -71,6 +71,7 @@ interface AppDataContextType {
   updateUserPassword: (password: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
   updateNotificationSettings: (settings: NotificationSettings) => Promise<void>;
+  dismissDealNotification: (dealId: string) => Promise<void>;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -640,6 +641,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const dismissDealNotification = async (dealId: string) => {
+    if (!db || !user) {
+      toast({
+        title: 'Offline Mode',
+        description: 'Cannot dismiss notification while offline.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const originalDeals = deals;
+    setDeals((prev) =>
+      prev.map((deal) =>
+        deal.id === dealId ? { ...deal, notificationDismissed: true } : deal
+      )
+    );
+
+    try {
+      const dealRef = doc(db, 'deals', dealId);
+      await updateDoc(dealRef, {
+        notificationDismissed: true,
+      });
+      toast({
+        title: 'Notification Dismissed',
+      });
+    } catch (error) {
+      console.error('Error dismissing notification: ', error);
+      setDeals(originalDeals);
+      toast({
+        title: 'Error',
+        description: 'Could not dismiss the notification. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const signOutUser = async () => {
     if (auth) {
       await signOut(auth);
@@ -670,6 +707,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateUserPassword,
         deleteAccount,
         updateNotificationSettings,
+        dismissDealNotification,
       }}
     >
       {children}

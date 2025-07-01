@@ -9,6 +9,7 @@ export type Deal = {
   dueDate: string;
   payment: number;
   paid: boolean;
+  notificationDismissed?: boolean;
 };
 
 export type Platform = "Instagram" | "TikTok" | "YouTube";

@@ -32,7 +32,7 @@ import {
 import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
 
 function ProtectedLayout({ children }: { children: ReactNode }) {
-  const { user, loadingAuth, deals } = useAppData();
+  const { user, loadingAuth, deals, dismissDealNotification } = useAppData();
 
   useEffect(() => {
     if (!loadingAuth && !user) {
@@ -41,7 +41,11 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
   }, [user, loadingAuth]);
 
   const notifications = deals
-    .filter((deal) => deal.status === 'Upcoming' || deal.status === 'Overdue')
+    .filter(
+      (deal) =>
+        (deal.status === 'Upcoming' || deal.status === 'Overdue') &&
+        !deal.notificationDismissed
+    )
     .sort(
       (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
     )
@@ -128,27 +132,36 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                   {notifications.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {notifications.map((notification) => (
-                        <div key={notification.id} className="flex items-start">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary">
-                            <Clock className="h-4 w-4 text-secondary-foreground" />
+                        <Button
+                          key={notification.id}
+                          variant="ghost"
+                          className="h-auto w-full justify-start rounded-md p-0 hover:bg-accent"
+                          onClick={() =>
+                            dismissDealNotification(notification.id)
+                          }
+                        >
+                          <div className="flex w-full items-start p-2">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
+                              <Clock className="h-4 w-4 text-secondary-foreground" />
+                            </div>
+                            <div className="ml-3 flex-1 space-y-1 text-left">
+                              <p className="text-sm font-medium leading-none">
+                                {notification.text}
+                              </p>
+                              <p
+                                className={`text-sm ${
+                                  notification.isOverdue
+                                    ? 'font-semibold text-destructive'
+                                    : 'text-muted-foreground'
+                                }`}
+                              >
+                                Due {notification.due}
+                              </p>
+                            </div>
                           </div>
-                          <div className="ml-4 space-y-1">
-                            <p className="text-sm font-medium leading-none">
-                              {notification.text}
-                            </p>
-                            <p
-                              className={`text-sm ${
-                                notification.isOverdue
-                                  ? 'font-semibold text-destructive'
-                                  : 'text-muted-foreground'
-                              }`}
-                            >
-                              Due {notification.due}
-                            </p>
-                          </div>
-                        </div>
+                        </Button>
                       ))}
                     </div>
                   ) : (
