@@ -12,12 +12,20 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+const isFirebaseConfigured =
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId &&
+  firebaseConfig.storageBucket &&
+  firebaseConfig.messagingSenderId &&
+  firebaseConfig.appId;
+
 let app: FirebaseApp | undefined;
 let db: Firestore | undefined;
 let auth: Auth | undefined;
 let storage: Storage | undefined;
 
-if (firebaseConfig.apiKey) {
+if (isFirebaseConfigured) {
   try {
     if (!getApps().length) {
       app = initializeApp(firebaseConfig);
@@ -36,7 +44,7 @@ if (firebaseConfig.apiKey) {
     storage = undefined;
   }
 } else {
-  console.warn("Firebase API Key is missing. Firebase services will be disabled.");
+  console.warn("Firebase config is incomplete. Firebase services will be disabled.");
 }
 
 export { db, auth, storage };
