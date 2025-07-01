@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -200,7 +201,7 @@ export default function SettingsPage() {
               <CardDescription>
                 Configure how you receive notifications.
               </CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
                 Control your email and in-app notification preferences for
