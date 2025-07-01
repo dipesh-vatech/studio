@@ -34,4 +34,5 @@ export type Contract = {
   startDate?: string;
   endDate?: string;
   payment?: number;
+  storagePath?: string;
 };

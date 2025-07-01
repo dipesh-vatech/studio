@@ -10,7 +10,7 @@ import {
 import type { Deal, Contract, DealStatus } from '@/lib/types';
 import { mockContracts, mockDeals } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, storage } from '@/lib/firebase';
 import {
   collection,
   getDocs,
@@ -21,8 +21,11 @@ import {
   orderBy,
   serverTimestamp,
   Timestamp,
+  where,
+  setDoc,
 } from 'firebase/firestore';
 import { type User, onAuthStateChanged, signOut } from 'firebase/auth';
+import { ref, uploadBytes } from 'firebase/storage';
 
 interface AppDataContextType {
   deals: Deal[];
@@ -36,14 +39,14 @@ interface AppDataContextType {
   updateContractStatus: (
     contractId: string,
     newStatus: Contract['status']
-  ) => void;
+  ) => Promise<void>;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [deals, setDeals] = useState<Deal[]>([]);
-  const [contracts, setContracts] = useState<Contract[]>(mockContracts);
+  const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -64,20 +67,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) {
       setDeals([]);
+      setContracts([]);
       setLoading(false);
       return;
     }
-    const fetchDeals = async () => {
+    const fetchAllData = async () => {
       if (!db) {
-        console.warn('Firebase not configured. Using mock data for Deals.');
+        console.warn(
+          'Firebase not configured. Using mock data for Deals & Contracts.'
+        );
         setDeals(mockDeals);
+        setContracts(mockContracts);
         setLoading(false);
         return;
       }
       try {
+        // Fetch Deals
         const dealsCollection = collection(db, 'deals');
-        const q = query(dealsCollection, orderBy('createdAt', 'desc'));
-        const dealSnapshot = await getDocs(q);
+        const qDeals = query(
+          dealsCollection,
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc')
+        );
+        const dealSnapshot = await getDocs(qDeals);
         const dealsList = dealSnapshot.docs.map((doc) => {
           const data = doc.data();
           const dueDate = (data.dueDate as Timestamp)
@@ -91,20 +103,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
           } as Deal;
         });
         setDeals(dealsList);
+
+        // Fetch Contracts
+        const contractsCollection = collection(db, 'contracts');
+        const qContracts = query(
+          contractsCollection,
+          where('userId', '==', user.uid),
+          orderBy('uploadDate', 'desc')
+        );
+        const contractSnapshot = await getDocs(qContracts);
+        const contractsList = contractSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+          } as Contract;
+        });
+        setContracts(contractsList);
       } catch (error) {
-        console.error('Error fetching deals: ', error);
+        console.error('Error fetching data: ', error);
         toast({
           title: 'Firebase Error',
-          description: 'Could not fetch deals. Using mock data as fallback.',
+          description:
+            'Could not fetch data. Using mock data as fallback.',
           variant: 'destructive',
         });
         setDeals(mockDeals);
+        setContracts(mockContracts);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDeals();
+    fetchAllData();
   }, [toast, user]);
 
   const addDeal = async (values: Omit<Deal, 'id' | 'status' | 'paid'>) => {
@@ -129,7 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         status: 'Upcoming' as DealStatus,
         paid: false,
         createdAt: serverTimestamp(),
-        userId: user.uid, // Associate deal with user
+        userId: user.uid,
       };
       const docRef = await addDoc(collection(db, 'deals'), newDealData);
 
@@ -193,10 +224,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateContractStatus = (
+  const updateContractStatus = async (
     contractId: string,
     newStatus: Contract['status']
   ) => {
+    const originalContracts = contracts;
     setContracts((prev) =>
       prev.map((contract) =>
         contract.id === contractId
@@ -204,25 +236,71 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : contract
       )
     );
-    toast({
-      title: 'Status Updated!',
-      description: `Contract status has been changed to "${newStatus}".`,
-    });
+
+    if (!db) {
+      toast({
+        title: 'Status Updated (Offline)!',
+        description: `Contract status has been changed to "${newStatus}" locally.`,
+      });
+      return;
+    }
+    try {
+      const contractRef = doc(db, 'contracts', contractId);
+      await updateDoc(contractRef, {
+        status: newStatus,
+      });
+      toast({
+        title: 'Status Updated!',
+        description: `Contract status has been changed to "${newStatus}".`,
+      });
+    } catch (error) {
+      console.error('Error updating contract status: ', error);
+      setContracts(originalContracts); // Revert on failure
+      toast({
+        title: 'Error updating status',
+        description: 'Could not update the contract status in the database.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const processContract = async (file: File) => {
+    if (!db || !storage || !user) {
+      toast({
+        title: 'Firebase Not Configured',
+        description:
+          'Please configure Firebase in your .env file to upload contracts.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const contractId = doc(collection(db, 'temp')).id;
     const newContract: Contract = {
-      id: crypto.randomUUID(),
+      id: contractId,
       fileName: file.name,
       uploadDate: new Date().toISOString().split('T')[0],
       status: 'Processing',
     };
     setContracts((prev) => [newContract, ...prev]);
 
-    return new Promise<void>((resolve) => {
+    try {
+      const storagePath = `contracts/${user.uid}/${contractId}-${file.name}`;
+      const storageRef = ref(storage, storagePath);
+      await uploadBytes(storageRef, file);
+
+      const contractDocRef = doc(db, 'contracts', contractId);
+      await setDoc(contractDocRef, {
+        fileName: file.name,
+        uploadDate: new Date().toISOString(),
+        status: 'Processing',
+        userId: user.uid,
+        storagePath: storagePath,
+      });
+
+      // Simulate AI processing for now
       setTimeout(async () => {
-        const processedContract = {
-          ...newContract,
+        const processedData = {
           status: 'Done' as const,
           brandName: 'AI Extracted Brand',
           startDate: '2024-08-01',
@@ -230,27 +308,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
           payment: Math.floor(Math.random() * 2000) + 500,
         };
 
+        await updateDoc(contractDocRef, processedData);
+
         setContracts((prev) =>
-          prev.map((c) => (c.id === newContract.id ? processedContract : c))
+          prev.map((c) =>
+            c.id === contractId ? { ...c, ...newContract, ...processedData } : c
+          )
         );
 
         await addDeal({
-          brandName: processedContract.brandName || 'Unnamed Brand',
-          campaignName: `Campaign for ${processedContract.fileName}`,
+          brandName: processedData.brandName,
+          campaignName: `Campaign for ${file.name}`,
           deliverables: '1 post, 2 stories',
-          dueDate:
-            processedContract.endDate ||
-            new Date().toISOString().split('T')[0],
-          payment: processedContract.payment || 0,
+          dueDate: processedData.endDate,
+          payment: processedData.payment,
         });
 
         toast({
           title: 'Success!',
-          description: `Contract "${newContract.fileName}" processed and a new deal was created.`,
+          description: `Contract "${file.name}" processed and a new deal was created.`,
         });
-        resolve();
       }, 3000);
-    });
+    } catch (error) {
+      console.error('Error processing contract:', error);
+      setContracts((prev) => prev.filter((c) => c.id !== contractId));
+      toast({
+        title: 'Upload Failed',
+        description: 'Could not upload or process the contract file.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const signOutUser = async () => {
