@@ -23,6 +23,7 @@ const ExtractContractDetailsOutputSchema = z.object({
   brandName: z.string().describe('The name of the brand or company mentioned in the contract.'),
   startDate: z.string().describe('The start date of the contract term, formatted as YYYY-MM-DD.'),
   endDate: z.string().describe('The end date of the contract term, formatted as YYYY-MM-DD.'),
+  deliverables: z.string().describe('A summary of the key deliverables required by the contract (e.g., "2 Instagram posts, 1 Story").'),
   payment: z.number().describe('The total payment amount specified in the contract.'),
 });
 export type ExtractContractDetailsOutput = z.infer<typeof ExtractContractDetailsOutputSchema>;
@@ -40,6 +41,7 @@ const prompt = ai.definePrompt({
 - The Brand Name (the company the influencer is collaborating with)
 - The Start Date of the agreement
 - The End Date of the agreement
+- The key Deliverables (e.g., "2 Instagram posts, 1 Story")
 - The total Payment amount promised to the influencer
 
 Analyze the contract provided as a PDF.

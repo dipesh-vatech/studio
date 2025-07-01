@@ -361,7 +361,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await addDeal({
         brandName: processedData.brandName,
         campaignName: `Campaign for ${file.name}`,
-        deliverables: 'Extracted from contract',
+        deliverables: processedData.deliverables,
         dueDate: processedData.endDate,
         payment: processedData.payment,
       });
