@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -30,8 +31,15 @@ import {
   where,
   setDoc,
   getDoc,
+  deleteDoc,
 } from 'firebase/firestore';
-import { type User, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
+import {
+  type User,
+  onAuthStateChanged,
+  signOut,
+  updateProfile,
+  deleteUser,
+} from 'firebase/auth';
 import { ref, uploadBytes } from 'firebase/storage';
 import { extractContractDetails } from '@/ai/flows/extract-contract-details';
 
@@ -58,6 +66,7 @@ interface AppDataContextType {
     displayName: string;
     profileType: ProfileType;
   }) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -538,6 +547,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteAccount = async () => {
+    if (!auth || !db) {
+      throw new Error('Firebase not configured');
+    }
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('No user is currently signed in.');
+    }
+
+    const userId = currentUser.uid;
+
+    try {
+      // For more robust data cleanup (e.g., deleting all deals, contracts),
+      // using a Cloud Function triggered by user deletion is recommended.
+      // Here, we'll just delete the main user profile document.
+      const userDocRef = doc(db, 'users', userId);
+      await deleteDoc(userDocRef);
+
+      // Finally, delete the user from Firebase Authentication
+      await deleteUser(currentUser);
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      // Re-throw the error so the component can handle it and show a specific toast.
+      throw error;
+    }
+  };
+
   const signOutUser = async () => {
     if (auth) {
       await signOut(auth);
@@ -565,6 +601,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         processContract,
         updateContractStatus,
         updateUserProfile,
+        deleteAccount,
       }}
     >
       {children}

@@ -32,6 +32,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppData } from '@/components/app-provider';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(1, 'Name is required.'),
@@ -149,6 +160,100 @@ function ProfileForm() {
   );
 }
 
+function AccountSettings() {
+  const { deleteAccount } = useAppData();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteAccount();
+      toast({
+        title: 'Account Deleted',
+        description: 'Your account and all associated data have been deleted.',
+      });
+      // The user will be redirected automatically by the auth state listener.
+    } catch (error: any) {
+      toast({
+        title: 'Error Deleting Account',
+        description:
+          error.code === 'auth/requires-recent-login'
+            ? 'This is a sensitive action. Please log out and sign back in before trying again.'
+            : 'Could not delete your account. Please try again.',
+        variant: 'destructive',
+      });
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Account</CardTitle>
+        <CardDescription>
+          Manage permanent actions for your account.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>
+              This action is permanent and cannot be undone.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Delete Account</p>
+                <p className="text-sm text-muted-foreground">
+                  Permanently delete your account and all of its associated
+                  data.
+                </p>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={isDeleting}>
+                    {isDeleting && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Delete Account
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      your account and remove all of your data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isDeleting && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardContent>
+        </Card>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function SettingsPage() {
   return (
     <div className="space-y-6">
@@ -180,19 +285,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
         <TabsContent value="account">
-          <Card>
-            <CardHeader>
-              <CardTitle>Account</CardTitle>
-              <CardDescription>Manage your account settings.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Here you can manage settings related to your account security,
-                like changing your password or deleting your account. This
-                functionality is not yet implemented.
-              </p>
-            </CardContent>
-          </Card>
+          <AccountSettings />
         </TabsContent>
         <TabsContent value="notifications">
           <Card>
