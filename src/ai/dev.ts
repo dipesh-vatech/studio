@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/generate-pitch-email.ts';
 import '@/ai/flows/extract-post-data.ts';
+import '@/ai/flows/extract-contract-details.ts';

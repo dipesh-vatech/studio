@@ -26,6 +26,7 @@ import {
 } from 'firebase/firestore';
 import { type User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { ref, uploadBytes } from 'firebase/storage';
+import { extractContractDetails } from '@/ai/flows/extract-contract-details';
 
 interface AppDataContextType {
   deals: Deal[];
@@ -43,6 +44,17 @@ interface AppDataContextType {
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
+
+function fileToDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -96,7 +108,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const dueDateVal = data.dueDate;
 
           if (dueDateVal && typeof dueDateVal.toDate === 'function') {
-            dueDate = (dueDateVal as Timestamp).toDate().toISOString().split('T')[0];
+            dueDate = (dueDateVal as Timestamp)
+              .toDate()
+              .toISOString()
+              .split('T')[0];
           } else if (typeof dueDateVal === 'string') {
             dueDate = dueDateVal.split('T')[0];
           } else {
@@ -307,10 +322,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setContracts((prev) => [newContract, ...prev]);
 
     try {
+      // 1. Upload file to Firebase Storage
       const storagePath = `contracts/${user.uid}/${contractId}-${file.name}`;
       const storageRef = ref(storage, storagePath);
       await uploadBytes(storageRef, file);
 
+      // 2. Create initial contract document in Firestore
       const contractDocRef = doc(db, 'contracts', contractId);
       await setDoc(contractDocRef, {
         fileName: file.name,
@@ -320,43 +337,55 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storagePath: storagePath,
       });
 
-      // Simulate AI processing for now
-      setTimeout(async () => {
-        const processedData = {
-          status: 'Done' as const,
-          brandName: 'AI Extracted Brand',
-          startDate: '2024-08-01',
-          endDate: '2024-09-01',
-          payment: Math.floor(Math.random() * 2000) + 500,
-        };
+      // 3. Call AI flow to process the contract
+      const contractDataUri = await fileToDataUri(file);
+      const processedData = await extractContractDetails({ contractDataUri });
 
-        await updateDoc(contractDocRef, processedData);
+      const finalContractData = {
+        status: 'Done' as const,
+        ...processedData,
+      };
 
-        setContracts((prev) =>
-          prev.map((c) =>
-            c.id === contractId ? { ...c, ...newContract, ...processedData } : c
-          )
-        );
+      // 4. Update contract document with extracted details
+      await updateDoc(contractDocRef, finalContractData);
 
-        await addDeal({
-          brandName: processedData.brandName,
-          campaignName: `Campaign for ${file.name}`,
-          deliverables: '1 post, 2 stories',
-          dueDate: processedData.endDate,
-          payment: processedData.payment,
-        });
+      setContracts((prev) =>
+        prev.map((c) =>
+          c.id === contractId
+            ? { ...c, ...newContract, ...finalContractData }
+            : c
+        )
+      );
 
-        toast({
-          title: 'Success!',
-          description: `Contract "${file.name}" processed and a new deal was created.`,
-        });
-      }, 3000);
+      // 5. Create a new deal based on the contract
+      await addDeal({
+        brandName: processedData.brandName,
+        campaignName: `Campaign for ${file.name}`,
+        deliverables: 'Extracted from contract',
+        dueDate: processedData.endDate,
+        payment: processedData.payment,
+      });
+
+      toast({
+        title: 'Success!',
+        description: `Contract "${file.name}" processed and a new deal was created.`,
+      });
     } catch (error) {
       console.error('Error processing contract:', error);
-      setContracts((prev) => prev.filter((c) => c.id !== contractId));
+      // Update contract status to 'Error' if something went wrong
+      setContracts((prev) =>
+        prev.map((c) =>
+          c.id === contractId ? { ...c, status: 'Error' } : c
+        )
+      );
+      if (db) {
+        const contractRef = doc(db, 'contracts', contractId);
+        updateDoc(contractRef, { status: 'Error' }).catch(console.error);
+      }
       toast({
-        title: 'Upload Failed',
-        description: 'Could not upload or process the contract file.',
+        title: 'Processing Failed',
+        description:
+          'Could not analyze the contract file. Please check the file and try again.',
         variant: 'destructive',
       });
     }
