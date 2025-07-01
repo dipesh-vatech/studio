@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/tabs';
 import { type Deal, type DealStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -151,6 +151,7 @@ const DealTable = ({
 export default function DealsPage() {
   const { deals, addDeal, updateDealStatus } = useAppData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof newDealSchema>>({
     resolver: zodResolver(newDealSchema),
@@ -163,10 +164,15 @@ export default function DealsPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof newDealSchema>) {
-    addDeal(values);
-    form.reset();
-    setIsDialogOpen(false);
+  async function onSubmit(values: z.infer<typeof newDealSchema>) {
+    setIsSubmitting(true);
+    try {
+      await addDeal(values);
+      form.reset();
+      setIsDialogOpen(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const tabs: { value: DealStatus | 'all'; label: string }[] = [
@@ -291,7 +297,12 @@ export default function DealsPage() {
                     />
                   </div>
                   <DialogFooter>
-                    <Button type="submit">Add Deal</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Add Deal
+                    </Button>
                   </DialogFooter>
                 </form>
               </Form>
