@@ -199,116 +199,232 @@ const DealTable = ({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[40px]"></TableHead>
-          <TableHead>Brand</TableHead>
-          <TableHead>Campaign</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Progress</TableHead>
-          <TableHead>Due Date</TableHead>
-          <TableHead className="text-right">Payment</TableHead>
-          <TableHead className="w-[80px] text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      {/* Desktop Table View */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[40px]"></TableHead>
+              <TableHead>Brand</TableHead>
+              <TableHead>Campaign</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Progress</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead className="text-right">Payment</TableHead>
+              <TableHead className="w-[80px] text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {deals.map((deal) => {
+              const totalTasks = deal.tasks.length;
+              const completedTasks = deal.tasks.filter((t) => t.completed).length;
+              const progress =
+                totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+              return (
+                <React.Fragment key={deal.id}>
+                  <TableRow>
+                    <TableCell
+                      className="pl-4 cursor-pointer"
+                      onClick={() => toggleRow(deal.id)}
+                    >
+                      {expandedDealId === deal.id ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{deal.brandName}</TableCell>
+                    <TableCell>{deal.campaignName}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={deal.status}
+                        onValueChange={(value) => {
+                          onStatusChange(deal.id, value as DealStatus)
+                        }}
+                      >
+                        <SelectTrigger
+                          onClick={(e) => e.stopPropagation()}
+                          className={cn(
+                            'w-[160px] border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 text-xs font-semibold',
+                            statusColors[deal.status]
+                          )}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.keys(statusColors).map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Progress value={progress} className="w-24" />
+                        <span className="text-xs text-muted-foreground">{`${Math.round(
+                          progress
+                        )}%`}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{deal.dueDate}</TableCell>
+                    <TableCell className="text-right">
+                      ${deal.payment.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete the deal and all its tasks. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteDeal(deal.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                  {expandedDealId === deal.id && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="p-0">
+                        <DealTasks deal={deal} />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="space-y-4 md:hidden">
         {deals.map((deal) => {
           const totalTasks = deal.tasks.length;
-          const completedTasks = deal.tasks.filter((t) => t.completed).length;
+          const completedTasks = deal.tasks.filter(
+            (t) => t.completed
+          ).length;
           const progress =
             totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+          const isExpanded = expandedDealId === deal.id;
+
           return (
-            <React.Fragment key={deal.id}>
-              <TableRow>
-                <TableCell
-                  className="pl-4 cursor-pointer"
-                  onClick={() => toggleRow(deal.id)}
-                >
-                  {expandedDealId === deal.id ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </TableCell>
-                <TableCell className="font-medium">{deal.brandName}</TableCell>
-                <TableCell>{deal.campaignName}</TableCell>
-                <TableCell>
-                  <Select
-                    value={deal.status}
-                    onValueChange={(value) => {
-                      onStatusChange(deal.id, value as DealStatus)
-                    }}
-                  >
-                    <SelectTrigger
-                      onClick={(e) => e.stopPropagation()}
-                      className={cn(
-                        'w-[160px] border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 text-xs font-semibold',
-                        statusColors[deal.status]
-                      )}
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.keys(statusColors).map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Progress value={progress} className="w-24" />
-                    <span className="text-xs text-muted-foreground">{`${Math.round(
-                      progress
-                    )}%`}</span>
+            <Card key={deal.id} className="overflow-hidden">
+              <CardContent className="p-4 space-y-4">
+                <div className="flex justify-between items-start gap-4">
+                  <div>
+                    <h3 className="font-semibold text-base leading-tight">{deal.campaignName}</h3>
+                    <p className="text-sm text-muted-foreground">{deal.brandName}</p>
                   </div>
-                </TableCell>
-                <TableCell>{deal.dueDate}</TableCell>
-                <TableCell className="text-right">
-                  ${deal.payment.toLocaleString()}
-                </TableCell>
-                <TableCell className="text-right">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete the deal and all its tasks. This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteDeal(deal.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                   <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete the deal and all its tasks. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteDeal(deal.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+                
+                <div className="text-sm space-y-3">
+                   <div className="flex items-center justify-between">
+                     <FormLabel>Status</FormLabel>
+                     <Select
+                        value={deal.status}
+                        onValueChange={(value) => {
+                          onStatusChange(deal.id, value as DealStatus)
+                        }}
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            'w-[160px] h-8 text-xs border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 font-semibold',
+                            statusColors[deal.status]
+                          )}
                         >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </TableCell>
-              </TableRow>
-              {expandedDealId === deal.id && (
-                <TableRow>
-                  <TableCell colSpan={8} className="p-0">
-                    <DealTasks deal={deal} />
-                  </TableCell>
-                </TableRow>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.keys(statusColors).map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                   </div>
+                   <div className="flex items-center justify-between">
+                      <FormLabel>Due Date</FormLabel>
+                      <p className="font-medium">{deal.dueDate}</p>
+                   </div>
+                   <div className="flex items-center justify-between">
+                     <FormLabel>Payment</FormLabel>
+                     <p className="font-semibold text-primary">${deal.payment.toLocaleString()}</p>
+                   </div>
+                </div>
+
+                <div>
+                   <div className="flex items-center justify-between mb-1">
+                      <FormLabel>Task Progress</FormLabel>
+                      <span className="text-xs text-muted-foreground">{`${Math.round(progress)}%`}</span>
+                   </div>
+                   <Progress value={progress} className="h-2" />
+                </div>
+              </CardContent>
+
+              <div
+                className="border-t bg-muted/30 p-3 flex justify-between items-center cursor-pointer"
+                onClick={() => toggleRow(deal.id)}
+              >
+                <h4 className="text-sm font-semibold">
+                  Tasks ({completedTasks}/{totalTasks})
+                </h4>
+                {isExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </div>
+              {isExpanded && (
+                 <DealTasks deal={deal} />
               )}
-            </React.Fragment>
+            </Card>
           );
         })}
-      </TableBody>
-    </Table>
+      </div>
+    </>
   );
 };
 
@@ -504,7 +620,7 @@ export default function DealsPage() {
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6 pt-0">
         <Tabs defaultValue="all">
           <TabsList>
             {tabs.map((tab) => (
