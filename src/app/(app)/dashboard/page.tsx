@@ -1,10 +1,12 @@
+'use client';
+
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -12,41 +14,97 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { mockDeals } from "@/lib/mock-data";
-import { Activity, CircleDollarSign, Clock, AlertTriangle } from "lucide-react";
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import {
+  Activity,
+  CircleDollarSign,
+  Clock,
+  AlertTriangle,
+  Loader2,
+} from 'lucide-react';
+import { useAppData } from '@/components/app-provider';
+import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
 
 export default function Dashboard() {
-  const recentDeals = mockDeals.slice(0, 4);
+  const { deals, loadingData } = useAppData();
 
-  const stats = [
-    { title: "Active Deals", value: "3", icon: Activity, color: "text-primary" },
-    { title: "Overdue Tasks", value: "1", icon: AlertTriangle, color: "text-destructive" },
-    { title: "Unpaid Invoices", value: "2", icon: CircleDollarSign, color: "text-amber-500" },
-    { title: "Upcoming Deadlines", value: "5", icon: Clock, color: "text-blue-500" },
+  if (loadingData) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const recentDeals = deals.slice(0, 4);
+
+  const stats = {
+    active: deals.filter((d) => d.status === 'In Progress').length,
+    overdue: deals.filter((d) => d.status === 'Overdue').length,
+    unpaid: deals.filter((d) => d.status === 'Awaiting Payment').length,
+    upcoming: deals.filter((d) => d.status === 'Upcoming').length,
+  };
+
+  const statCards = [
+    {
+      title: 'Active Deals',
+      value: stats.active.toString(),
+      icon: Activity,
+      color: 'text-primary',
+    },
+    {
+      title: 'Overdue Tasks',
+      value: stats.overdue.toString(),
+      icon: AlertTriangle,
+      color: 'text-destructive',
+    },
+    {
+      title: 'Awaiting Payment',
+      value: stats.unpaid.toString(),
+      icon: CircleDollarSign,
+      color: 'text-amber-500',
+    },
+    {
+      title: 'Upcoming Deadlines',
+      value: stats.upcoming.toString(),
+      icon: Clock,
+      color: 'text-blue-500',
+    },
   ];
 
-  const reminders = [
-    { text: "Follow up with BrandFresh", due: "in 2 days" },
-    { text: "Post TechGizmo review", due: "in 5 days" },
-    { text: "Invoice FitFuel", due: "OVERDUE" },
-  ];
+  const reminders = deals
+    .filter((deal) => deal.status === 'Upcoming' || deal.status === 'Overdue')
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .slice(0, 3)
+    .map((deal) => {
+      const dueDate = parseISO(deal.dueDate);
+      const isOverdue = deal.status === 'Overdue' || isPast(dueDate);
+      return {
+        text: `Check on: ${deal.campaignName}`,
+        brand: deal.brandName,
+        due: isOverdue
+          ? 'OVERDUE'
+          : formatDistanceToNow(dueDate, { addSuffix: true }),
+        isOverdue: isOverdue,
+      };
+    });
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className={`h-4 w-4 text-muted-foreground ${stat.color}`} />
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
+              <stat.icon
+                className={`h-4 w-4 text-muted-foreground ${stat.color}`}
+              />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                +2 from last month
-              </p>
             </CardContent>
           </Card>
         ))}
@@ -61,28 +119,39 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Brand</TableHead>
-                  <TableHead>Campaign</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Payment</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentDeals.map((deal) => (
-                  <TableRow key={deal.id}>
-                    <TableCell className="font-medium">{deal.brandName}</TableCell>
-                    <TableCell>{deal.campaignName}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{deal.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">${deal.payment.toLocaleString()}</TableCell>
+            {recentDeals.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Brand</TableHead>
+                    <TableHead>Campaign</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Payment</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {recentDeals.map((deal) => (
+                    <TableRow key={deal.id}>
+                      <TableCell className="font-medium">
+                        {deal.brandName}
+                      </TableCell>
+                      <TableCell>{deal.campaignName}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{deal.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ${deal.payment.toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="py-12 text-center text-muted-foreground">
+                <p>No recent collaborations to display.</p>
+                <p className="text-sm">Add a new deal to get started!</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -94,23 +163,36 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {reminders.map((reminder, index) => (
-                <div key={index} className="flex items-center">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary">
-                    <Clock className="h-4 w-4 text-secondary-foreground" />
+            {reminders.length > 0 ? (
+              <div className="space-y-4">
+                {reminders.map((reminder, index) => (
+                  <div key={index} className="flex items-center">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary">
+                      <Clock className="h-4 w-4 text-secondary-foreground" />
+                    </div>
+                    <div className="ml-4 space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {reminder.text}
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          reminder.isOverdue
+                            ? 'font-semibold text-destructive'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        {reminder.due}
+                      </p>
+                    </div>
                   </div>
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {reminder.text}
-                    </p>
-                    <p className={`text-sm ${reminder.due === 'OVERDUE' ? 'text-destructive' : 'text-muted-foreground'}`}>
-                      {reminder.due}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-muted-foreground">
+                <p>No active reminders.</p>
+                <p className="text-sm">You're all caught up!</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

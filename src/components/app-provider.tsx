@@ -33,6 +33,7 @@ interface AppDataContextType {
   contracts: Contract[];
   user: User | null;
   loadingAuth: boolean;
+  loadingData: boolean;
   signOut: () => Promise<void>;
   addDeal: (values: Omit<Deal, 'id' | 'status' | 'paid'>) => Promise<void>;
   updateDealStatus: (dealId: string, newStatus: DealStatus) => Promise<void>;
@@ -59,7 +60,7 @@ function fileToDataUri(file: File): Promise<string> {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingData, setLoadingData] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const { toast } = useToast();
@@ -80,17 +81,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user) {
       setDeals([]);
       setContracts([]);
-      setLoading(false);
+      setLoadingData(false);
       return;
     }
     const fetchAllData = async () => {
+      setLoadingData(true);
       if (!db) {
         console.warn(
           'Firebase not configured. Using mock data for Deals & Contracts.'
         );
         setDeals(mockDeals);
         setContracts(mockContracts);
-        setLoading(false);
+        setLoadingData(false);
         return;
       }
       try {
@@ -145,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               .toISOString()
               .split('T')[0];
           } else if (typeof uploadDateVal === 'string') {
-            uploadDate = uploadDateVal.split('T')[0];
+            uploadDate = uploadDateVal;
           } else {
             uploadDate = new Date().toISOString().split('T')[0];
           }
@@ -168,7 +170,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setDeals(mockDeals);
         setContracts(mockContracts);
       } finally {
-        setLoading(false);
+        setLoadingData(false);
       }
     };
 
@@ -358,13 +360,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
 
       // 5. Create a new deal based on the contract
-      await addDeal({
-        brandName: processedData.brandName,
-        campaignName: `Campaign for ${file.name}`,
-        deliverables: processedData.deliverables,
-        dueDate: processedData.endDate,
-        payment: processedData.payment,
-      });
+      if (processedData.brandName && processedData.endDate && processedData.payment && processedData.deliverables) {
+        await addDeal({
+          brandName: processedData.brandName,
+          campaignName: `Campaign for ${processedData.brandName}`,
+          deliverables: processedData.deliverables,
+          dueDate: processedData.endDate,
+          payment: processedData.payment,
+        });
+      }
+
 
       toast({
         title: 'Success!',
@@ -406,6 +411,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loadingAuth,
+        loadingData,
         signOut: signOutUser,
         deals,
         contracts,
