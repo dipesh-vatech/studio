@@ -13,11 +13,13 @@ import {
   BarChart,
   FileText,
   Settings,
+  CalendarDays,
 } from 'lucide-react';
 
 const links = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/deals', label: 'Deals', icon: Handshake },
+  { href: '/scheduler', label: 'Scheduler', icon: CalendarDays },
   { href: '/pitch-generator', label: 'Pitch AI', icon: Lightbulb },
   { href: '/performance', label: 'Performance', icon: BarChart },
   { href: '/contracts', label: 'Contracts', icon: FileText },

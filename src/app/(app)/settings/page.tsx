@@ -50,6 +50,7 @@ import {
 const profileFormSchema = z.object({
   displayName: z.string().min(1, 'Name is required.'),
   profileType: z.enum(['influencer', 'brand']),
+  niche: z.string().optional(),
 });
 
 const passwordFormSchema = z
@@ -80,14 +81,18 @@ function ProfileForm() {
     defaultValues: {
       displayName: '',
       profileType: 'influencer',
+      niche: '',
     },
   });
+
+  const profileType = form.watch('profileType');
 
   useEffect(() => {
     if (user && userProfile) {
       form.reset({
         displayName: user.displayName || '',
         profileType: userProfile.profileType || 'influencer',
+        niche: userProfile.niche || '',
       });
     }
   }, [user, userProfile, form]);
@@ -117,21 +122,43 @@ function ProfileForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
+        <FormField
+          control={form.control}
+          name="displayName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Your Name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {profileType === 'influencer' && (
           <FormField
             control={form.control}
-            name="displayName"
+            name="niche"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Your Niche</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your Name" {...field} />
+                  <Input
+                    placeholder="e.g. Fashion, Tech, Gaming"
+                    {...field}
+                    value={field.value || ''}
+                  />
                 </FormControl>
+                <FormDescription>
+                  Let AI know what your content is about for better suggestions.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </div>
+        )}
+
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" value={user.email || ''} disabled />

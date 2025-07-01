@@ -67,6 +67,7 @@ interface AppDataContextType {
   updateUserProfile: (data: {
     displayName: string;
     profileType: ProfileType;
+    niche?: string;
   }) => Promise<void>;
   updateUserPassword: (password: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -169,6 +170,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             profileType: 'influencer',
             notificationSettings: defaultNotificationSettings,
             plan: 'Free',
+            niche: '',
           };
           await setDoc(userDocRef, defaultProfile);
           setUserProfile(defaultProfile);
@@ -286,23 +288,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateUserProfile = async (data: {
     displayName: string;
     profileType: ProfileType;
+    niche?: string;
   }) => {
     if (!user || !db || !auth.currentUser) return;
-    const { displayName, profileType } = data;
+    const { displayName, profileType, niche } = data;
 
     const originalUser = { ...user };
     const originalProfile = { ...userProfile };
 
     // Optimistic update
     setUser({ ...user, displayName } as User);
-    setUserProfile({ ...userProfile, profileType } as UserProfile);
+    setUserProfile({ ...userProfile, profileType, niche } as UserProfile);
 
     try {
       if (auth.currentUser.displayName !== displayName) {
         await updateProfile(auth.currentUser, { displayName });
       }
       const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, { profileType }, { merge: true });
+      await setDoc(userDocRef, { profileType, niche: niche || null }, { merge: true });
 
       toast({
         title: 'Success',
