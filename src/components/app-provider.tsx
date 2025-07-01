@@ -16,6 +16,7 @@ import type {
   UserProfile,
   ProfileType,
   NotificationSettings,
+  Task,
 } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db, storage } from '@/lib/firebase';
@@ -54,7 +55,7 @@ interface AppDataContextType {
   loadingAuth: boolean;
   loadingData: boolean;
   signOut: () => Promise<void>;
-  addDeal: (values: Omit<Deal, 'id' | 'status' | 'paid'>) => Promise<void>;
+  addDeal: (values: Omit<Deal, 'id' | 'status' | 'paid' | 'tasks'>) => Promise<void>;
   updateDealStatus: (dealId: string, newStatus: DealStatus) => Promise<void>;
   addPerformancePost: (
     postData: Omit<PerformancePost, 'id' | 'date'>
@@ -73,6 +74,13 @@ interface AppDataContextType {
   updateNotificationSettings: (settings: NotificationSettings) => Promise<void>;
   dismissDealNotification: (dealId: string) => Promise<void>;
   updateUserPlan: (plan: 'Free' | 'Pro') => void;
+  addTaskToDeal: (dealId: string, taskTitle: string) => Promise<void>;
+  updateTaskStatus: (
+    dealId: string,
+    taskId: string,
+    completed: boolean
+  ) => Promise<void>;
+  deleteTask: (dealId: string, taskId: string) => Promise<void>;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -192,6 +200,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             id: doc.id,
             ...data,
             dueDate,
+            tasks: data.tasks || [],
           } as Deal;
         });
         setDeals(dealsList);
@@ -310,7 +319,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addDeal = async (values: Omit<Deal, 'id' | 'status' | 'paid'>) => {
+  const addDeal = async (values: Omit<Deal, 'id' | 'status' | 'paid' | 'tasks'>) => {
     if (!db || !user) {
       toast({
         title: 'Offline Mode',
@@ -337,6 +346,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         paid: false,
         createdAt: serverTimestamp(),
         userId: user.uid,
+        tasks: [],
       };
       const docRef = await addDoc(collection(db, 'deals'), newDealData);
 
@@ -345,6 +355,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...values,
         status: 'Upcoming',
         paid: false,
+        tasks: [],
       };
       setDeals((prev) => [newDeal, ...prev]);
 
@@ -716,6 +727,119 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const addTaskToDeal = async (dealId: string, taskTitle: string) => {
+    if (!db || !user) return;
+    const dealRef = doc(db, 'deals', dealId);
+
+    const newTask: Task = {
+      id: doc(collection(db, 'temp')).id,
+      title: taskTitle,
+      completed: false,
+    };
+
+    const originalDeals = deals;
+    setDeals((prev) =>
+      prev.map((d) =>
+        d.id === dealId ? { ...d, tasks: [...d.tasks, newTask] } : d
+      )
+    );
+
+    try {
+      const dealSnap = await getDoc(dealRef);
+      if (dealSnap.exists()) {
+        const currentTasks = dealSnap.data().tasks || [];
+        await updateDoc(dealRef, { tasks: [...currentTasks, newTask] });
+        toast({ title: 'Task added' });
+      }
+    } catch (error) {
+      console.error('Error adding task: ', error);
+      setDeals(originalDeals);
+      toast({
+        title: 'Error',
+        description: 'Could not add task.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const updateTaskStatus = async (
+    dealId: string,
+    taskId: string,
+    completed: boolean
+  ) => {
+    if (!db || !user) return;
+    const dealRef = doc(db, 'deals', dealId);
+    const originalDeals = deals;
+
+    setDeals((prevDeals) =>
+      prevDeals.map((deal) => {
+        if (deal.id === dealId) {
+          return {
+            ...deal,
+            tasks: deal.tasks.map((task) =>
+              task.id === taskId ? { ...task, completed } : task
+            ),
+          };
+        }
+        return deal;
+      })
+    );
+
+    try {
+      const dealSnap = await getDoc(dealRef);
+      if (dealSnap.exists()) {
+        const dealData = dealSnap.data();
+        const updatedTasks = (dealData.tasks || []).map((task: Task) =>
+          task.id === taskId ? { ...task, completed } : task
+        );
+        await updateDoc(dealRef, { tasks: updatedTasks });
+      }
+    } catch (error) {
+      console.error('Error updating task: ', error);
+      setDeals(originalDeals);
+      toast({
+        title: 'Error',
+        description: 'Could not update task status.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deleteTask = async (dealId: string, taskId: string) => {
+    if (!db || !user) return;
+    const dealRef = doc(db, 'deals', dealId);
+    const originalDeals = deals;
+
+    setDeals((prevDeals) =>
+      prevDeals.map((deal) => {
+        if (deal.id === dealId) {
+          return { ...deal, tasks: deal.tasks.filter((t) => t.id !== taskId) };
+        }
+        return deal;
+      })
+    );
+
+    try {
+      const dealSnap = await getDoc(dealRef);
+      if (dealSnap.exists()) {
+        const dealData = dealSnap.data();
+        const updatedTasks = (dealData.tasks || []).filter(
+          (task: Task) => task.id !== taskId
+        );
+        await updateDoc(dealRef, { tasks: updatedTasks });
+        toast({ title: 'Task deleted' });
+      }
+    } catch (error) {
+      console.error('Error deleting task: ', error);
+      setDeals(originalDeals);
+      toast({
+        title: 'Error',
+        description: 'Could not delete task.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const signOutUser = async () => {
     if (auth) {
       await signOut(auth);
@@ -748,6 +872,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateNotificationSettings,
         dismissDealNotification,
         updateUserPlan,
+        addTaskToDeal,
+        updateTaskStatus,
+        deleteTask,
       }}
     >
       {children}

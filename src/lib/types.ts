@@ -1,3 +1,9 @@
+export type Task = {
+  id: string;
+  title: string;
+  completed: boolean;
+};
+
 export type DealStatus = "Upcoming" | "In Progress" | "Awaiting Payment" | "Completed" | "Overdue";
 
 export type Deal = {
@@ -10,6 +16,7 @@ export type Deal = {
   payment: number;
   paid: boolean;
   notificationDismissed?: boolean;
+  tasks: Task[];
 };
 
 export type Platform = "Instagram" | "TikTok" | "YouTube";

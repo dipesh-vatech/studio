@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,9 +36,16 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { type Deal, type DealStatus } from '@/lib/types';
+import { type Deal, type DealStatus, type Task } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, AlertCircle } from 'lucide-react';
+import {
+  Loader2,
+  PlusCircle,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -60,6 +67,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAppData } from '@/components/app-provider';
+import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const statusColors: Record<DealStatus, string> = {
   Upcoming: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -82,6 +92,79 @@ const newDealSchema = z.object({
     .min(0, 'Payment must be a positive number'),
 });
 
+const DealTasks = ({ deal }: { deal: Deal }) => {
+  const { addTaskToDeal, updateTaskStatus, deleteTask } = useAppData();
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+
+  const completedTasks = deal.tasks.filter((t) => t.completed).length;
+  const totalTasks = deal.tasks.length;
+  const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newTaskTitle.trim()) {
+      addTaskToDeal(deal.id, newTaskTitle.trim());
+      setNewTaskTitle('');
+    }
+  };
+
+  return (
+    <div className="p-4 space-y-4 bg-muted/50">
+      <div className="flex items-center justify-between">
+        <h4 className="font-semibold text-lg">Tasks</h4>
+        <div className="text-sm text-muted-foreground">
+          {completedTasks} of {totalTasks} completed
+        </div>
+      </div>
+
+      <Progress value={progress} />
+
+      <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+        {deal.tasks.map((task) => (
+          <div
+            key={task.id}
+            className="flex items-center gap-3 p-2 rounded-md bg-background"
+          >
+            <Checkbox
+              id={`task-${task.id}`}
+              checked={task.completed}
+              onCheckedChange={(checked) =>
+                updateTaskStatus(deal.id, task.id, !!checked)
+              }
+            />
+            <Label
+              htmlFor={`task-${task.id}`}
+              className={cn(
+                'flex-1 cursor-pointer',
+                task.completed && 'line-through text-muted-foreground'
+              )}
+            >
+              {task.title}
+            </Label>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => deleteTask(deal.id, task.id)}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      <form onSubmit={handleAddTask} className="flex gap-2 pt-2">
+        <Input
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
+          placeholder="Add a new task..."
+        />
+        <Button type="submit">Add Task</Button>
+      </form>
+    </div>
+  );
+};
+
 const DealTable = ({
   deals,
   onStatusChange,
@@ -89,6 +172,12 @@ const DealTable = ({
   deals: Deal[];
   onStatusChange: (dealId: string, newStatus: DealStatus) => void;
 }) => {
+  const [expandedDealId, setExpandedDealId] = useState<string | null>(null);
+
+  const toggleRow = (dealId: string) => {
+    setExpandedDealId((prevId) => (prevId === dealId ? null : dealId));
+  };
+
   if (deals.length === 0) {
     return (
       <div className="text-center text-muted-foreground p-8">
@@ -101,50 +190,84 @@ const DealTable = ({
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-[40px]"></TableHead>
           <TableHead>Brand</TableHead>
           <TableHead>Campaign</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Deliverables</TableHead>
+          <TableHead>Progress</TableHead>
           <TableHead>Due Date</TableHead>
           <TableHead className="text-right">Payment</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {deals.map((deal) => (
-          <TableRow key={deal.id}>
-            <TableCell className="font-medium">{deal.brandName}</TableCell>
-            <TableCell>{deal.campaignName}</TableCell>
-            <TableCell>
-              <Select
-                value={deal.status}
-                onValueChange={(value) =>
-                  onStatusChange(deal.id, value as DealStatus)
-                }
+        {deals.map((deal) => {
+          const totalTasks = deal.tasks.length;
+          const completedTasks = deal.tasks.filter((t) => t.completed).length;
+          const progress =
+            totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+          return (
+            <React.Fragment key={deal.id}>
+              <TableRow
+                onClick={() => toggleRow(deal.id)}
+                className="cursor-pointer"
               >
-                <SelectTrigger
-                  className={cn(
-                    'w-[160px] border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 text-xs font-semibold',
-                    statusColors[deal.status]
+                <TableCell className="pl-4">
+                  {expandedDealId === deal.id ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
                   )}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(statusColors).map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </TableCell>
-            <TableCell>{deal.deliverables}</TableCell>
-            <TableCell>{deal.dueDate}</TableCell>
-            <TableCell className="text-right">
-              ${deal.payment.toLocaleString()}
-            </TableCell>
-          </TableRow>
-        ))}
+                </TableCell>
+                <TableCell className="font-medium">{deal.brandName}</TableCell>
+                <TableCell>{deal.campaignName}</TableCell>
+                <TableCell>
+                  <Select
+                    value={deal.status}
+                    onValueChange={(value) => {
+                      onStatusChange(deal.id, value as DealStatus)
+                    }}
+                  >
+                    <SelectTrigger
+                      onClick={(e) => e.stopPropagation()}
+                      className={cn(
+                        'w-[160px] border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 text-xs font-semibold',
+                        statusColors[deal.status]
+                      )}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(statusColors).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Progress value={progress} className="w-24" />
+                    <span className="text-xs text-muted-foreground">{`${Math.round(
+                      progress
+                    )}%`}</span>
+                  </div>
+                </TableCell>
+                <TableCell>{deal.dueDate}</TableCell>
+                <TableCell className="text-right">
+                  ${deal.payment.toLocaleString()}
+                </TableCell>
+              </TableRow>
+              {expandedDealId === deal.id && (
+                <TableRow>
+                  <TableCell colSpan={7} className="p-0">
+                    <DealTasks deal={deal} />
+                  </TableCell>
+                </TableRow>
+              )}
+            </React.Fragment>
+          );
+        })}
       </TableBody>
     </Table>
   );
@@ -200,7 +323,7 @@ export default function DealsPage() {
           <div>
             <CardTitle>Deal Tracker</CardTitle>
             <CardDescription>
-              Manage your brand collaborations.
+              Manage your brand collaborations and their tasks.
             </CardDescription>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
