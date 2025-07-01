@@ -217,12 +217,12 @@ export default function SettingsPage() {
               <CardDescription>
                 Manage your subscription and payment methods.
               </CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
               <p className="text-muted-foreground">
                 View your current plan, upgrade, and manage payment details.
                 This functionality is not yet implemented.
-              p>
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
