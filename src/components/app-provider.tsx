@@ -72,6 +72,7 @@ interface AppDataContextType {
   deleteAccount: () => Promise<void>;
   updateNotificationSettings: (settings: NotificationSettings) => Promise<void>;
   dismissDealNotification: (dealId: string) => Promise<void>;
+  updateUserPlan: (plan: 'Free' | 'Pro') => void;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -148,12 +149,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (!profileData.notificationSettings) {
             profileData.notificationSettings = defaultNotificationSettings;
           }
+          if (!profileData.plan) {
+            profileData.plan = 'Free';
+          }
           setUserProfile(profileData);
         } else {
           // Create a default profile if it doesn't exist
           const defaultProfile: UserProfile = {
             profileType: 'influencer',
             notificationSettings: defaultNotificationSettings,
+            plan: 'Free',
           };
           await setDoc(userDocRef, defaultProfile);
           setUserProfile(defaultProfile);
@@ -677,6 +682,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUserPlan = (plan: 'Free' | 'Pro') => {
+    if (!user) return;
+    setUserProfile((prev) => (prev ? { ...prev, plan } : null));
+    toast({
+      title: 'Plan Updated!',
+      description: `This is a simulation. You are now on the ${plan} plan.`,
+    });
+  };
+
   const signOutUser = async () => {
     if (auth) {
       await signOut(auth);
@@ -708,6 +722,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteAccount,
         updateNotificationSettings,
         dismissDealNotification,
+        updateUserPlan,
       }}
     >
       {children}

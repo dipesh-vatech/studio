@@ -52,4 +52,5 @@ export interface NotificationSettings {
 export interface UserProfile {
   profileType: ProfileType;
   notificationSettings?: NotificationSettings;
+  plan?: 'Free' | 'Pro';
 }

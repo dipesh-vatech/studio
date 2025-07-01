@@ -32,7 +32,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppData } from '@/components/app-provider';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -481,6 +481,116 @@ function NotificationsForm() {
   );
 }
 
+function BillingSettings() {
+  const { userProfile, updateUserPlan } = useAppData();
+
+  if (!userProfile) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Billing</CardTitle>
+          <CardDescription>
+            Manage your subscription and payment methods.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const currentPlan = userProfile.plan || 'Free';
+  const plans = [
+    {
+      name: 'Free',
+      price: '$0',
+      description: 'For individuals and starters.',
+      features: [
+        'Up to 10 deals',
+        'Basic AI Pitch Generator',
+        'Community Support',
+      ],
+    },
+    {
+      name: 'Pro',
+      price: '$25',
+      description: 'For professionals and teams.',
+      features: [
+        'Unlimited deals',
+        'Advanced AI Features',
+        'Priority Support',
+      ],
+    },
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Billing</CardTitle>
+        <CardDescription>
+          Manage your subscription and payment methods.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium">Your Plan</h3>
+          <p className="text-muted-foreground">
+            You are currently on the{' '}
+            <span className="font-semibold text-primary">{currentPlan}</span>{' '}
+            plan.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {plans.map((plan) => (
+            <Card
+              key={plan.name}
+              className={
+                currentPlan === plan.name ? 'border-2 border-primary' : ''
+              }
+            >
+              <CardHeader>
+                <CardTitle>{plan.name}</CardTitle>
+                <CardDescription>{plan.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-4xl font-bold">
+                  {plan.price}
+                  <span className="text-lg font-normal text-muted-foreground">
+                    /month
+                  </span>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-500" /> {feature}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  className="w-full"
+                  onClick={() => updateUserPlan(plan.name as 'Free' | 'Pro')}
+                  disabled={currentPlan === plan.name}
+                >
+                  {currentPlan === plan.name
+                    ? 'Current Plan'
+                    : `Switch to ${plan.name}`}
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+        <p className="text-center text-xs text-muted-foreground">
+          This is a simulated billing page. No real charges will be made.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function SettingsPage() {
   return (
@@ -519,20 +629,7 @@ export default function SettingsPage() {
           <NotificationsForm />
         </TabsContent>
         <TabsContent value="billing">
-          <Card>
-            <CardHeader>
-              <CardTitle>Billing</CardTitle>
-              <CardDescription>
-                Manage your subscription and payment methods.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                View your current plan, upgrade, and manage payment details.
-                This functionality is not yet implemented.
-              </p>
-            </CardContent>
-          </Card>
+          <BillingSettings />
         </TabsContent>
       </Tabs>
     </div>
