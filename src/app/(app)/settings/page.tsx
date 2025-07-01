@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -48,6 +47,16 @@ const profileFormSchema = z.object({
   displayName: z.string().min(1, 'Name is required.'),
   profileType: z.enum(['influencer', 'brand']),
 });
+
+const passwordFormSchema = z
+  .object({
+    newPassword: z.string().min(6, 'Password must be at least 6 characters.'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 function ProfileForm() {
   const { user, userProfile, updateUserProfile } = useAppData();
@@ -160,6 +169,99 @@ function ProfileForm() {
   );
 }
 
+function ChangePasswordForm() {
+  const { updateUserPassword } = useAppData();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof passwordFormSchema>>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: {
+      newPassword: '',
+      confirmPassword: '',
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof passwordFormSchema>) {
+    if (!updateUserPassword) {
+      toast({
+        title: 'Error',
+        description: 'Update function not available.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await updateUserPassword(values.newPassword);
+      toast({
+        title: 'Success',
+        description: 'Your password has been updated.',
+      });
+      form.reset();
+    } catch (error: any) {
+      toast({
+        title: 'Error Changing Password',
+        description:
+          error.code === 'auth/requires-recent-login'
+            ? 'This is a sensitive action. Please log out and sign back in before trying again.'
+            : 'Could not change your password. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Change Password</CardTitle>
+        <CardDescription>
+          Update your password here. It's recommended to use a strong, unique
+          password.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="newPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm New Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Change Password
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+
 function AccountSettings() {
   const { deleteAccount } = useAppData();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -188,69 +290,62 @@ function AccountSettings() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Account</CardTitle>
-        <CardDescription>
-          Manage permanent actions for your account.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            <CardDescription>
-              This action is permanent and cannot be undone.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Delete Account</p>
-                <p className="text-sm text-muted-foreground">
-                  Permanently delete your account and all of its associated
-                  data.
-                </p>
-              </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" disabled={isDeleting}>
+    <div className="space-y-6">
+      <ChangePasswordForm />
+      <Card className="border-destructive">
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          <CardDescription>
+            This action is permanent and cannot be undone.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Delete Account</p>
+              <p className="text-sm text-muted-foreground">
+                Permanently delete your account and all of its associated
+                data.
+              </p>
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={isDeleting}>
+                  {isDeleting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Are you absolutely sure?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    your account and remove all of your data from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
                     {isDeleting && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Delete Account
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you absolutely sure?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete
-                      your account and remove all of your data from our servers.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDelete}
-                      disabled={isDeleting}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {isDeleting && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </CardContent>
-        </Card>
-      </CardContent>
-    </Card>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

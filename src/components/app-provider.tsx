@@ -39,6 +39,7 @@ import {
   signOut,
   updateProfile,
   deleteUser,
+  updatePassword,
 } from 'firebase/auth';
 import { ref, uploadBytes } from 'firebase/storage';
 import { extractContractDetails } from '@/ai/flows/extract-contract-details';
@@ -66,6 +67,7 @@ interface AppDataContextType {
     displayName: string;
     profileType: ProfileType;
   }) => Promise<void>;
+  updateUserPassword: (password: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
 }
 
@@ -547,6 +549,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUserPassword = async (password: string) => {
+    if (!auth) {
+      throw new Error('Firebase not configured');
+    }
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('No user is currently signed in.');
+    }
+
+    try {
+      await updatePassword(currentUser, password);
+    } catch (error) {
+      console.error('Error updating password:', error);
+      // Re-throw the error so the component can handle it and show a specific toast.
+      throw error;
+    }
+  };
+
   const deleteAccount = async () => {
     if (!auth || !db) {
       throw new Error('Firebase not configured');
@@ -601,6 +621,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         processContract,
         updateContractStatus,
         updateUserProfile,
+        updateUserPassword,
         deleteAccount,
       }}
     >
