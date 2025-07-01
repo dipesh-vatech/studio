@@ -361,7 +361,7 @@ const DealTable = ({
                 
                 <div className="text-sm space-y-3">
                    <div className="flex items-center justify-between">
-                     <FormLabel>Status</FormLabel>
+                     <Label>Status</Label>
                      <Select
                         value={deal.status}
                         onValueChange={(value) => {
@@ -386,18 +386,18 @@ const DealTable = ({
                       </Select>
                    </div>
                    <div className="flex items-center justify-between">
-                      <FormLabel>Due Date</FormLabel>
+                      <Label>Due Date</Label>
                       <p className="font-medium">{deal.dueDate}</p>
                    </div>
                    <div className="flex items-center justify-between">
-                     <FormLabel>Payment</FormLabel>
+                     <Label>Payment</Label>
                      <p className="font-semibold text-primary">${deal.payment.toLocaleString()}</p>
                    </div>
                 </div>
 
                 <div>
                    <div className="flex items-center justify-between mb-1">
-                      <FormLabel>Task Progress</FormLabel>
+                      <Label>Task Progress</Label>
                       <span className="text-xs text-muted-foreground">{`${Math.round(progress)}%`}</span>
                    </div>
                    <Progress value={progress} className="h-2" />
