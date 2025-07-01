@@ -70,6 +70,17 @@ import { useAppData } from '@/components/app-provider';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const statusColors: Record<DealStatus, string> = {
   Upcoming: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -173,6 +184,7 @@ const DealTable = ({
   onStatusChange: (dealId: string, newStatus: DealStatus) => void;
 }) => {
   const [expandedDealId, setExpandedDealId] = useState<string | null>(null);
+  const { deleteDeal } = useAppData();
 
   const toggleRow = (dealId: string) => {
     setExpandedDealId((prevId) => (prevId === dealId ? null : dealId));
@@ -197,6 +209,7 @@ const DealTable = ({
           <TableHead>Progress</TableHead>
           <TableHead>Due Date</TableHead>
           <TableHead className="text-right">Payment</TableHead>
+          <TableHead className="w-[80px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -207,11 +220,11 @@ const DealTable = ({
             totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
           return (
             <React.Fragment key={deal.id}>
-              <TableRow
-                onClick={() => toggleRow(deal.id)}
-                className="cursor-pointer"
-              >
-                <TableCell className="pl-4">
+              <TableRow>
+                <TableCell
+                  className="pl-4 cursor-pointer"
+                  onClick={() => toggleRow(deal.id)}
+                >
                   {expandedDealId === deal.id ? (
                     <ChevronUp className="h-4 w-4" />
                   ) : (
@@ -257,10 +270,36 @@ const DealTable = ({
                 <TableCell className="text-right">
                   ${deal.payment.toLocaleString()}
                 </TableCell>
+                <TableCell className="text-right">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete the deal and all its tasks. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteDeal(deal.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </TableCell>
               </TableRow>
               {expandedDealId === deal.id && (
                 <TableRow>
-                  <TableCell colSpan={7} className="p-0">
+                  <TableCell colSpan={8} className="p-0">
                     <DealTasks deal={deal} />
                   </TableCell>
                 </TableRow>

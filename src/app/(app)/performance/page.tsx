@@ -26,7 +26,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Star, WandSparkles } from 'lucide-react';
+import { Loader2, Star, WandSparkles, Trash2 } from 'lucide-react';
 import type { PerformancePost } from '@/lib/types';
 import {
   Dialog,
@@ -36,6 +36,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -44,7 +55,12 @@ import { useAppData } from '@/components/app-provider';
 import { subMonths, format, parseISO } from 'date-fns';
 
 export default function PerformancePage() {
-  const { performancePosts, addPerformancePost, loadingData } = useAppData();
+  const {
+    performancePosts,
+    addPerformancePost,
+    loadingData,
+    deletePerformancePost,
+  } = useAppData();
   const [isImporting, setIsImporting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [postUrl, setPostUrl] = useState('');
@@ -211,6 +227,7 @@ export default function PerformancePage() {
                 <TableHead>Shares</TableHead>
                 <TableHead>Saves</TableHead>
                 <TableHead>Conversion</TableHead>
+                <TableHead className="w-[80px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -237,12 +254,38 @@ export default function PerformancePage() {
                         <Badge variant="outline">No</Badge>
                       )}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete the post performance data. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deletePerformancePost(post.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="h-24 text-center text-muted-foreground"
                   >
                     No posts to display. Import one to get started!

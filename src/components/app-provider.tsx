@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -81,6 +80,9 @@ interface AppDataContextType {
     completed: boolean
   ) => Promise<void>;
   deleteTask: (dealId: string, taskId: string) => Promise<void>;
+  deleteDeal: (dealId: string) => Promise<void>;
+  deleteContract: (contractId: string) => Promise<void>;
+  deletePerformancePost: (postId: string) => Promise<void>;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -840,6 +842,66 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteDeal = async (dealId: string) => {
+    if (!db || !user) return;
+    const originalDeals = deals;
+    setDeals((prev) => prev.filter((d) => d.id !== dealId));
+
+    try {
+      const dealRef = doc(db, 'deals', dealId);
+      await deleteDoc(dealRef);
+      toast({ title: 'Deal deleted' });
+    } catch (error) {
+      console.error('Error deleting deal:', error);
+      setDeals(originalDeals);
+      toast({
+        title: 'Error',
+        description: 'Could not delete deal.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deleteContract = async (contractId: string) => {
+    if (!db || !user) return;
+    const originalContracts = contracts;
+    setContracts((prev) => prev.filter((c) => c.id !== contractId));
+
+    try {
+      const contractRef = doc(db, 'contracts', contractId);
+      await deleteDoc(contractRef);
+      toast({ title: 'Contract deleted' });
+    } catch (error) {
+      console.error('Error deleting contract:', error);
+      setContracts(originalContracts);
+      toast({
+        title: 'Error',
+        description: 'Could not delete contract.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deletePerformancePost = async (postId: string) => {
+    if (!db || !user) return;
+    const originalPosts = performancePosts;
+    setPerformancePosts((prev) => prev.filter((p) => p.id !== postId));
+
+    try {
+      const postRef = doc(db, 'performancePosts', postId);
+      await deleteDoc(postRef);
+      toast({ title: 'Post deleted' });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      setPerformancePosts(originalPosts);
+      toast({
+        title: 'Error',
+        description: 'Could not delete post.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const signOutUser = async () => {
     if (auth) {
       await signOut(auth);
@@ -875,6 +937,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addTaskToDeal,
         updateTaskStatus,
         deleteTask,
+        deleteDeal,
+        deleteContract,
+        deletePerformancePost,
       }}
     >
       {children}
