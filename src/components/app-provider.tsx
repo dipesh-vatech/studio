@@ -114,9 +114,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const contractSnapshot = await getDocs(qContracts);
         const contractsList = contractSnapshot.docs.map((doc) => {
           const data = doc.data();
+          const uploadDate = data.uploadDate
+            ? (data.uploadDate as Timestamp).toDate().toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0];
           return {
             id: doc.id,
             ...data,
+            uploadDate,
           } as Contract;
         });
         setContracts(contractsList);
@@ -125,7 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         toast({
           title: 'Firebase Error',
           description:
-            'Could not fetch data. Using mock data as fallback.',
+            'Could not fetch data. This may be due to a missing Firestore index. Please check the browser console for a link to create it.',
           variant: 'destructive',
         });
         setDeals(mockDeals);
@@ -292,7 +296,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const contractDocRef = doc(db, 'contracts', contractId);
       await setDoc(contractDocRef, {
         fileName: file.name,
-        uploadDate: new Date().toISOString(),
+        uploadDate: serverTimestamp(),
         status: 'Processing',
         userId: user.uid,
         storagePath: storagePath,
