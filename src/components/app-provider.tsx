@@ -7,8 +7,7 @@ import {
   type ReactNode,
   useEffect,
 } from 'react';
-import type { Deal, Contract, DealStatus } from '@/lib/types';
-import { mockContracts, mockDeals } from '@/lib/mock-data';
+import type { Deal, Contract, DealStatus, PerformancePost } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db, storage } from '@/lib/firebase';
 import {
@@ -31,12 +30,16 @@ import { extractContractDetails } from '@/ai/flows/extract-contract-details';
 interface AppDataContextType {
   deals: Deal[];
   contracts: Contract[];
+  performancePosts: PerformancePost[];
   user: User | null;
   loadingAuth: boolean;
   loadingData: boolean;
   signOut: () => Promise<void>;
   addDeal: (values: Omit<Deal, 'id' | 'status' | 'paid'>) => Promise<void>;
   updateDealStatus: (dealId: string, newStatus: DealStatus) => Promise<void>;
+  addPerformancePost: (
+    postData: Omit<PerformancePost, 'id' | 'date'>
+  ) => Promise<void>;
   processContract: (file: File) => Promise<void>;
   updateContractStatus: (
     contractId: string,
@@ -60,6 +63,9 @@ function fileToDataUri(file: File): Promise<string> {
 export function AppProvider({ children }: { children: ReactNode }) {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [performancePosts, setPerformancePosts] = useState<PerformancePost[]>(
+    []
+  );
   const [loadingData, setLoadingData] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -81,17 +87,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user) {
       setDeals([]);
       setContracts([]);
+      setPerformancePosts([]);
       setLoadingData(false);
       return;
     }
     const fetchAllData = async () => {
       setLoadingData(true);
       if (!db) {
-        console.warn(
-          'Firebase not configured. Using mock data for Deals & Contracts.'
-        );
-        setDeals(mockDeals);
-        setContracts(mockContracts);
+        console.warn('Firebase not configured. Using empty data arrays.');
+        setDeals([]);
+        setContracts([]);
+        setPerformancePosts([]);
         setLoadingData(false);
         return;
       }
@@ -159,6 +165,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
           } as Contract;
         });
         setContracts(contractsList);
+
+        // Fetch Performance Posts
+        const postsCollection = collection(db, 'performancePosts');
+        const qPosts = query(
+          postsCollection,
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc')
+        );
+        const postSnapshot = await getDocs(qPosts);
+        const postsList = postSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          let date: string;
+          const createdAtVal = data.createdAt;
+
+          if (createdAtVal && typeof createdAtVal.toDate === 'function') {
+            date = (createdAtVal as Timestamp)
+              .toDate()
+              .toISOString()
+              .split('T')[0];
+          } else {
+            date = new Date().toISOString().split('T')[0];
+          }
+          return {
+            id: doc.id,
+            ...data,
+            date,
+          } as PerformancePost;
+        });
+        setPerformancePosts(postsList);
       } catch (error) {
         console.error('Error fetching data: ', error);
         toast({
@@ -167,8 +202,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             'Could not fetch data. This may be due to a missing Firestore index. Please check the browser console for a link to create it.',
           variant: 'destructive',
         });
-        setDeals(mockDeals);
-        setContracts(mockContracts);
+        setDeals([]);
+        setContracts([]);
+        setPerformancePosts([]);
       } finally {
         setLoadingData(false);
       }
@@ -179,16 +215,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addDeal = async (values: Omit<Deal, 'id' | 'status' | 'paid'>) => {
     if (!db || !user) {
-      const newDeal: Deal = {
-        id: crypto.randomUUID(),
-        ...values,
-        status: 'Upcoming',
-        paid: false,
-      };
-      setDeals((prev) => [newDeal, ...prev]);
       toast({
-        title: 'Success (Offline)!',
-        description: `New deal with ${newDeal.brandName} has been added locally.`,
+        title: 'Offline Mode',
+        description: 'Cannot add deal while offline.',
+        variant: 'destructive',
       });
       return;
     }
@@ -260,6 +290,50 @@ export function AppProvider({ children }: { children: ReactNode }) {
         description: 'Could not update the deal status in the database.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const addPerformancePost = async (
+    postData: Omit<PerformancePost, 'id' | 'date'>
+  ) => {
+    if (!db || !user) {
+      toast({
+        title: 'Offline Mode',
+        description: 'Cannot add post while offline.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    try {
+      const newPostData = {
+        ...postData,
+        createdAt: serverTimestamp(),
+        userId: user.uid,
+      };
+      const docRef = await addDoc(
+        collection(db, 'performancePosts'),
+        newPostData
+      );
+
+      const newPost: PerformancePost = {
+        id: docRef.id,
+        date: new Date().toISOString().split('T')[0],
+        ...postData,
+      };
+      setPerformancePosts((prev) => [newPost, ...prev]);
+
+      toast({
+        title: 'Success!',
+        description: `New post "${newPost.postTitle}" has been added.`,
+      });
+    } catch (error) {
+      console.error('Error adding performance post: ', error);
+      toast({
+        title: 'Error adding post',
+        description: 'Could not save the post to the database.',
+        variant: 'destructive',
+      });
+      throw error;
     }
   };
 
@@ -360,7 +434,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
 
       // 5. Create a new deal based on the contract
-      if (processedData.brandName && processedData.endDate && processedData.payment && processedData.deliverables) {
+      if (
+        processedData.brandName &&
+        processedData.endDate &&
+        processedData.payment &&
+        processedData.deliverables
+      ) {
         await addDeal({
           brandName: processedData.brandName,
           campaignName: `Campaign for ${processedData.brandName}`,
@@ -369,7 +448,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           payment: processedData.payment,
         });
       }
-
 
       toast({
         title: 'Success!',
@@ -415,8 +493,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         signOut: signOutUser,
         deals,
         contracts,
+        performancePosts,
         addDeal,
         updateDealStatus,
+        addPerformancePost,
         processContract,
         updateContractStatus,
       }}

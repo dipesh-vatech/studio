@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -27,7 +27,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Star, WandSparkles } from 'lucide-react';
-import { mockPerformancePosts, engagementChartData } from '@/lib/mock-data';
 import type { PerformancePost } from '@/lib/types';
 import {
   Dialog,
@@ -41,8 +40,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { extractPostData } from '@/ai/flows/extract-post-data';
+import { useAppData } from '@/components/app-provider';
+import { subMonths, format, parseISO } from 'date-fns';
 
 export default function PerformancePage() {
+  const { performancePosts, addPerformancePost, loadingData } = useAppData();
+  const [isImporting, setIsImporting] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [postUrl, setPostUrl] = useState('');
+  const { toast } = useToast();
+
   const chartConfig = {
     likes: {
       label: 'Likes',
@@ -54,11 +61,35 @@ export default function PerformancePage() {
     },
   };
 
-  const [posts, setPosts] = useState<PerformancePost[]>(mockPerformancePosts);
-  const [isImporting, setIsImporting] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [postUrl, setPostUrl] = useState('');
-  const { toast } = useToast();
+  const engagementChartData = useMemo(() => {
+    const monthLabels = Array.from({ length: 6 }).map((_, i) => {
+      return format(subMonths(new Date(), 5 - i), 'MMM');
+    });
+
+    const chartData = monthLabels.map((label) => ({
+      date: label,
+      likes: 0,
+      comments: 0,
+    }));
+
+    if (!performancePosts) return chartData;
+
+    performancePosts.forEach((post) => {
+      try {
+        const postDate = parseISO(post.date);
+        const postMonth = format(postDate, 'MMM');
+        const monthData = chartData.find((d) => d.date === postMonth);
+        if (monthData) {
+          monthData.likes += post.likes;
+          monthData.comments += post.comments;
+        }
+      } catch (e) {
+        // Ignore posts with invalid dates
+      }
+    });
+
+    return chartData;
+  }, [performancePosts]);
 
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,18 +98,9 @@ export default function PerformancePage() {
 
     try {
       const result = await extractPostData({ postUrl });
-      const newPost: PerformancePost = {
-        ...result,
-        id: crypto.randomUUID(),
-        date: new Date().toISOString().split('T')[0],
-      };
-      setPosts([newPost, ...posts]);
+      await addPerformancePost(result);
       setIsDialogOpen(false);
       setPostUrl('');
-      toast({
-        title: 'Success!',
-        description: 'Post data imported.',
-      });
     } catch (error) {
       console.error('Error importing post data:', error);
       toast({
@@ -92,12 +114,22 @@ export default function PerformancePage() {
     }
   };
 
+  if (loadingData) {
+    return (
+      <div className="flex h-[60vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Engagement Overview</CardTitle>
-          <CardDescription>Monthly likes and comments trend.</CardDescription>
+          <CardDescription>
+            Monthly likes and comments trend for the last 6 months.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
@@ -182,30 +214,41 @@ export default function PerformancePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {posts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell className="font-medium">
-                    {post.postTitle}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{post.platform}</Badge>
-                  </TableCell>
-                  <TableCell>{post.likes.toLocaleString()}</TableCell>
-                  <TableCell>{post.comments.toLocaleString()}</TableCell>
-                  <TableCell>{post.shares.toLocaleString()}</TableCell>
-                  <TableCell>{post.saves.toLocaleString()}</TableCell>
-                  <TableCell>
-                    {post.conversion ? (
-                      <Badge className="bg-green-100 text-green-800 border-none hover:bg-green-200">
-                        <Star className="mr-2 h-3 w-3" />
-                        Yes
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">No</Badge>
-                    )}
+              {performancePosts.length > 0 ? (
+                performancePosts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium">
+                      {post.postTitle}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{post.platform}</Badge>
+                    </TableCell>
+                    <TableCell>{post.likes.toLocaleString()}</TableCell>
+                    <TableCell>{post.comments.toLocaleString()}</TableCell>
+                    <TableCell>{post.shares.toLocaleString()}</TableCell>
+                    <TableCell>{post.saves.toLocaleString()}</TableCell>
+                    <TableCell>
+                      {post.conversion ? (
+                        <Badge className="bg-green-100 text-green-800 border-none hover:bg-green-200">
+                          <Star className="mr-2 h-3 w-3" />
+                          Yes
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">No</Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    No posts to display. Import one to get started!
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
