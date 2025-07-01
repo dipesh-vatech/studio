@@ -231,25 +231,41 @@ export default function SchedulerPage() {
                   </Button>
                 </div>
                 {/* AI Results */}
-                <div className="space-y-4">
-                  {contentIdeas.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-2">Content Ideas</h4>
-                      <ul className="space-y-2 text-sm list-disc list-inside bg-muted/50 p-3 rounded-md">
-                        {contentIdeas.map((idea, i) => <li key={i}>{idea}</li>)}
-                      </ul>
+                <div className="h-56 space-y-4 overflow-y-auto pr-2">
+                  {loadingAi ? (
+                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                      <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
-                  )}
-                  {postTimeSuggestion && (
-                     <div>
-                      <h4 className="font-semibold mb-2">Posting Time Suggestion</h4>
-                      <p className="text-sm bg-muted/50 p-3 rounded-md">{postTimeSuggestion}</p>
-                    </div>
-                  )}
-                  {(loadingAi) && (
-                     <div className="flex items-center justify-center h-full text-muted-foreground">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                     </div>
+                  ) : (
+                    <>
+                      {contentIdeas.length > 0 && (
+                        <div>
+                          <h4 className="font-semibold mb-2">Content Ideas</h4>
+                          <ul className="space-y-2 text-sm list-disc list-inside bg-muted/50 p-3 rounded-md">
+                            {contentIdeas.map((idea, i) => (
+                              <li key={i}>{idea}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {postTimeSuggestion && (
+                        <div className="space-y-2">
+                          <h4 className="font-semibold">
+                            Posting Time Suggestion
+                          </h4>
+                          <p className="text-sm bg-muted/50 p-3 rounded-md">
+                            {postTimeSuggestion}
+                          </p>
+                        </div>
+                      )}
+                      {contentIdeas.length === 0 && !postTimeSuggestion && (
+                        <div className="flex h-full items-center justify-center rounded-lg border border-dashed text-center text-muted-foreground">
+                          <p className="text-sm p-4">
+                            Your AI suggestions will appear here.
+                          </p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
