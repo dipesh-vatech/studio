@@ -40,6 +40,15 @@ export type Contract = {
 
 export type ProfileType = 'influencer' | 'brand';
 
+export interface NotificationSettings {
+  email: {
+    dealReminders: boolean;
+    paymentUpdates: boolean;
+    featureNews: boolean;
+  };
+}
+
 export interface UserProfile {
   profileType: ProfileType;
+  notificationSettings?: NotificationSettings;
 }

@@ -10,12 +10,14 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -27,6 +29,7 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppData } from '@/components/app-provider';
 import { Loader2 } from 'lucide-react';
@@ -57,6 +60,14 @@ const passwordFormSchema = z
     message: "Passwords don't match",
     path: ['confirmPassword'],
   });
+
+const notificationsFormSchema = z.object({
+  email: z.object({
+    dealReminders: z.boolean().default(false),
+    paymentUpdates: z.boolean().default(false),
+    featureNews: z.boolean().default(false),
+  }),
+});
 
 function ProfileForm() {
   const { user, userProfile, updateUserProfile } = useAppData();
@@ -349,6 +360,128 @@ function AccountSettings() {
   );
 }
 
+function NotificationsForm() {
+  const { userProfile, updateNotificationSettings } = useAppData();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<z.infer<typeof notificationsFormSchema>>({
+    resolver: zodResolver(notificationsFormSchema),
+    defaultValues: {
+      email: {
+        dealReminders: true,
+        paymentUpdates: true,
+        featureNews: false,
+      },
+    },
+  });
+
+  useEffect(() => {
+    if (userProfile?.notificationSettings) {
+      form.reset(userProfile.notificationSettings);
+    }
+  }, [userProfile, form]);
+
+  async function onSubmit(values: z.infer<typeof notificationsFormSchema>) {
+    setIsSubmitting(true);
+    if (updateNotificationSettings) {
+      await updateNotificationSettings(values);
+    }
+    setIsSubmitting(false);
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Email Notifications</CardTitle>
+            <CardDescription>
+              Choose which emails you want to receive.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email.dealReminders"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Deal Reminders</FormLabel>
+                    <FormDescription>
+                      Receive reminders for upcoming and overdue deal deadlines.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email.paymentUpdates"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Payment Updates</FormLabel>
+                    <FormDescription>
+                      Get notified when a payment status changes.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email.featureNews"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">News & Features</FormLabel>
+                    <FormDescription>
+                      Receive updates about new features and company news.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Preferences
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+    </Form>
+  );
+}
+
+
 export default function SettingsPage() {
   return (
     <div className="space-y-6">
@@ -383,21 +516,7 @@ export default function SettingsPage() {
           <AccountSettings />
         </TabsContent>
         <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>
-                Configure how you receive notifications.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Control your email and in-app notification preferences for
-                reminders, updates, and news. This functionality is not yet
-                implemented.
-              </p>
-            </CardContent>
-          </Card>
+          <NotificationsForm />
         </TabsContent>
         <TabsContent value="billing">
           <Card>

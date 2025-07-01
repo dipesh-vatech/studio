@@ -15,6 +15,7 @@ import type {
   PerformancePost,
   UserProfile,
   ProfileType,
+  NotificationSettings,
 } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db, storage } from '@/lib/firebase';
@@ -69,6 +70,7 @@ interface AppDataContextType {
   }) => Promise<void>;
   updateUserPassword: (password: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
+  updateNotificationSettings: (settings: NotificationSettings) => Promise<void>;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -83,6 +85,14 @@ function fileToDataUri(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+
+const defaultNotificationSettings: NotificationSettings = {
+  email: {
+    dealReminders: true,
+    paymentUpdates: true,
+    featureNews: false,
+  },
+};
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -131,11 +141,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Fetch User Profile
         const userDocRef = doc(db, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
+
         if (userDocSnap.exists()) {
-          setUserProfile(userDocSnap.data() as UserProfile);
+          const profileData = userDocSnap.data() as UserProfile;
+          if (!profileData.notificationSettings) {
+            profileData.notificationSettings = defaultNotificationSettings;
+          }
+          setUserProfile(profileData);
         } else {
           // Create a default profile if it doesn't exist
-          const defaultProfile: UserProfile = { profileType: 'influencer' };
+          const defaultProfile: UserProfile = {
+            profileType: 'influencer',
+            notificationSettings: defaultNotificationSettings,
+          };
           await setDoc(userDocRef, defaultProfile);
           setUserProfile(defaultProfile);
         }
@@ -593,6 +611,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       throw error;
     }
   };
+  
+  const updateNotificationSettings = async (settings: NotificationSettings) => {
+    if (!user || !db) return;
+
+    const originalProfile = { ...userProfile };
+
+    // Optimistic update
+    setUserProfile(prev => prev ? { ...prev, notificationSettings: settings } : null);
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, { notificationSettings: settings }, { merge: true });
+
+      toast({
+        title: 'Success',
+        description: 'Your notification settings have been updated.',
+      });
+    } catch (error) {
+      // Revert on failure
+      setUserProfile(originalProfile as UserProfile);
+      console.error('Error updating notification settings: ', error);
+      toast({
+        title: 'Error',
+        description: 'Could not update your notification settings. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const signOutUser = async () => {
     if (auth) {
@@ -623,6 +669,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateUserProfile,
         updateUserPassword,
         deleteAccount,
+        updateNotificationSettings,
       }}
     >
       {children}
