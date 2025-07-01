@@ -7,7 +7,14 @@ import {
   type ReactNode,
   useEffect,
 } from 'react';
-import type { Deal, Contract, DealStatus, PerformancePost } from '@/lib/types';
+import type {
+  Deal,
+  Contract,
+  DealStatus,
+  PerformancePost,
+  UserProfile,
+  ProfileType,
+} from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db, storage } from '@/lib/firebase';
 import {
@@ -22,8 +29,9 @@ import {
   Timestamp,
   where,
   setDoc,
+  getDoc,
 } from 'firebase/firestore';
-import { type User, onAuthStateChanged, signOut } from 'firebase/auth';
+import { type User, onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 import { ref, uploadBytes } from 'firebase/storage';
 import { extractContractDetails } from '@/ai/flows/extract-contract-details';
 
@@ -32,6 +40,7 @@ interface AppDataContextType {
   contracts: Contract[];
   performancePosts: PerformancePost[];
   user: User | null;
+  userProfile: UserProfile | null;
   loadingAuth: boolean;
   loadingData: boolean;
   signOut: () => Promise<void>;
@@ -45,6 +54,10 @@ interface AppDataContextType {
     contractId: string,
     newStatus: Contract['status']
   ) => Promise<void>;
+  updateUserProfile: (data: {
+    displayName: string;
+    profileType: ProfileType;
+  }) => Promise<void>;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -68,6 +81,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [loadingData, setLoadingData] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const { toast } = useToast();
 
@@ -88,6 +102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setDeals([]);
       setContracts([]);
       setPerformancePosts([]);
+      setUserProfile(null);
       setLoadingData(false);
       return;
     }
@@ -102,6 +117,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
       try {
+        // Fetch User Profile
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          setUserProfile(userDocSnap.data() as UserProfile);
+        } else {
+          // Create a default profile if it doesn't exist
+          const defaultProfile: UserProfile = { profileType: 'influencer' };
+          await setDoc(userDocRef, defaultProfile);
+          setUserProfile(defaultProfile);
+        }
+
         // Fetch Deals
         const dealsCollection = collection(db, 'deals');
         const qDeals = query(
@@ -148,20 +175,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const uploadDateVal = data.uploadDate;
 
           if (uploadDateVal && typeof uploadDateVal.toDate === 'function') {
-            uploadDate = (uploadDateVal as Timestamp)
-              .toDate()
-              .toISOString()
-              .split('T')[0];
+            uploadDate = (uploadDateVal as Timestamp).toDate().toISOString();
           } else if (typeof uploadDateVal === 'string') {
             uploadDate = uploadDateVal;
           } else {
-            uploadDate = new Date().toISOString().split('T')[0];
+            uploadDate = new Date().toISOString();
           }
 
           return {
             id: doc.id,
             ...data,
-            uploadDate,
+            uploadDate: uploadDate.split('T')[0],
           } as Contract;
         });
         setContracts(contractsList);
@@ -212,6 +236,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     fetchAllData();
   }, [toast, user]);
+
+  const updateUserProfile = async (data: {
+    displayName: string;
+    profileType: ProfileType;
+  }) => {
+    if (!user || !db || !auth.currentUser) return;
+    const { displayName, profileType } = data;
+
+    const originalUser = { ...user };
+    const originalProfile = { ...userProfile };
+
+    // Optimistic update
+    setUser({ ...user, displayName } as User);
+    setUserProfile({ ...userProfile, profileType } as UserProfile);
+
+    try {
+      if (auth.currentUser.displayName !== displayName) {
+        await updateProfile(auth.currentUser, { displayName });
+      }
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, { profileType }, { merge: true });
+
+      toast({
+        title: 'Success',
+        description: 'Your profile has been updated.',
+      });
+    } catch (error) {
+      // Revert on failure
+      setUser(originalUser);
+      setUserProfile(originalProfile as UserProfile);
+      console.error('Error updating profile: ', error);
+      toast({
+        title: 'Error',
+        description: 'Could not update your profile. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const addDeal = async (values: Omit<Deal, 'id' | 'status' | 'paid'>) => {
     if (!db || !user) {
@@ -419,7 +481,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const finalContractData = {
         status: 'Done' as const,
-        ...processedData,
+        brandName: processedData.brandName,
+        startDate: processedData.startDate,
+        endDate: processedData.endDate,
+        payment: processedData.payment,
+        deliverables: processedData.deliverables,
       };
 
       // 4. Update contract document with extracted details
@@ -427,9 +493,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       setContracts((prev) =>
         prev.map((c) =>
-          c.id === contractId
-            ? { ...c, ...newContract, ...finalContractData }
-            : c
+          c.id === contractId ? { ...c, ...newContract, ...finalContractData } : c
         )
       );
 
@@ -488,6 +552,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppDataContext.Provider
       value={{
         user,
+        userProfile,
         loadingAuth,
         loadingData,
         signOut: signOutUser,
@@ -499,6 +564,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addPerformancePost,
         processContract,
         updateContractStatus,
+        updateUserProfile,
       }}
     >
       {children}

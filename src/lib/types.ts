@@ -35,4 +35,11 @@ export type Contract = {
   endDate?: string;
   payment?: number;
   storagePath?: string;
+  deliverables?: string;
 };
+
+export type ProfileType = 'influencer' | 'brand';
+
+export interface UserProfile {
+  profileType: ProfileType;
+}
