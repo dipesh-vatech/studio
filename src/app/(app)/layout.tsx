@@ -137,7 +137,7 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
                         <Button
                           key={notification.id}
                           variant="ghost"
-                          className="h-auto w-full justify-start rounded-md p-0 hover:bg-accent"
+                          className="h-auto w-full justify-start rounded-md p-0 hover:bg-accent whitespace-normal"
                           onClick={() =>
                             dismissDealNotification(notification.id)
                           }
@@ -147,7 +147,7 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
                               <Clock className="h-4 w-4 text-secondary-foreground" />
                             </div>
                             <div className="ml-3 flex-1 space-y-1 text-left">
-                              <p className="text-sm font-medium leading-none">
+                              <p className="text-sm font-medium leading-none break-words">
                                 {notification.text}
                               </p>
                               <p
