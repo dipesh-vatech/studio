@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -14,12 +15,14 @@ import {
   FileText,
   Settings,
   CalendarDays,
+  DollarSign,
 } from 'lucide-react';
 
 const links = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/deals', label: 'Deals', icon: Handshake },
   { href: '/scheduler', label: 'Scheduler', icon: CalendarDays },
+  { href: '/financials', label: 'Financials', icon: DollarSign },
   { href: '/pitch-generator', label: 'Pitch AI', icon: Lightbulb },
   { href: '/performance', label: 'Performance', icon: BarChart },
   { href: '/contracts', label: 'Contracts', icon: FileText },
