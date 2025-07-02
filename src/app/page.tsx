@@ -16,7 +16,9 @@ import {
   BarChart,
   DollarSign,
   CalendarDays,
+  Check,
 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function LandingPage() {
   const navLinks = [
@@ -29,11 +31,11 @@ export default function LandingPage() {
     {
       title: 'Manage Your Deals Seamlessly',
       description:
-        'From initial contact to final payment, keep track of every detail of your collaborations. Never miss a deadline or a deliverable.',
+        'From initial contact to final payment, CollabFlow provides a centralized hub to keep track of every detail of your collaborations. Never miss a deadline or a deliverable again, ensuring professional and reliable partnerships.',
       images: [
-        { src: '/Deals.png' },
-        { src: '/Contracts.png' },
-        { src: '/Pitch-ai.png' },
+        { src: '/deals-management.png', alt: 'Deals Management Dashboard' },
+        { src: '/contract-analysis.png', alt: 'AI Contract Analysis' },
+        { src: '/pitch-ai.png', alt: 'AI Pitch Email Generator' },
       ],
       subFeatures: [
         {
@@ -59,11 +61,11 @@ export default function LandingPage() {
     {
       title: 'Get Powerful, Reliable Metrics',
       description:
-        'Measure brand awareness and presence. Track reach and engagement using our state-of-the-art technology and AI-powered insights.',
+        'Measure brand awareness and presence with confidence. CollabFlow uses state-of-the-art technology and AI-powered insights to help you track reach, engagement, and financial performance across all your campaigns.',
       images: [
-        { src: '/Performance.png' },
-        { src: '/Financial.png' },
-        { src: '/Scheduler.png' },
+        { src: '/performance-tracking.png', alt: 'Performance Tracking Chart' },
+        { src: '/financial-analytics.png', alt: 'Financial Analytics Dashboard' },
+        { src: '/ai-scheduler.png', alt: 'AI-Powered Content Scheduler' },
       ],
       subFeatures: [
         {
@@ -88,10 +90,40 @@ export default function LandingPage() {
     },
   ];
 
+  const pricingPlans = [
+    {
+      name: 'Free',
+      price: '$0',
+      description: 'Perfect for creators getting started.',
+      features: [
+        'Up to 10 deals',
+        'Basic AI Pitch Generator',
+        'Performance Tracking',
+        'Community Support',
+      ],
+      buttonText: 'Get Started',
+      buttonVariant: 'outline',
+    },
+    {
+      name: 'Pro',
+      price: '$25',
+      description: 'For professionals scaling their brand.',
+      features: [
+        'Unlimited deals',
+        'Advanced AI Features',
+        'AI Contract Analysis',
+        'Financial Analytics',
+        'Priority Support',
+      ],
+      buttonText: 'Upgrade to Pro',
+      buttonVariant: 'default',
+    },
+  ];
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 max-w-7xl items-center justify-between">
+        <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <BriefcaseBusiness className="h-6 w-6 text-primary" />
             <span className="font-bold sm:inline-block">CollabFlow</span>
@@ -189,7 +221,7 @@ export default function LandingPage() {
               width={1200}
               height={740}
               alt="CollabFlow App Dashboard"
-              className="rounded-lg border bg-card shadow-2xl mx-auto"
+              className="rounded-lg border bg-card shadow-2xl"
             />
           </div>
         </section>
@@ -226,34 +258,95 @@ export default function LandingPage() {
                   </ul>
                   <div className="mt-10">
                      <Button size="lg" asChild>
-                       <Link href="/signup">Sign Up Free</Link>
+                       <Link href="/signup">Get Started Now</Link>
                      </Button>
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4">
+              <div className="flex flex-col gap-4">
                 {feature.images.map((image, imgIndex) => (
                   <Image
                     key={imgIndex}
                     src={image.src}
                     width={600}
                     height={400}
-                    alt={`${feature.title} - example ${imgIndex + 1}`}
-                    className="w-full h-auto rounded-lg border bg-card shadow-lg"
+                    alt={image.alt}
+                    className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
                   />
                 ))}
               </div>
             </div>
           ))}
         </section>
+        
+        {/* Pricing Section */}
+        <section id="pricing" className="container py-16 md:py-24">
+           <div className="mx-auto max-w-2xl text-center">
+             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+               Choose the Right Plan for You
+             </h2>
+             <p className="mt-4 text-lg text-muted-foreground">
+               Simple, transparent pricing. No hidden fees.
+             </p>
+           </div>
+           <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:mx-auto lg:max-w-4xl">
+            {pricingPlans.map((plan) => (
+              <Card key={plan.name} className={plan.name === 'Pro' ? 'border-2 border-primary shadow-2xl' : 'shadow-lg'}>
+                 <CardHeader className="text-center">
+                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                    <CardDescription>{plan.description}</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-6">
+                   <div className="text-center">
+                     <span className="text-4xl font-bold">{plan.price}</span>
+                     <span className="text-muted-foreground">{plan.price !== '$0' && '/month'}</span>
+                   </div>
+                   <ul className="space-y-3">
+                     {plan.features.map((feature) => (
+                       <li key={feature} className="flex items-center gap-3">
+                         <Check className="h-5 w-5 text-green-500" />
+                         <span className="text-muted-foreground">{feature}</span>
+                       </li>
+                     ))}
+                   </ul>
+                 </CardContent>
+                 <CardFooter>
+                   <Button asChild className="w-full" variant={plan.buttonVariant as 'default' | 'outline'}>
+                     <Link href="/signup">{plan.buttonText}</Link>
+                   </Button>
+                 </CardFooter>
+               </Card>
+            ))}
+           </div>
+        </section>
+        
+        {/* About Section */}
+        <section id="about" className="bg-secondary">
+          <div className="container py-16 md:py-24">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                Built for the Modern Creator
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                CollabFlow was born from a simple idea: to empower creators by simplifying the business of influence. We handle the administrative tasks—deal tracking, contract management, and financial oversight—so you can focus on what you do best: creating amazing content and building your community.
+              </p>
+               <div className="mt-8">
+                 <Button size="lg" asChild>
+                   <Link href="/signup">Join CollabFlow Today</Link>
+                 </Button>
+               </div>
+            </div>
+          </div>
+        </section>
+
       </main>
 
       <footer className="border-t">
-        <div className="container flex flex-col items-center justify-between gap-4 py-8 text-sm text-muted-foreground md:h-16 md:flex-row md:py-0">
-           <p>&copy; {new Date().getFullYear()} CollabFlow. All rights reserved.</p>
-           <nav className="flex items-center gap-4">
-              <Link href="#" className="hover:underline">Privacy</Link>
-              <Link href="#" className="hover:underline">Terms</Link>
+        <div className="container flex flex-col items-center justify-between gap-4 py-8 md:flex-row">
+           <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CollabFlow. All rights reserved.</p>
+           <nav className="flex items-center gap-4 text-sm text-muted-foreground">
+              <Link href="#" className="hover:underline">Privacy Policy</Link>
+              <Link href="#" className="hover:underline">Terms of Service</Link>
            </nav>
         </div>
       </footer>
