@@ -80,20 +80,17 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="shrink-0 text-primary"
-              >
-                <BriefcaseBusiness className="h-6 w-6" />
-              </Button>
-              <h1 className="text-xl font-semibold text-primary group-data-[collapsible=icon]:hidden">
-                CollabFlow
-              </h1>
-            </div>
-            <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shrink-0 text-primary"
+            >
+              <BriefcaseBusiness className="h-6 w-6" />
+            </Button>
+            <h1 className="text-xl font-semibold text-primary group-data-[collapsible=icon]:hidden">
+              CollabFlow
+            </h1>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -104,77 +101,80 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-end gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative rounded-full"
-              >
-                <Bell className="h-5 w-5" />
-                {notifications.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                  </span>
-                )}
-                <span className="sr-only">Notifications</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80" align="end">
-              <Card className="border-none shadow-none">
-                <CardHeader className="p-4">
-                  <CardTitle>Notifications</CardTitle>
-                  <CardDescription>
-                    You have {notifications.length} unread notifications.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  {notifications.length > 0 ? (
-                    <div className="space-y-2">
-                      {notifications.map((notification) => (
-                        <Button
-                          key={notification.id}
-                          variant="ghost"
-                          className="h-auto w-full justify-start rounded-md p-0 hover:bg-accent whitespace-normal"
-                          onClick={() =>
-                            dismissDealNotification(notification.id)
-                          }
-                        >
-                          <div className="flex w-full items-start p-2">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
-                              <Clock className="h-4 w-4 text-secondary-foreground" />
-                            </div>
-                            <div className="ml-3 flex-1 space-y-1 text-left">
-                              <p className="text-sm font-medium leading-none break-words">
-                                {notification.text}
-                              </p>
-                              <p
-                                className={`text-sm ${
-                                  notification.isOverdue
-                                    ? 'font-semibold text-destructive'
-                                    : 'text-muted-foreground'
-                                }`}
-                              >
-                                Due {notification.due}
-                              </p>
-                            </div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-12 text-center text-muted-foreground">
-                      <p>No new notifications.</p>
-                      <p className="text-sm">You're all caught up!</p>
-                    </div>
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+          <SidebarTrigger className="md:peer-data-[state=expanded]:hidden" />
+          <div className="flex items-center gap-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative rounded-full"
+                >
+                  <Bell className="h-5 w-5" />
+                  {notifications.length > 0 && (
+                    <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                    </span>
                   )}
-                </CardContent>
-              </Card>
-            </PopoverContent>
-          </Popover>
-          <UserNav />
+                  <span className="sr-only">Notifications</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="end">
+                <Card className="border-none shadow-none">
+                  <CardHeader className="p-4">
+                    <CardTitle>Notifications</CardTitle>
+                    <CardDescription>
+                      You have {notifications.length} unread notifications.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    {notifications.length > 0 ? (
+                      <div className="space-y-2">
+                        {notifications.map((notification) => (
+                          <Button
+                            key={notification.id}
+                            variant="ghost"
+                            className="h-auto w-full justify-start rounded-md p-0 hover:bg-accent whitespace-normal"
+                            onClick={() =>
+                              dismissDealNotification(notification.id)
+                            }
+                          >
+                            <div className="flex w-full items-start p-2">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
+                                <Clock className="h-4 w-4 text-secondary-foreground" />
+                              </div>
+                              <div className="ml-3 flex-1 space-y-1 text-left">
+                                <p className="text-sm font-medium leading-none break-words">
+                                  {notification.text}
+                                </p>
+                                <p
+                                  className={`text-sm ${
+                                    notification.isOverdue
+                                      ? 'font-semibold text-destructive'
+                                      : 'text-muted-foreground'
+                                  }`}
+                                >
+                                  Due {notification.due}
+                                </p>
+                              </div>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-12 text-center text-muted-foreground">
+                        <p>No new notifications.</p>
+                        <p className="text-sm">You're all caught up!</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </PopoverContent>
+            </Popover>
+            <UserNav />
+          </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
       </SidebarInset>
