@@ -7,13 +7,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Form,
@@ -127,18 +120,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-secondary">
-      <Card className="mx-auto max-w-sm w-full">
-        <CardHeader className="text-center">
-          <div className="inline-flex items-center justify-center mb-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+      <div className="w-full max-w-sm text-center">
+        <Link href="/" className="inline-flex items-center justify-center mb-8">
             <BriefcaseBusiness className="h-8 w-8 text-primary" />
-          </div>
-          <CardTitle className="text-2xl">Welcome to CollabFlow</CardTitle>
-          <CardDescription>
-            Sign in to manage your collaborations seamlessly.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        </Link>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+        <p className="mt-2 text-muted-foreground">Sign in to continue to CollabFlow.</p>
+        
+        <div className="mt-8 text-left">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
               <FormField
@@ -184,7 +174,7 @@ export default function LoginPage() {
             </form>
           </Form>
 
-          <div className="relative my-4">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
@@ -208,15 +198,15 @@ export default function LoginPage() {
             )}
             Sign in with Google
           </Button>
+        </div>
 
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="underline text-primary">
-              Sign up
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        <p className="mt-8 text-sm text-muted-foreground">
+          Don&apos;t have an account?{' '}
+          <Link href="/signup" className="font-medium text-primary hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

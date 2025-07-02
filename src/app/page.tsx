@@ -89,11 +89,11 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1">
-        <section className="container py-20 text-center md:py-32">
+        <section className="container py-24 text-center md:py-32 lg:py-40">
           <div className="flex flex-col items-center">
             <div className="mb-4 flex items-center justify-center space-x-2 rounded-full bg-secondary px-4 py-1 text-sm font-medium text-primary">
               <Award className="h-5 w-5" />
-              <span>AI-Powered Collaboration Management</span>
+              <span>AI-POWERED COLLABORATION MANAGEMENT</span>
             </div>
             <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
               Streamline Your Creator Collaborations
@@ -122,14 +122,14 @@ export default function LandingPage() {
             <div className="absolute -bottom-10 -left-10 -z-10 hidden md:block">
               <div className="grid grid-cols-6 gap-2">
                  {Array.from({ length: 36 }).map((_, i) => (
-                  <div key={i} className="h-2 w-2 rounded-full bg-accent/20" />
+                  <div key={i} className="h-2 w-2 rounded-full bg-primary/20" />
                 ))}
               </div>
             </div>
              <div className="absolute -top-10 -right-10 -z-10 hidden md:block">
               <div className="grid grid-cols-6 gap-2">
                  {Array.from({ length: 36 }).map((_, i) => (
-                  <div key={i} className="h-2 w-2 rounded-full bg-accent/20" />
+                  <div key={i} className="h-2 w-2 rounded-full bg-primary/20" />
                 ))}
               </div>
             </div>

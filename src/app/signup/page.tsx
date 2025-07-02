@@ -7,13 +7,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   Form,
@@ -139,18 +132,15 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-secondary">
-      <Card className="mx-auto max-w-sm w-full">
-        <CardHeader className="text-center">
-          <div className="inline-flex items-center justify-center mb-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+      <div className="w-full max-w-sm text-center">
+        <Link href="/" className="inline-flex items-center justify-center mb-8">
             <BriefcaseBusiness className="h-8 w-8 text-primary" />
-          </div>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>
-            Enter your information to get started.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        </Link>
+        <h1 className="text-3xl font-bold tracking-tight">Create an account</h1>
+        <p className="mt-2 text-muted-foreground">Enter your details to get started with CollabFlow.</p>
+        
+        <div className="mt-8 text-left">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
               <FormField
@@ -206,9 +196,21 @@ export default function SignupPage() {
               </Button>
             </form>
           </Form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+          
           <Button
             variant="outline"
-            className="w-full mt-4"
+            className="w-full"
             onClick={handleGoogleSignUp}
             disabled={isLoading || isGoogleLoading}
           >
@@ -219,15 +221,15 @@ export default function SignupPage() {
             )}
             Sign up with Google
           </Button>
+        </div>
 
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
-            <Link href="/login" className="underline text-primary">
-              Login
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        <p className="mt-8 text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link href="/login" className="font-medium text-primary hover:underline">
+            Login
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
