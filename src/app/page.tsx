@@ -40,19 +40,19 @@ export default function LandingPage() {
           icon: Handshake,
           title: 'Track Collaborations',
           description:
-            'Manage all your brand deals, view their status, and see key details at a glance.',
+            'Seamlessly manage every stage of your brand deals, from upcoming to completed, all in one place.',
         },
         {
           icon: FileText,
           title: 'AI Contract Analysis',
           description:
-            'Automatically extract key details from uploaded contracts to save time and reduce errors.',
+            'Instantly extract key details like payment, deliverables, and dates from contracts with our AI parser.',
         },
         {
           icon: Lightbulb,
           title: 'Generate Pitches',
           description:
-            'Craft perfect, AI-powered pitch emails to send to brands for new opportunities.',
+            'Let AI craft personalized and professional pitch emails, helping you land your next big collaboration.',
         },
       ],
     },
@@ -70,19 +70,19 @@ export default function LandingPage() {
           icon: BarChart,
           title: 'Track Performance',
           description:
-            'Import post data to see how your content is performing across platforms.',
+            'Use AI to analyze post URLs and generate realistic performance metrics to track your impact.',
         },
         {
           icon: DollarSign,
           title: 'Analyze Financials',
           description:
-            'Get a clear overview of your revenue, outstanding payments, and top-earning brand deals.',
+            'Track your earnings, monitor outstanding payments, and identify your most valuable partnerships with our financial dashboard.',
         },
         {
           icon: CalendarDays,
-          title: 'Visualize Your Schedule',
+          title: 'AI-Powered Scheduling',
           description:
-            'See all your deadlines and deliverables on a content calendar to stay organized.',
+            'Visualize your content calendar, and let AI generate creative post ideas and suggest the best times to engage your audience.',
         },
       ],
     },
@@ -239,7 +239,7 @@ export default function LandingPage() {
                     width={600}
                     height={400}
                     alt={`${feature.title} - example ${imgIndex + 1}`}
-                    className="rounded-lg border bg-card shadow-lg"
+                    className="w-full h-auto rounded-lg border bg-card shadow-lg"
                   />
                 ))}
               </div>
@@ -249,7 +249,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t">
-        <div className="container flex flex-col items-center justify-between gap-4 py-4 text-sm text-muted-foreground sm:h-16 sm:flex-row sm:py-0">
+        <div className="container flex flex-col items-center justify-between gap-4 py-8 text-sm text-muted-foreground md:h-16 md:flex-row md:py-0">
            <p>&copy; {new Date().getFullYear()} CollabFlow. All rights reserved.</p>
            <nav className="flex items-center gap-4">
               <Link href="#" className="hover:underline">Privacy</Link>
