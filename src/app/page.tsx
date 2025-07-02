@@ -31,9 +31,9 @@ export default function LandingPage() {
       description:
         'From initial contact to final payment, keep track of every detail of your collaborations. Never miss a deadline or a deliverable.',
       images: [
-        { src: '/deals-management.png' },
-        { src: '/contract-analysis.png' },
-        { src: '/email-pitch.png' },
+        { src: '/Deals.png' },
+        { src: '/Contracts.png' },
+        { src: '/Pitch-ai.png' },
       ],
       subFeatures: [
         {
@@ -61,9 +61,9 @@ export default function LandingPage() {
       description:
         'Measure brand awareness and presence. Track reach and engagement using our state-of-the-art technology and AI-powered insights.',
       images: [
-        { src: '/performance-tracking.png' },
-        { src: '/financial-analytics.png' },
-        { src: '/content-calendar.png' },
+        { src: '/Performance.png' },
+        { src: '/Financial.png' },
+        { src: '/Scheduler.png' },
       ],
       subFeatures: [
         {
@@ -239,7 +239,7 @@ export default function LandingPage() {
                     width={600}
                     height={400}
                     alt={`${feature.title} - example ${imgIndex + 1}`}
-                    className="rounded-lg border bg-card shadow-lg object-cover aspect-video"
+                    className="rounded-lg border bg-card shadow-lg"
                   />
                 ))}
               </div>
