@@ -6,13 +6,80 @@ import {
   SheetContent,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { BriefcaseBusiness, Award, Menu } from 'lucide-react';
+import {
+  BriefcaseBusiness,
+  Award,
+  Menu,
+  Handshake,
+  FileText,
+  Lightbulb,
+  BarChart,
+  DollarSign,
+  CalendarDays,
+} from 'lucide-react';
 
 export default function LandingPage() {
   const navLinks = [
     { href: '#features', label: 'Features' },
     { href: '#pricing', label: 'Pricing' },
     { href: '#about', label: 'About' },
+  ];
+
+  const features = [
+    {
+      title: 'Manage Your Deals Seamlessly',
+      description:
+        'From initial contact to final payment, keep track of every detail of your collaborations. Never miss a deadline or a deliverable.',
+      image: 'https://placehold.co/1024x768.png',
+      imageHint: 'collaboration management',
+      subFeatures: [
+        {
+          icon: Handshake,
+          title: 'Track Collaborations',
+          description:
+            'Manage all your brand deals, view their status, and see key details at a glance.',
+        },
+        {
+          icon: FileText,
+          title: 'AI Contract Analysis',
+          description:
+            'Automatically extract key details from uploaded contracts to save time and reduce errors.',
+        },
+        {
+          icon: Lightbulb,
+          title: 'Generate Pitches',
+          description:
+            'Craft perfect, AI-powered pitch emails to send to brands for new opportunities.',
+        },
+      ],
+    },
+    {
+      title: 'Get Powerful, Reliable Metrics',
+      description:
+        'Measure brand awareness and presence. Track reach and engagement using our state-of-the-art technology and AI-powered insights.',
+      image: 'https://placehold.co/1024x768.png',
+      imageHint: 'analytics dashboard',
+      subFeatures: [
+        {
+          icon: BarChart,
+          title: 'Track Performance',
+          description:
+            'Import post data to see how your content is performing across platforms.',
+        },
+        {
+          icon: DollarSign,
+          title: 'Analyze Financials',
+          description:
+            'Get a clear overview of your revenue, outstanding payments, and top-earning brand deals.',
+        },
+        {
+          icon: CalendarDays,
+          title: 'Visualize Your Schedule',
+          description:
+            'See all your deadlines and deliverables on a content calendar to stay organized.',
+        },
+      ],
+    },
   ];
 
   return (
@@ -134,6 +201,64 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="container space-y-24 py-16 md:space-y-32 md:py-24">
+          {features.map((feature, index) => (
+            <div
+              key={feature.title}
+              className="grid items-center gap-12 md:grid-cols-2 md:gap-20"
+            >
+              <div className={index % 2 === 1 ? 'md:order-last' : ''}>
+                <div className="max-w-md">
+                  <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                    {feature.title}
+                  </h2>
+                  <p className="mt-4 text-lg text-muted-foreground">
+                    {feature.description}
+                  </p>
+                  <ul className="mt-8 space-y-6">
+                    {feature.subFeatures.map((sub) => (
+                      <li key={sub.title} className="flex items-start gap-4">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
+                          <sub.icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{sub.title}</h3>
+                          <p className="mt-1 text-muted-foreground">
+                            {sub.description}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-10">
+                     <Button size="lg" asChild>
+                       <Link href="/signup">Sign Up Free</Link>
+                     </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <Image
+                  src={feature.image}
+                  width={1024}
+                  height={768}
+                  alt={feature.title}
+                  className="rounded-lg border bg-card shadow-2xl"
+                  data-ai-hint={feature.imageHint}
+                />
+                 <div className="absolute -bottom-6 -right-6 -z-10 hidden md:block">
+                  <div className="grid grid-cols-6 gap-2">
+                     {Array.from({ length: 36 }).map((_, i) => (
+                      <div key={i} className="h-2 w-2 rounded-full bg-primary/20" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </section>
       </main>
 
