@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Upload, CheckCircle, XCircle, Loader, Trash2 } from 'lucide-react';
 import { type Contract } from '@/lib/types';
 import {
@@ -70,8 +71,13 @@ const statusBadgeColors: Record<Contract['status'], string> = {
 };
 
 export default function ContractsPage() {
-  const { contracts, processContract, updateContractStatus, deleteContract } =
-    useAppData();
+  const {
+    contracts,
+    processContract,
+    updateContractStatus,
+    deleteContract,
+    loadingData,
+  } = useAppData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -156,91 +162,123 @@ export default function ContractsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {contracts.map((contract) => {
-              const Icon = statusIcons[contract.status];
-              return (
-                <TableRow key={contract.id}>
-                  <TableCell className="font-medium">
-                    {contract.fileName}
+            {loadingData ? (
+              [...Array(5)].map((_, i) => (
+                <TableRow key={i} className="animate-pulse">
+                  <TableCell>
+                    <Skeleton className="h-4 w-[200px]" />
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={contract.status}
-                      onValueChange={(value) =>
-                        updateContractStatus(
-                          contract.id,
-                          value as Contract['status']
-                        )
-                      }
-                    >
-                      <SelectTrigger
-                        className={cn(
-                          'w-[120px] border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 text-xs font-semibold',
-                          statusBadgeColors[contract.status]
-                        )}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <Icon
-                            className={`h-4 w-4 ${
-                              statusColors[contract.status]
-                            }`}
-                          />
-                          <SelectValue />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(
-                          Object.keys(statusIcons) as Array<
-                            keyof typeof statusIcons
-                          >
-                        ).map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Skeleton className="h-8 w-[120px] rounded-full" />
                   </TableCell>
-                  <TableCell>{contract.brandName || 'N/A'}</TableCell>
                   <TableCell>
-                    {contract.startDate && contract.endDate
-                      ? `${contract.startDate} - ${contract.endDate}`
-                      : 'N/A'}
+                    <Skeleton className="h-4 w-[100px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[150px]" />
                   </TableCell>
                   <TableCell className="text-right">
-                    {contract.payment
-                      ? `$${contract.payment.toLocaleString()}`
-                      : 'N/A'}
+                    <Skeleton className="h-4 w-[60px] ml-auto" />
                   </TableCell>
                   <TableCell className="text-right">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will permanently delete the contract record. This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => deleteContract(contract.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <Skeleton className="h-8 w-8 rounded-full ml-auto" />
                   </TableCell>
                 </TableRow>
-              );
-            })}
+              ))
+            ) : contracts.length > 0 ? (
+              contracts.map((contract) => {
+                const Icon = statusIcons[contract.status];
+                return (
+                  <TableRow key={contract.id}>
+                    <TableCell className="font-medium">
+                      {contract.fileName}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={contract.status}
+                        onValueChange={(value) =>
+                          updateContractStatus(
+                            contract.id,
+                            value as Contract['status']
+                          )
+                        }
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            'w-[120px] border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 text-xs font-semibold',
+                            statusBadgeColors[contract.status]
+                          )}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <Icon
+                              className={`h-4 w-4 ${
+                                statusColors[contract.status]
+                              }`}
+                            />
+                            <SelectValue />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(
+                            Object.keys(statusIcons) as Array<
+                              keyof typeof statusIcons
+                            >
+                          ).map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>{contract.brandName || 'N/A'}</TableCell>
+                    <TableCell>
+                      {contract.startDate && contract.endDate
+                        ? `${contract.startDate} - ${contract.endDate}`
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {contract.payment
+                        ? `$${contract.payment.toLocaleString()}`
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete the contract record.
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteContract(contract.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  No contracts found. Upload one to get started.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </CardContent>

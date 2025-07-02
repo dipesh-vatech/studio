@@ -26,6 +26,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Star, WandSparkles, Trash2 } from 'lucide-react';
 import type { PerformancePost } from '@/lib/types';
 import {
@@ -53,6 +54,80 @@ import { useToast } from '@/hooks/use-toast';
 import { extractPostData } from '@/ai/flows/extract-post-data';
 import { useAppData } from '@/components/app-provider';
 import { subMonths, format, parseISO } from 'date-fns';
+
+function PerformanceSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-1/3" />
+          <Skeleton className="h-4 w-2/3 mt-2" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-[300px] w-full" />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-4 w-64 mt-2" />
+            </div>
+            <Skeleton className="h-10 w-44" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Post</TableHead>
+                <TableHead>Platform</TableHead>
+                <TableHead>Likes</TableHead>
+                <TableHead>Comments</TableHead>
+                <TableHead>Shares</TableHead>
+                <TableHead>Saves</TableHead>
+                <TableHead>Conversion</TableHead>
+                <TableHead className="w-[80px] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[...Array(5)].map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[150px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-[90px] rounded-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[50px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[50px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[50px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[50px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-[70px] rounded-full" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="h-8 w-8 rounded-full ml-auto" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function PerformancePage() {
   const {
@@ -131,11 +206,7 @@ export default function PerformancePage() {
   };
 
   if (loadingData) {
-    return (
-      <div className="flex h-[60vh] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PerformanceSkeleton />;
   }
 
   return (
@@ -265,7 +336,8 @@ export default function PerformancePage() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This will permanently delete the post performance data. This action cannot be undone.
+                              This will permanently delete the post performance
+                              data. This action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
