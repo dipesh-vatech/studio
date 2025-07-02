@@ -241,7 +241,7 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {feature.images.map((image, imgIndex) => (
                   <Image
                     key={imgIndex}
