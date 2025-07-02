@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -25,6 +26,21 @@ import {
 } from 'lucide-react';
 import { useAppData } from '@/components/app-provider';
 import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
+import { cn } from '@/lib/utils';
+import type { DealStatus } from '@/lib/types';
+
+const statusColors: Record<DealStatus, string> = {
+  Upcoming:
+    'border-transparent bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200',
+  'In Progress':
+    'border-transparent bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200',
+  'Awaiting Payment':
+    'border-transparent bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200',
+  Completed:
+    'border-transparent bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200',
+  Overdue:
+    'border-transparent bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200',
+};
 
 function DashboardSkeleton() {
   return (
@@ -89,12 +105,13 @@ function DashboardSkeleton() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-start">
                 <Skeleton className="h-8 w-8 rounded-full" />
                 <div className="ml-4 space-y-2">
-                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-40" />
                 </div>
               </div>
             ))}
@@ -112,11 +129,13 @@ export default function Dashboard() {
     return <DashboardSkeleton />;
   }
 
-  const recentDeals = deals.slice(0, 4);
+  const recentDeals = deals.slice(0, 5);
 
   const stats = {
     active: deals.filter((d) => d.status === 'In Progress').length,
-    overdue: deals.filter((d) => d.status === 'Overdue').length,
+    overdue: deals.filter(
+      (d) => d.status === 'Overdue' || (d.status !== 'Completed' && isPast(parseISO(d.dueDate)))
+    ).length,
     unpaid: deals.filter((d) => d.status === 'Awaiting Payment').length,
     upcoming: deals.filter((d) => d.status === 'Upcoming').length,
   };
@@ -149,20 +168,21 @@ export default function Dashboard() {
   ];
 
   const reminders = deals
-    .filter((deal) => deal.status === 'Upcoming' || deal.status === 'Overdue')
+    .filter(
+      (deal) => deal.status === 'Upcoming' || deal.status === 'Overdue'
+    )
     .sort(
       (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
     )
-    .slice(0, 3)
+    .slice(0, 5)
     .map((deal) => {
       const dueDate = parseISO(deal.dueDate);
       const isOverdue = deal.status === 'Overdue' || isPast(dueDate);
       return {
-        text: `Check on: ${deal.campaignName}`,
-        brand: deal.brandName,
-        due: isOverdue
-          ? 'OVERDUE'
-          : formatDistanceToNow(dueDate, { addSuffix: true }),
+        ...deal,
+        dueText: isOverdue
+          ? `Overdue by ${formatDistanceToNow(dueDate)}`
+          : `Due ${formatDistanceToNow(dueDate, { addSuffix: true })}`,
         isOverdue: isOverdue,
       };
     });
@@ -214,7 +234,14 @@ export default function Dashboard() {
                       </TableCell>
                       <TableCell>{deal.campaignName}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{deal.status}</Badge>
+                        <Badge
+                          className={cn(
+                            'capitalize',
+                            statusColors[deal.status]
+                          )}
+                        >
+                          {deal.status}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         ${deal.payment.toLocaleString()}
@@ -242,23 +269,38 @@ export default function Dashboard() {
           <CardContent>
             {reminders.length > 0 ? (
               <div className="space-y-4">
-                {reminders.map((reminder, index) => (
-                  <div key={index} className="flex items-center">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary">
-                      <Clock className="h-4 w-4 text-secondary-foreground" />
+                {reminders.map((reminder) => (
+                  <div key={reminder.id} className="flex items-start">
+                    <div
+                      className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+                        reminder.isOverdue
+                          ? 'bg-destructive/10'
+                          : 'bg-secondary'
+                      )}
+                    >
+                      {reminder.isOverdue ? (
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-secondary-foreground" />
+                      )}
                     </div>
                     <div className="ml-4 space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {reminder.text}
+                        {reminder.campaignName}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        For {reminder.brandName}
                       </p>
                       <p
-                        className={`text-sm ${
+                        className={cn(
+                          'text-xs',
                           reminder.isOverdue
-                            ? 'font-semibold text-destructive'
+                            ? 'font-medium text-destructive'
                             : 'text-muted-foreground'
-                        }`}
+                        )}
                       >
-                        {reminder.due}
+                        {reminder.dueText}
                       </p>
                     </div>
                   </div>
