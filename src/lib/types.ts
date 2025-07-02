@@ -61,4 +61,5 @@ export interface UserProfile {
   niche?: string;
   notificationSettings?: NotificationSettings;
   plan?: 'Free' | 'Pro';
+  onboardingCompleted?: boolean;
 }

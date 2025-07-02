@@ -30,6 +30,7 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
+import { OnboardingDialog } from '@/components/onboarding-dialog';
 
 function ProtectedLayout({ children }: { children: ReactNode }) {
   const { user, loadingAuth, deals, dismissDealNotification } = useAppData();
@@ -78,6 +79,7 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
+      <OnboardingDialog />
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2">

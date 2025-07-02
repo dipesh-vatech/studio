@@ -84,6 +84,7 @@ interface AppDataContextType {
   deleteDeal: (dealId: string) => Promise<void>;
   deleteContract: (contractId: string) => Promise<void>;
   deletePerformancePost: (postId: string) => Promise<void>;
+  markOnboardingAsCompleted: () => Promise<void>;
 }
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
@@ -171,6 +172,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             notificationSettings: defaultNotificationSettings,
             plan: 'Free',
             niche: '',
+            onboardingCompleted: false,
           };
           await setDoc(userDocRef, defaultProfile);
           setUserProfile(defaultProfile);
@@ -905,6 +907,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const markOnboardingAsCompleted = async () => {
+    if (!user || !db) return;
+
+    setUserProfile((prev) => (prev ? { ...prev, onboardingCompleted: true } : null));
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, { onboardingCompleted: true });
+    } catch (error) {
+      console.error('Error marking onboarding as completed: ', error);
+      toast({
+        title: 'Error',
+        description: 'Could not save your progress. Please try again.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   const signOutUser = async () => {
     if (auth) {
       await signOut(auth);
@@ -943,6 +964,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteDeal,
         deleteContract,
         deletePerformancePost,
+        markOnboardingAsCompleted,
       }}
     >
       {children}
