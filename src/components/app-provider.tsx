@@ -16,6 +16,7 @@ import type {
   ProfileType,
   NotificationSettings,
   Task,
+  ManualContract,
 } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db, storage } from '@/lib/firebase';
@@ -60,6 +61,7 @@ interface AppDataContextType {
     postData: Omit<PerformancePost, 'id' | 'date'>
   ) => Promise<void>;
   processContract: (file: File) => Promise<void>;
+  addManualContract: (values: ManualContract) => Promise<void>;
   updateContractStatus: (
     contractId: string,
     newStatus: Contract['status']
@@ -601,6 +603,59 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const addManualContract = async (values: ManualContract) => {
+    if (!db || !user) {
+      toast({
+        title: 'Offline Mode',
+        description: 'Cannot add contract while offline.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    try {
+      const newContractData = {
+        ...values,
+        startDate: values.startDate,
+        endDate: values.endDate,
+        status: 'Done' as const,
+        uploadDate: serverTimestamp(),
+        userId: user.uid,
+      };
+
+      const docRef = await addDoc(collection(db, 'contracts'), newContractData);
+
+      const newContract: Contract = {
+        id: docRef.id,
+        ...values,
+        status: 'Done',
+        uploadDate: new Date().toISOString().split('T')[0],
+      };
+      setContracts(prev => [newContract, ...prev].sort((a,b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()));
+
+      await addDeal({
+        brandName: values.brandName,
+        campaignName: `Campaign for ${values.brandName}`,
+        deliverables: values.deliverables,
+        dueDate: values.endDate,
+        payment: values.payment,
+      });
+
+      toast({
+        title: 'Success!',
+        description: `Contract "${values.fileName}" added and a new deal was created.`,
+      });
+    } catch (error) {
+       console.error('Error adding manual contract:', error);
+       toast({
+        title: 'Error',
+        description: 'Could not add contract. Please try again.',
+        variant: 'destructive',
+      });
+       throw error;
+    }
+  };
+
   const updateUserPassword = async (password: string) => {
     if (!auth) {
       throw new Error('Firebase not configured');
@@ -951,6 +1006,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateDealStatus,
         addPerformancePost,
         processContract,
+        addManualContract,
         updateContractStatus,
         updateUserProfile,
         updateUserPassword,

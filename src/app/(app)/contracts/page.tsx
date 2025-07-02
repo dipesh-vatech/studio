@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, type ChangeEvent } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Card,
   CardContent,
@@ -19,7 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Upload, CheckCircle, XCircle, Loader, Trash2 } from 'lucide-react';
-import { type Contract } from '@/lib/types';
+import { type Contract, type ManualContract } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -49,6 +52,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useAppData } from '@/components/app-provider';
 
@@ -69,6 +87,17 @@ const statusBadgeColors: Record<Contract['status'], string> = {
   Processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   Error: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 };
+
+const manualContractSchema = z.object({
+  fileName: z.string().min(1, 'File name is required'),
+  brandName: z.string().min(1, 'Brand name is required'),
+  startDate: z.string().min(1, 'Start date is required'),
+  endDate: z.string().min(1, 'End date is required'),
+  deliverables: z.string().min(1, 'Deliverables are required'),
+  payment: z.coerce
+    .number({ invalid_type_error: 'Please enter a valid number.' })
+    .min(0, 'Payment must be a positive number'),
+});
 
 function MobileContractSkeleton() {
   return (
@@ -112,10 +141,24 @@ export default function ContractsPage() {
     updateContractStatus,
     deleteContract,
     loadingData,
+    addManualContract,
   } = useAppData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmittingManual, setIsSubmittingManual] = useState(false);
+
+  const form = useForm<z.infer<typeof manualContractSchema>>({
+    resolver: zodResolver(manualContractSchema),
+    defaultValues: {
+      fileName: '',
+      brandName: '',
+      startDate: '',
+      endDate: '',
+      deliverables: '',
+      payment: 0,
+    },
+  });
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -134,11 +177,24 @@ export default function ContractsPage() {
     setSelectedFile(null);
   };
 
+  const onManualSubmit = async (values: z.infer<typeof manualContractSchema>) => {
+    setIsSubmittingManual(true);
+    try {
+      await addManualContract(values);
+      form.reset();
+      setIsDialogOpen(false);
+    } catch (error) {
+      // Error is handled by a toast in the provider
+    } finally {
+      setIsSubmittingManual(false);
+    }
+  };
+
   const renderEmptyState = () => (
     <div className="text-center h-48 flex flex-col justify-center items-center">
       <p className="text-muted-foreground">No contracts found.</p>
       <p className="text-sm text-muted-foreground">
-        Upload one to get started.
+        Add one to get started.
       </p>
     </div>
   );
@@ -154,38 +210,155 @@ export default function ContractsPage() {
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
-                <Upload className="mr-2 h-4 w-4" /> Upload Contract
+                <Upload className="mr-2 h-4 w-4" /> Add Contract
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-xl">
               <DialogHeader>
-                <DialogTitle>Upload New Contract</DialogTitle>
+                <DialogTitle>Add New Contract</DialogTitle>
                 <DialogDescription>
-                  Select a PDF file to upload. We'll use AI to process it and
-                  extract key details.
+                  Upload a PDF for automatic processing or enter the details
+                  manually.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleUpload}>
-                <div className="grid gap-4 py-4">
-                  <div className="grid w-full max-w-sm items-center gap-1.5">
-                    <Label htmlFor="contract-file">Contract PDF</Label>
-                    <Input
-                      id="contract-file"
-                      type="file"
-                      accept=".pdf"
-                      onChange={handleFileChange}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="submit" disabled={isUploading || !selectedFile}>
-                    {isUploading && (
-                      <Loader className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Upload & Process
-                  </Button>
-                </DialogFooter>
-              </form>
+              <Tabs defaultValue="upload" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="upload">Upload PDF</TabsTrigger>
+                  <TabsTrigger value="manual">Add Manually</TabsTrigger>
+                </TabsList>
+                <TabsContent value="upload">
+                  <form onSubmit={handleUpload}>
+                    <div className="grid gap-4 py-4">
+                      <p className="text-sm text-muted-foreground">
+                        Select a PDF file to upload. We'll use AI to process it
+                        and extract key details.
+                      </p>
+                      <div className="grid w-full max-w-sm items-center gap-1.5">
+                        <Label htmlFor="contract-file">Contract PDF</Label>
+                        <Input
+                          id="contract-file"
+                          type="file"
+                          accept=".pdf"
+                          onChange={handleFileChange}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        type="submit"
+                        disabled={isUploading || !selectedFile}
+                      >
+                        {isUploading && (
+                          <Loader className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        Upload & Process
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </TabsContent>
+                <TabsContent value="manual">
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(onManualSubmit)}
+                      className="space-y-4 pt-4"
+                    >
+                      <FormField
+                        control={form.control}
+                        name="fileName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>File/Contract Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g. Acme Corp Q3" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="brandName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Brand Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. Acme Corp" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="payment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Payment ($)</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="1500" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="startDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Start Date</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="endDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>End Date</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="deliverables"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Deliverables</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="e.g. 2 Instagram posts, 1 Story"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <DialogFooter>
+                        <Button type="submit" disabled={isSubmittingManual}>
+                          {isSubmittingManual && (
+                            <Loader className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          Save Contract
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </TabsContent>
+              </Tabs>
             </DialogContent>
           </Dialog>
         </div>

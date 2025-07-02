@@ -46,6 +46,15 @@ export type Contract = {
   deliverables?: string;
 };
 
+export type ManualContract = {
+  fileName: string;
+  brandName: string;
+  startDate: string;
+  endDate: string;
+  deliverables: string;
+  payment: number;
+};
+
 export type ProfileType = 'influencer' | 'brand';
 
 export interface NotificationSettings {
