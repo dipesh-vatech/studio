@@ -31,18 +31,9 @@ export default function LandingPage() {
       description:
         'From initial contact to final payment, keep track of every detail of your collaborations. Never miss a deadline or a deliverable.',
       images: [
-        {
-          src: 'https://placehold.co/600x400.png',
-          hint: 'collaboration management',
-        },
-        {
-          src: 'https://placehold.co/600x400.png',
-          hint: 'contract analysis',
-        },
-        {
-          src: 'https://placehold.co/600x400.png',
-          hint: 'email pitch',
-        },
+        { src: '/deals-management.png' },
+        { src: '/contract-analysis.png' },
+        { src: '/email-pitch.png' },
       ],
       subFeatures: [
         {
@@ -70,9 +61,9 @@ export default function LandingPage() {
       description:
         'Measure brand awareness and presence. Track reach and engagement using our state-of-the-art technology and AI-powered insights.',
       images: [
-        { src: 'https://placehold.co/600x400.png', hint: 'performance tracking' },
-        { src: 'https://placehold.co/600x400.png', hint: 'financial analytics' },
-        { src: 'https://placehold.co/600x400.png', hint: 'content calendar' },
+        { src: '/performance-tracking.png' },
+        { src: '/financial-analytics.png' },
+        { src: '/content-calendar.png' },
       ],
       subFeatures: [
         {
@@ -199,7 +190,6 @@ export default function LandingPage() {
               height={740}
               alt="CollabFlow App Dashboard"
               className="rounded-lg border bg-card shadow-2xl mx-auto"
-              data-ai-hint="dashboard app"
             />
           </div>
         </section>
@@ -250,7 +240,6 @@ export default function LandingPage() {
                     height={400}
                     alt={`${feature.title} - example ${imgIndex + 1}`}
                     className="rounded-lg border bg-card shadow-lg object-cover aspect-video"
-                    data-ai-hint={image.hint}
                   />
                 ))}
               </div>
