@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const ExtractPostDataInputSchema = z.object({
   postUrl: z.string().url().describe('The URL of the social media post.'),
@@ -33,6 +33,7 @@ export async function extractPostData(input: ExtractPostDataInput): Promise<Extr
 
 const prompt = ai.definePrompt({
     name: 'extractPostDataPrompt',
+    model: 'googleai/gemini-2.0-flash',
     input: {schema: ExtractPostDataInputSchema},
     output: {schema: ExtractPostDataOutputSchema},
     prompt: `You are an expert social media analyst. Your task is to analyze a social media post from a given URL and provide realistic performance metrics.

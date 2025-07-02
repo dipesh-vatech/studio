@@ -30,8 +30,20 @@ export default function LandingPage() {
       title: 'Manage Your Deals Seamlessly',
       description:
         'From initial contact to final payment, keep track of every detail of your collaborations. Never miss a deadline or a deliverable.',
-      image: 'https://placehold.co/1024x768.png',
-      imageHint: 'collaboration management',
+      images: [
+        {
+          src: 'https://placehold.co/600x400.png',
+          hint: 'collaboration management',
+        },
+        {
+          src: 'https://placehold.co/600x400.png',
+          hint: 'contract analysis',
+        },
+        {
+          src: 'https://placehold.co/600x400.png',
+          hint: 'email pitch',
+        },
+      ],
       subFeatures: [
         {
           icon: Handshake,
@@ -57,8 +69,11 @@ export default function LandingPage() {
       title: 'Get Powerful, Reliable Metrics',
       description:
         'Measure brand awareness and presence. Track reach and engagement using our state-of-the-art technology and AI-powered insights.',
-      image: 'https://placehold.co/1024x768.png',
-      imageHint: 'analytics dashboard',
+      images: [
+        { src: 'https://placehold.co/600x400.png', hint: 'performance tracking' },
+        { src: 'https://placehold.co/600x400.png', hint: 'financial analytics' },
+        { src: 'https://placehold.co/600x400.png', hint: 'content calendar' },
+      ],
       subFeatures: [
         {
           icon: BarChart,
@@ -186,20 +201,6 @@ export default function LandingPage() {
               className="rounded-lg border bg-card shadow-2xl mx-auto"
               data-ai-hint="dashboard app"
             />
-            <div className="absolute -bottom-10 -left-10 -z-10 hidden md:block">
-              <div className="grid grid-cols-6 gap-2">
-                 {Array.from({ length: 36 }).map((_, i) => (
-                  <div key={i} className="h-2 w-2 rounded-full bg-primary/20" />
-                ))}
-              </div>
-            </div>
-             <div className="absolute -top-10 -right-10 -z-10 hidden md:block">
-              <div className="grid grid-cols-6 gap-2">
-                 {Array.from({ length: 36 }).map((_, i) => (
-                  <div key={i} className="h-2 w-2 rounded-full bg-primary/20" />
-                ))}
-              </div>
-            </div>
           </div>
         </section>
 
@@ -240,22 +241,18 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              <div className="relative">
-                <Image
-                  src={feature.image}
-                  width={1024}
-                  height={768}
-                  alt={feature.title}
-                  className="rounded-lg border bg-card shadow-2xl"
-                  data-ai-hint={feature.imageHint}
-                />
-                 <div className="absolute -bottom-6 -right-6 -z-10 hidden md:block">
-                  <div className="grid grid-cols-6 gap-2">
-                     {Array.from({ length: 36 }).map((_, i) => (
-                      <div key={i} className="h-2 w-2 rounded-full bg-primary/20" />
-                    ))}
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {feature.images.map((image, imgIndex) => (
+                  <Image
+                    key={imgIndex}
+                    src={image.src}
+                    width={600}
+                    height={400}
+                    alt={`${feature.title} - example ${imgIndex + 1}`}
+                    className="rounded-lg border bg-card shadow-lg object-cover aspect-video"
+                    data-ai-hint={image.hint}
+                  />
+                ))}
               </div>
             </div>
           ))}

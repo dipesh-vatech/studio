@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const ExtractContractDetailsInputSchema = z.object({
   contractDataUri: z
@@ -34,6 +34,7 @@ export async function extractContractDetails(input: ExtractContractDetailsInput)
 
 const prompt = ai.definePrompt({
   name: 'extractContractDetailsPrompt',
+  model: 'googleai/gemini-2.0-flash',
   input: {schema: ExtractContractDetailsInputSchema},
   output: {schema: ExtractContractDetailsOutputSchema},
   prompt: `You are an expert legal assistant specializing in contract analysis. Your task is to carefully read the provided contract PDF and extract the following key details:

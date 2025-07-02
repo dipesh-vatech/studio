@@ -27,6 +27,7 @@ export async function suggestPostTime(input: SuggestPostTimeInput): Promise<Sugg
 
 const prompt = ai.definePrompt({
   name: 'suggestPostTimePrompt',
+  model: 'googleai/gemini-2.0-flash',
   input: {schema: SuggestPostTimeInputSchema},
   output: {schema: SuggestPostTimeOutputSchema},
   prompt: `You are an expert social media analyst. Based on general industry knowledge, suggest the best days and times to post on {{{platform}}} for the "{{{niche}}}" niche.

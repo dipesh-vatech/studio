@@ -29,6 +29,7 @@ export async function generateContentIdeas(input: GenerateContentIdeasInput): Pr
 
 const prompt = ai.definePrompt({
   name: 'generateContentIdeasPrompt',
+  model: 'googleai/gemini-2.0-flash',
   input: {schema: GenerateContentIdeasInputSchema},
   output: {schema: GenerateContentIdeasOutputSchema},
   prompt: `You are an expert social media strategist. Your task is to generate creative and engaging content ideas for an influencer campaign.

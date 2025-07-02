@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const GeneratePitchEmailInputSchema = z.object({
   followerCount: z
@@ -45,6 +45,7 @@ export async function generatePitchEmail(
 
 const prompt = ai.definePrompt({
   name: 'generatePitchEmailPrompt',
+  model: 'googleai/gemini-2.0-flash',
   input: {schema: GeneratePitchEmailInputSchema},
   output: {schema: GeneratePitchEmailOutputSchema},
   prompt: `You are an expert marketing assistant specialized in writing personalized pitch emails for social media influencers to send to brands for potential collaborations.
