@@ -27,7 +27,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Star, WandSparkles, Trash2 } from 'lucide-react';
+import { Loader2, Star, WandSparkles, Trash2, ThumbsUp, MessageSquare, Share, Bookmark } from 'lucide-react';
 import type { PerformancePost } from '@/lib/types';
 import {
   Dialog,
@@ -55,6 +55,33 @@ import { extractPostData } from '@/ai/flows/extract-post-data';
 import { useAppData } from '@/components/app-provider';
 import { subMonths, format, parseISO } from 'date-fns';
 
+function MobilePostSkeleton() {
+  return (
+    <div className="space-y-4">
+      {[...Array(3)].map((_, i) => (
+        <Card key={i}>
+          <CardContent className="p-4 space-y-4">
+            <div className="flex justify-between items-start">
+               <div className='space-y-2'>
+                 <Skeleton className="h-5 w-40" />
+                 <Skeleton className="h-6 w-24 rounded-full" />
+               </div>
+               <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+
 function PerformanceSkeleton() {
   return (
     <div className="flex flex-col gap-6">
@@ -79,50 +106,55 @@ function PerformanceSkeleton() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Post</TableHead>
-                <TableHead>Platform</TableHead>
-                <TableHead>Likes</TableHead>
-                <TableHead>Comments</TableHead>
-                <TableHead>Shares</TableHead>
-                <TableHead>Saves</TableHead>
-                <TableHead>Conversion</TableHead>
-                <TableHead className="w-[80px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[...Array(5)].map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[150px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-[90px] rounded-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[50px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[50px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[50px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[50px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-6 w-[70px] rounded-full" />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Skeleton className="h-8 w-8 rounded-full ml-auto" />
-                  </TableCell>
+          <div className='hidden md:block'>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Post</TableHead>
+                  <TableHead>Platform</TableHead>
+                  <TableHead>Likes</TableHead>
+                  <TableHead>Comments</TableHead>
+                  <TableHead>Shares</TableHead>
+                  <TableHead>Saves</TableHead>
+                  <TableHead>Conversion</TableHead>
+                  <TableHead className="w-[80px] text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {[...Array(5)].map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[150px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-[90px] rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[50px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[50px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[50px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[50px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-[70px] rounded-full" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-8 w-8 rounded-full ml-auto" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className='md:hidden'>
+            <MobilePostSkeleton />
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -204,6 +236,15 @@ export default function PerformancePage() {
       setIsImporting(false);
     }
   };
+
+  const renderEmptyState = () => (
+     <div className="text-center h-48 flex flex-col justify-center items-center">
+      <p className="text-muted-foreground">No posts to display.</p>
+      <p className="text-sm text-muted-foreground">
+        Import one to get started!
+      </p>
+    </div>
+  );
 
   if (loadingData) {
     return <PerformanceSkeleton />;
@@ -288,84 +329,171 @@ export default function PerformancePage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Post</TableHead>
-                <TableHead>Platform</TableHead>
-                <TableHead>Likes</TableHead>
-                <TableHead>Comments</TableHead>
-                <TableHead>Shares</TableHead>
-                <TableHead>Saves</TableHead>
-                <TableHead>Conversion</TableHead>
-                <TableHead className="w-[80px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {performancePosts.length > 0 ? (
-                performancePosts.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="font-medium">
-                      {post.postTitle}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{post.platform}</Badge>
-                    </TableCell>
-                    <TableCell>{post.likes.toLocaleString()}</TableCell>
-                    <TableCell>{post.comments.toLocaleString()}</TableCell>
-                    <TableCell>{post.shares.toLocaleString()}</TableCell>
-                    <TableCell>{post.saves.toLocaleString()}</TableCell>
-                    <TableCell>
-                      {post.conversion ? (
-                        <Badge className="bg-green-100 text-green-800 border-none hover:bg-green-200">
-                          <Star className="mr-2 h-3 w-3" />
-                          Yes
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">No</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently delete the post performance
-                              data. This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deletePerformancePost(post.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+           {/* Desktop View */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Post</TableHead>
+                  <TableHead>Platform</TableHead>
+                  <TableHead>Likes</TableHead>
+                  <TableHead>Comments</TableHead>
+                  <TableHead>Shares</TableHead>
+                  <TableHead>Saves</TableHead>
+                  <TableHead>Conversion</TableHead>
+                  <TableHead className="w-[80px] text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {performancePosts.length > 0 ? (
+                  performancePosts.map((post) => (
+                    <TableRow key={post.id}>
+                      <TableCell className="font-medium">
+                        {post.postTitle}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{post.platform}</Badge>
+                      </TableCell>
+                      <TableCell>{post.likes.toLocaleString()}</TableCell>
+                      <TableCell>{post.comments.toLocaleString()}</TableCell>
+                      <TableCell>{post.shares.toLocaleString()}</TableCell>
+                      <TableCell>{post.saves.toLocaleString()}</TableCell>
+                      <TableCell>
+                        {post.conversion ? (
+                          <Badge className="bg-green-100 text-green-800 border-none hover:bg-green-200">
+                            <Star className="mr-2 h-3 w-3" />
+                            Yes
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">No</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the post performance
+                                data. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deletePerformancePost(post.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8}>
+                       {renderEmptyState()}
                     </TableCell>
                   </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Mobile View */}
+          <div className="space-y-4 md:hidden">
+             {performancePosts.length > 0 ? (
+                performancePosts.map((post) => (
+                  <Card key={post.id}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base leading-tight">
+                            {post.postTitle}
+                          </h3>
+                           <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="secondary">{post.platform}</Badge>
+                             {post.conversion ? (
+                                <Badge className="bg-green-100 text-green-800 border-none hover:bg-green-200 text-xs">
+                                  <Star className="mr-1.5 h-3 w-3" />
+                                  Conversion
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-xs">No Conversion</Badge>
+                              )}
+                          </div>
+                        </div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the post performance
+                                data. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deletePerformancePost(post.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-sm mt-4">
+                        <div className="flex items-center gap-2 rounded-md bg-muted/50 p-2">
+                           <ThumbsUp className="h-4 w-4 text-muted-foreground" />
+                           <div>
+                             <p className="font-semibold">{post.likes.toLocaleString()}</p>
+                             <p className="text-xs text-muted-foreground">Likes</p>
+                           </div>
+                        </div>
+                         <div className="flex items-center gap-2 rounded-md bg-muted/50 p-2">
+                           <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                           <div>
+                             <p className="font-semibold">{post.comments.toLocaleString()}</p>
+                             <p className="text-xs text-muted-foreground">Comments</p>
+                           </div>
+                        </div>
+                         <div className="flex items-center gap-2 rounded-md bg-muted/50 p-2">
+                           <Share className="h-4 w-4 text-muted-foreground" />
+                           <div>
+                             <p className="font-semibold">{post.shares.toLocaleString()}</p>
+                             <p className="text-xs text-muted-foreground">Shares</p>
+                           </div>
+                        </div>
+                         <div className="flex items-center gap-2 rounded-md bg-muted/50 p-2">
+                           <Bookmark className="h-4 w-4 text-muted-foreground" />
+                           <div>
+                             <p className="font-semibold">{post.saves.toLocaleString()}</p>
+                             <p className="text-xs text-muted-foreground">Saves</p>
+                           </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    No posts to display. Import one to get started!
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+             ) : (
+                renderEmptyState()
+             )}
+          </div>
         </CardContent>
       </Card>
     </div>
