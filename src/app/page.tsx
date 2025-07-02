@@ -162,7 +162,7 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1">
-        <section className="container py-24 text-center md:py-32 lg:py-40">
+        <section className="container py-20 text-center sm:py-24 md:py-32">
           <div className="flex flex-col items-center">
             <div className="mb-4 flex items-center justify-center space-x-2 rounded-full bg-secondary px-4 py-1 text-sm font-medium text-primary">
               <Award className="h-5 w-5" />
@@ -195,11 +195,11 @@ export default function LandingPage() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="container space-y-24 py-16 md:space-y-32 md:py-24">
+        <section id="features" className="container space-y-16 py-16 sm:space-y-24 md:py-24">
           {features.map((feature, index) => (
             <div
               key={feature.title}
-              className="grid items-center gap-12 md:grid-cols-2 md:gap-20"
+              className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12 lg:gap-20"
             >
               <div className={index % 2 === 1 ? 'md:order-last' : ''}>
                 <div className="max-w-md">
@@ -249,7 +249,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t">
-        <div className="container flex h-16 items-center justify-between text-sm text-muted-foreground">
+        <div className="container flex flex-col items-center justify-between gap-4 py-4 text-sm text-muted-foreground sm:h-16 sm:flex-row sm:py-0">
            <p>&copy; {new Date().getFullYear()} CollabFlow. All rights reserved.</p>
            <nav className="flex items-center gap-4">
               <Link href="#" className="hover:underline">Privacy</Link>
