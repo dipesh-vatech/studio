@@ -8,6 +8,21 @@ import {
 } from '@/components/ui/sheet';
 import { BriefcaseBusiness, Award, Menu } from 'lucide-react';
 
+const DashboardPlaceholder = () => {
+  const svg = `<svg width="1200" height="740" viewBox="0 0 1200 740" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="740" rx="12" fill="white"/><rect x="24" y="24" width="1152" height="64" rx="8" fill="#F3F4F6"/><rect x="48" y="44" width="150" height="16" rx="4" fill="#E5E7EB"/><rect x="1056" y="36" width="100" height="40" rx="8" fill="#E5E7EB"/><rect x="24" y="112" width="256" height="604" rx="8" fill="#F9FAFB"/><rect x="48" y="136" width="100" height="10" rx="5" fill="#D1D5DB"/><rect x="48" y="162" width="180" height="24" rx="6" fill="#E5E7EB"/><rect x="48" y="202" width="150" height="24" rx="6" fill="#E5E7EB"/><rect x="48" y="242" width="180" height="24" rx="6" fill="#E5E7EB"/><rect x="48" y="282" width="120" height="24" rx="6" fill="#E5E7EB"/><rect x="304" y="112" width="872" height="280" rx="8" fill="#F9FAFB"/><rect x="328" y="136" width="200" height="12" rx="6" fill="#D1D5DB"/><rect x="328" y="180" width="824" height="20" rx="5" fill="#E5E7EB"/><path d="M328 226H900" stroke="#E5E7EB" stroke-width="10" stroke-linecap="round"/><path d="M328 252H750" stroke="#E5E7EB" stroke-width="10" stroke-linecap="round"/><path d="M328 278H952" stroke="#E5E7EB" stroke-width="10" stroke-linecap="round"/><path d="M328 304H800" stroke="#E5E7EB" stroke-width="10" stroke-linecap="round"/><rect x="304" y="416" width="424" height="300" rx="8" fill="#F9FAFB"/><rect x="328" y="440" width="150" height="12" rx="6" fill="#D1D5DB"/><path d="M344 500L400 470L450 520L520 490L580 540L630 500L680 560L728 530" stroke="#D1D5DB" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="752" y="416" width="424" height="300" rx="8" fill="#F9FAFB"/><rect x="776" y="440" width="150" height="12" rx="6" fill="#D1D5DB"/><rect x="784" y="480" width="180" height="20" rx="4" fill="#E5E7EB"/><rect x="980" y="480" width="80" height="20" rx="4" fill="#E5E7EB"/><rect x="784" y="510" width="150" height="20" rx="4" fill="#E5E7EB"/><rect x="950" y="510" width="110" height="20" rx="4" fill="#E5E7EB"/><rect x="784" y="540" width="190" height="20" rx="4" fill="#E5E7EB"/><rect x="990" y="540" width="70" height="20" rx="4" fill="#E5E7EB"/></svg>`;
+  const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+
+  return (
+    <Image
+      src={dataUri}
+      width={1200}
+      height={740}
+      alt="CollabFlow App Dashboard"
+      className="rounded-lg border bg-card shadow-2xl"
+    />
+  );
+};
+
 export default function LandingPage() {
   const navLinks = [
     { href: '#features', label: 'Features' },
@@ -111,14 +126,7 @@ export default function LandingPage() {
 
         <section className="container pb-20 md:pb-32">
           <div className="relative mx-auto max-w-5xl">
-            <Image
-              src="https://placehold.co/1200x740.png"
-              width={1200}
-              height={740}
-              alt="CollabFlow App Dashboard"
-              data-ai-hint="app dashboard analytics"
-              className="rounded-lg border bg-card shadow-2xl"
-            />
+            <DashboardPlaceholder />
             <div className="absolute -bottom-10 -left-10 -z-10 hidden md:block">
               <div className="grid grid-cols-6 gap-2">
                  {Array.from({ length: 36 }).map((_, i) => (
