@@ -297,7 +297,7 @@ export default function PerformancePage() {
                   <DialogTitle>Import Post Performance</DialogTitle>
                   <DialogDescription>
                     Enter the URL of a social media post and we'll use AI to
-                    generate its performance data.
+                    generate its performance data. This is a simulation and does not scrape live data.
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleImport}>
