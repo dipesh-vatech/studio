@@ -33,7 +33,7 @@ export function UserNav() {
               data-ai-hint="person avatar"
             />
             <AvatarFallback>
-              {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+              {user.displayName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
         </Button>
@@ -58,7 +58,7 @@ export function UserNav() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/settings">
+            <Link href="/settings?tab=billing">
               <CreditCard className="mr-2 h-4 w-4" />
               <span>Billing</span>
             </Link>
