@@ -1,6 +1,8 @@
+
 'use client';
 
 import { useState, type ChangeEvent } from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,7 +23,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Upload, CheckCircle, XCircle, Loader, Trash2 } from 'lucide-react';
+import { Upload, CheckCircle, XCircle, Loader, Trash2, WandSparkles } from 'lucide-react';
 import { type Contract, type ManualContract } from '@/lib/types';
 import {
   Dialog,
@@ -142,11 +144,14 @@ export default function ContractsPage() {
     deleteContract,
     loadingData,
     addManualContract,
+    userProfile
   } = useAppData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
+  
+  const isProPlan = userProfile?.plan === 'Pro';
 
   const form = useForm<z.infer<typeof manualContractSchema>>({
     resolver: zodResolver(manualContractSchema),
@@ -223,38 +228,55 @@ export default function ContractsPage() {
               </DialogHeader>
               <Tabs defaultValue="upload" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="upload">Upload PDF</TabsTrigger>
+                  <TabsTrigger value="upload">AI Upload (Pro)</TabsTrigger>
                   <TabsTrigger value="manual">Add Manually</TabsTrigger>
                 </TabsList>
                 <TabsContent value="upload">
-                  <form onSubmit={handleUpload}>
-                    <div className="grid gap-4 py-4">
-                      <p className="text-sm text-muted-foreground">
-                        Select a PDF file to upload. We'll use AI to process it
-                        and extract key details.
-                      </p>
-                      <div className="grid w-full max-w-sm items-center gap-1.5">
-                        <Label htmlFor="contract-file">Contract PDF</Label>
-                        <Input
-                          id="contract-file"
-                          type="file"
-                          accept=".pdf"
-                          onChange={handleFileChange}
-                        />
+                  {isProPlan ? (
+                    <form onSubmit={handleUpload}>
+                      <div className="grid gap-4 py-4">
+                        <p className="text-sm text-muted-foreground">
+                          Select a PDF file to upload. We'll use AI to process it
+                          and extract key details.
+                        </p>
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                          <Label htmlFor="contract-file">Contract PDF</Label>
+                          <Input
+                            id="contract-file"
+                            type="file"
+                            accept=".pdf"
+                            onChange={handleFileChange}
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        type="submit"
-                        disabled={isUploading || !selectedFile}
-                      >
-                        {isUploading && (
-                          <Loader className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        Upload & Process
-                      </Button>
-                    </DialogFooter>
-                  </form>
+                      <DialogFooter>
+                        <Button
+                          type="submit"
+                          disabled={isUploading || !selectedFile}
+                        >
+                          {isUploading && (
+                            <Loader className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          Upload & Process
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  ) : (
+                     <Card className="mt-4 border-dashed">
+                      <CardContent className="p-6 text-center">
+                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mx-auto mb-3">
+                           <WandSparkles className="h-6 w-6" />
+                         </div>
+                        <h3 className="text-lg font-semibold">Upgrade to Pro</h3>
+                        <p className="text-sm text-muted-foreground mt-1 mb-4">
+                          AI Contract Analysis is a Pro feature. Upgrade your plan to automatically extract deal info from PDFs.
+                        </p>
+                        <Button asChild>
+                          <Link href="/settings?tab=billing">Upgrade Your Plan</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
                 <TabsContent value="manual">
                   <Form {...form}>

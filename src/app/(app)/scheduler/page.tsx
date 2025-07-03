@@ -1,6 +1,8 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import {
   eachDayOfInterval,
   endOfMonth,
@@ -57,6 +59,7 @@ export default function SchedulerPage() {
   const [postTimeSuggestion, setPostTimeSuggestion] = useState<string>('');
 
   const firstDayOfCurrentMonth = startOfMonth(currentDate);
+  const isProPlan = userProfile?.plan === 'Pro';
 
   const daysInMonth = useMemo(() => {
     return eachDayOfInterval({
@@ -221,14 +224,30 @@ export default function SchedulerPage() {
                 {/* AI Suggestions */}
                 <div className="space-y-4">
                   <h3 className="font-semibold flex items-center gap-2"><WandSparkles className="h-5 w-5 text-primary" /> AI Assistant</h3>
-                  <Button onClick={handleGenerateIdeas} disabled={loadingAi !== null} className="w-full">
-                    {loadingAi === 'ideas' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lightbulb className="mr-2 h-4 w-4" />}
-                    Generate Content Ideas
-                  </Button>
-                  <Button onClick={handleSuggestTime} disabled={loadingAi !== null} className="w-full">
-                    {loadingAi === 'timing' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Clock className="mr-2 h-4 w-4" />}
-                    Suggest Best Post Times
-                  </Button>
+                  {isProPlan ? (
+                    <>
+                      <Button onClick={handleGenerateIdeas} disabled={loadingAi !== null} className="w-full">
+                        {loadingAi === 'ideas' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lightbulb className="mr-2 h-4 w-4" />}
+                        Generate Content Ideas
+                      </Button>
+                      <Button onClick={handleSuggestTime} disabled={loadingAi !== null} className="w-full">
+                        {loadingAi === 'timing' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Clock className="mr-2 h-4 w-4" />}
+                        Suggest Best Post Times
+                      </Button>
+                    </>
+                  ) : (
+                    <Card className="bg-muted/50 border-dashed text-center">
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold text-sm">Upgrade for Advanced AI</h4>
+                        <p className="text-xs text-muted-foreground mt-1 mb-3">
+                          Generate content ideas and get posting time suggestions by upgrading to Pro.
+                        </p>
+                        <Button size="sm" asChild>
+                          <Link href="/settings?tab=billing">Upgrade Plan</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
                 {/* AI Results */}
                 <div className="h-56 space-y-4 overflow-y-auto pr-2">

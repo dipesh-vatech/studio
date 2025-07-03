@@ -539,6 +539,7 @@ function BillingSettings() {
       features: [
         'Up to 10 deals',
         'Basic AI Pitch Generator',
+        'Performance Tracking',
         'Community Support',
       ],
     },
@@ -549,6 +550,8 @@ function BillingSettings() {
       features: [
         'Unlimited deals',
         'Advanced AI Features',
+        'AI Contract Analysis',
+        'Financial Analytics',
         'Priority Support',
       ],
     },

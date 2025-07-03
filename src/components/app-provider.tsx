@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -514,8 +515,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
-
+    
     const contractId = doc(collection(db, 'temp')).id;
+
+    if (userProfile?.plan !== 'Pro') {
+      toast({
+        title: 'Upgrade Required',
+        description: 'AI Contract Analysis is a Pro feature. Please upgrade your plan to use it.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     const newContract: Contract = {
       id: contractId,
       fileName: file.name,
