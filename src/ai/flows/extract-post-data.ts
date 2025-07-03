@@ -46,7 +46,43 @@ const getPostMetrics = ai.defineTool(
     }),
   },
   async ({ postUrl }) => {
-    // Simulate fetching data by generating plausible random numbers.
+
+    // REAL-WORLD API INTEGRATION EXAMPLE
+    // To fetch real data, you would replace the simulation logic below
+    // with an actual API call using the user's access token.
+    if (postUrl.includes('instagram.com')) {
+      // 1. Get the shortcode (e.g., Cq..._A) from the URL.
+      // const shortcode = postUrl.split('/p/')[1]?.split('/')[0];
+
+      // 2. Get the user's access token (you would need to build an OAuth flow for this).
+      // const accessToken = 'USER_ACCESS_TOKEN_FROM_YOUR_DATABASE';
+
+      // 3. Make the API call to Instagram's oEmbed endpoint to get the media_id.
+      // const oEmbedUrl = `https://graph.facebook.com/v19.0/instagram_oembed?url=${postUrl}&access_token=${accessToken}`;
+      // const oEmbedResponse = await fetch(oEmbedUrl);
+      // const oEmbedData = await oEmbedResponse.json();
+      // const mediaId = oEmbedData.media_id;
+
+      // 4. Use the media_id to get the post metrics.
+      // if (mediaId) {
+      //   const fields = 'like_count,comments_count';
+      //   const metricsUrl = `https://graph.instagram.com/${mediaId}?fields=${fields}&access_token=${accessToken}`;
+      //   const metricsResponse = await fetch(metricsUrl);
+      //   const metricsData = await metricsResponse.json();
+      //
+      //   return {
+      //     likes: metricsData.like_count || 0,
+      //     comments: metricsData.comments_count || 0,
+      //     // The API does not provide shares or saves, so we can simulate them.
+      //     shares: Math.floor(metricsData.like_count / 20) || 0,
+      //     saves: Math.floor(metricsData.like_count / 10) || 0,
+      //   };
+      // }
+    }
+
+
+    // CURRENT SIMULATION LOGIC (FALLBACK)
+    // This code generates plausible random numbers to simulate fetching data.
     const getMetric = (base: number, variance: number) => base + Math.floor(Math.random() * variance);
     
     if (postUrl.includes('tiktok')) {
