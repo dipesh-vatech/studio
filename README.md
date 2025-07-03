@@ -48,3 +48,41 @@ This starts the Genkit development server, which handles AI requests from the ap
 
 ### 4. Open the App
 Navigate to [http://localhost:9002](http://localhost:9002) in your browser.
+
+## Deployment
+
+To share your app with others, you need to deploy it to a public URL. This project is set up to use Firebase App Hosting.
+
+### Prerequisites
+
+1.  **Install Firebase CLI:** If you don't have it, install it globally:
+    ```bash
+    npm install -g firebase-tools
+    ```
+
+2.  **Log in to Firebase:**
+    ```bash
+    firebase login
+    ```
+
+### Deployment Steps
+
+1.  **Initialize App Hosting (if not already done):**
+    If this is your first time deploying, you might need to link your project to Firebase. Run:
+    ```bash
+    firebase init apphosting
+    ```
+    Follow the prompts to select your Firebase project.
+
+2.  **Build your app for production:**
+    ```bash
+    npm run build
+    ```
+
+3.  **Deploy to Firebase:**
+    Run the deploy command:
+    ```bash
+    firebase deploy --only apphosting
+    ```
+
+After the command completes, it will output the public URL for your deployed application. You can share this link with your tester.
