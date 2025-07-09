@@ -36,7 +36,18 @@ export default function LandingPage() {
       title: 'Manage Your Deals From Start to Finish',
       description:
         'From initial contact to final payment, CollabFlow provides a centralized hub to keep track of every detail. Never miss a deadline or a deliverable again, ensuring professional and reliable partnerships.',
-      image: { src: '/deals-management.png', alt: 'Deals Management Dashboard' },
+      images: [
+        { 
+          src: '/deals-management.png', 
+          alt: 'Deals Management Dashboard',
+          hint: 'deals management' 
+        },
+        { 
+          src: '/contract-analysis.png', 
+          alt: 'AI Contract Analysis',
+          hint: 'contract analysis'
+        },
+      ],
       subFeatures: [
         {
           icon: Handshake,
@@ -62,7 +73,18 @@ export default function LandingPage() {
       title: 'Uncover Actionable Content Insights',
       description:
         'Go beyond surface-level numbers. Our AI-powered tools analyze your post performance, providing qualitative feedback on what worked, why it worked, and how to create even better content next time.',
-      image: { src: '/content-analytics.png', alt: 'Content Analytics Dashboard' },
+      images: [
+        {
+          src: '/content-analytics.png',
+          alt: 'Content Analytics Dashboard',
+          hint: 'content analytics'
+        },
+        {
+          src: '/ai-analysis.png',
+          alt: 'AI Performance Analysis',
+          hint: 'ai analysis'
+        }
+      ],
       subFeatures: [
         {
           icon: BarChart,
@@ -88,7 +110,13 @@ export default function LandingPage() {
       title: 'Master Your Financials',
       description:
         'Take control of your business with a clear financial overview. Track your earnings, monitor outstanding payments, and identify your most valuable partnerships to maximize your revenue.',
-      image: { src: '/financial-analytics.png', alt: 'Financial Analytics Dashboard' },
+      images: [
+        {
+          src: '/financial-analytics.png',
+          alt: 'Financial Analytics Dashboard',
+          hint: 'financial dashboard'
+        }
+      ],
       subFeatures: [
         {
           icon: DollarSign,
@@ -290,18 +318,21 @@ export default function LandingPage() {
                   </ul>
                 </div>
               </div>
-              <div className="flex flex-col gap-4">
-                <Image
-                  src={feature.image.src}
-                  width={600}
-                  height={400}
-                  alt={feature.image.alt}
-                  className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
-                  data-ai-hint={
-                      feature.title.includes("Deals") ? "deals management" :
-                      feature.title.includes("Content") ? "content analytics" : "financial dashboard"
-                  }
-                />
+              <div className={cn(
+                  'flex flex-col gap-4',
+                  feature.images.length > 1 && 'grid grid-cols-2'
+              )}>
+                {feature.images.map((image, imgIndex) => (
+                   <Image
+                    key={imgIndex}
+                    src={image.src}
+                    width={feature.images.length > 1 ? 400 : 600}
+                    height={feature.images.length > 1 ? 280 : 400}
+                    alt={image.alt}
+                    className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
+                    data-ai-hint={image.hint}
+                  />
+                ))}
               </div>
             </div>
           ))}
