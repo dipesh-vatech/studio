@@ -16,6 +16,7 @@ import {
   Settings,
   CalendarDays,
   DollarSign,
+  Search,
 } from 'lucide-react';
 
 const links = [
@@ -26,6 +27,7 @@ const links = [
   { href: '/performance', label: 'Performance', icon: BarChart },
   { href: '/contracts', label: 'Contracts', icon: FileText },
   { href: '/pitch-generator', label: 'Pitch AI', icon: Lightbulb },
+  { href: '/analyzer', label: 'Post Analyzer', icon: Search },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
