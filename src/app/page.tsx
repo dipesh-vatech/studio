@@ -275,7 +275,7 @@ export default function LandingPage() {
         <section className="container pb-20 md:pb-32">
           <div className="relative mx-auto max-w-5xl">
             <Image
-              src="/Dashboard.png"
+              src="/collabflow-Dashboard.png"
               width={1200}
               height={740}
               alt="CollabFlow App Dashboard"
