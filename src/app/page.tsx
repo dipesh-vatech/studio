@@ -265,7 +265,7 @@ export default function LandingPage() {
               key={feature.title}
               className="grid grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16 lg:gap-24"
             >
-              <div className={index % 2 === 1 ? 'md:order-last' : ''}>
+              <div className={cn(index % 2 === 1 ? 'md:order-last' : '')}>
                 <div className="max-w-md">
                   <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
                     {feature.title}
