@@ -7,9 +7,9 @@
  * processed by the Firebase Trigger Email extension.
  */
 
-import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
-import { differenceInDays, parseISO } from 'date-fns';
+import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
+import { differenceInDays, parseISO } from "date-fns";
 
 // Initialize the Firebase Admin SDK
 if (admin.apps.length === 0) {
@@ -24,18 +24,18 @@ const db = admin.firestore();
  * an email reminder to the user if they have enabled notifications.
  */
 export const dailyDealReminderCheck = functions.pubsub
-  .schedule('every 24 hours')
+  .schedule("every 24 hours")
   .onRun(async (context) => {
-    console.log('Running daily deal reminder check...');
+    console.log("Running daily deal reminder check...");
 
     const now = new Date();
     const dealsSnapshot = await db
-      .collection('deals')
-      .where('status', 'in', ['Upcoming', 'In Progress'])
+      .collection("deals")
+      .where("status", "in", ["Upcoming", "In Progress"])
       .get();
 
     if (dealsSnapshot.empty) {
-      console.log('No upcoming or in-progress deals found.');
+      console.log("No upcoming or in-progress deals found.");
       return null;
     }
 
@@ -44,12 +44,17 @@ export const dailyDealReminderCheck = functions.pubsub
 
     for (const doc of dealsSnapshot.docs) {
       const deal = doc.data();
+      // Ensure dueDate exists and has a toDate method (i.e., is a Firestore Timestamp)
+      if (!deal.dueDate || typeof deal.dueDate.toDate !== 'function') {
+        console.warn(`Deal ${doc.id} has invalid or missing dueDate.`);
+        continue;
+      }
       const dueDate = parseISO(deal.dueDate.toDate().toISOString());
       const daysUntilDue = differenceInDays(dueDate, now);
 
       // Check if the deal is due in 3 days or 1 day
       if (daysUntilDue === 3 || daysUntilDue === 1) {
-        const userSnapshot = await db.collection('users').doc(deal.userId).get();
+        const userSnapshot = await db.collection("users").doc(deal.userId).get();
         if (!userSnapshot.exists) continue;
 
         const user = userSnapshot.data();
@@ -66,20 +71,20 @@ export const dailyDealReminderCheck = functions.pubsub
     }
 
     if (emailsToSend.size === 0) {
-      console.log('No reminders to send today.');
+      console.log("No reminders to send today.");
       return null;
     }
 
     // Create email documents in the 'mail' collection
     const emailPromises = Array.from(emailsToSend.values()).map(
       ({ to, deals }) => {
-        const subject = 'Upcoming Deal Deadlines on CollabFlow';
+        const subject = "Upcoming Deal Deadlines on CollabFlow";
         const dealsListHtml = deals
           .map(
             (d) =>
               `<li><b>${d.campaignName}</b> is due in ${d.daysUntilDue} day(s).</li>`
           )
-          .join('');
+          .join("");
 
         const html = `
           <p>Hi there,</p>
@@ -90,7 +95,7 @@ export const dailyDealReminderCheck = functions.pubsub
         `;
 
         console.log(`Creating email document for: ${to}`);
-        return db.collection('mail').add({
+        return db.collection("mail").add({
           to: [to],
           message: {
             subject,
