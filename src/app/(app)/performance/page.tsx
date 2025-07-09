@@ -474,7 +474,7 @@ export default function PerformancePage() {
             <div>
               <CardTitle>Engagement Overview</CardTitle>
               <CardDescription>
-                Monthly likes and comments trend for your posts.
+                View trends in your post engagement over different time periods.
               </CardDescription>
             </div>
             <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
@@ -509,7 +509,7 @@ export default function PerformancePage() {
               <div>
                 <CardTitle>Post Performance</CardTitle>
                 <CardDescription>
-                  Detailed metrics for your recent posts.
+                  Track, analyze, and get AI insights for each post.
                 </CardDescription>
               </div>
               <Dialog open={isPostDialogOpen} onOpenChange={(isOpen) => {
