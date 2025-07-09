@@ -31,6 +31,7 @@ export type PerformancePost = {
   saves: number;
   conversion: boolean;
   date: string;
+  postDescription?: string;
 };
 
 export type Contract = {
