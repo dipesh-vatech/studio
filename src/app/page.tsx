@@ -253,6 +253,7 @@ export default function LandingPage() {
               alt="CollabFlow App Dashboard"
               className="rounded-lg border bg-card shadow-2xl"
               priority
+              data-ai-hint="dashboard product"
             />
           </div>
         </section>
@@ -296,6 +297,10 @@ export default function LandingPage() {
                   height={400}
                   alt={feature.image.alt}
                   className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
+                  data-ai-hint={
+                      feature.title.includes("Deals") ? "deals management" :
+                      feature.title.includes("Content") ? "content analytics" : "financial dashboard"
+                  }
                 />
               </div>
             </div>
