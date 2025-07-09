@@ -452,7 +452,14 @@ export default function PerformancePage() {
                         <FormField control={form.control} name="saves" render={({ field }) => (<FormItem><FormLabel>Saves</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                       </div>
                        <FormField control={form.control} name="conversion" render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"><div className="space-y-0.5"><FormLabel>Conversion</FormLabel><FormDescription>Did this post lead to a direct conversion?</FormDescription></div><FormControl><Badge variant={field.value ? "default" : "outline"}>{field.value ? "Yes" : "No"}</Badge><input type="checkbox" checked={field.value} onChange={field.onChange} className="hidden" /></FormControl></FormItem>
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"><div className="space-y-0.5"><FormLabel>Conversion</FormLabel><FormDescription>Did this post lead to a direct conversion?</FormDescription></div>
+                          <FormControl>
+                            <>
+                              <Badge variant={field.value ? "default" : "outline"}>{field.value ? "Yes" : "No"}</Badge>
+                              <input type="checkbox" checked={field.value} onChange={field.onChange} className="hidden" />
+                            </>
+                          </FormControl>
+                          </FormItem>
                         )} />
                       <DialogFooter>
                         <Button type="submit" disabled={isSubmitting}>
