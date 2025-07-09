@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -39,6 +40,7 @@ export function OnboardingDialog() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    // We only want this to run on the client after hydration
     if (userProfile && userProfile.onboardingCompleted === false) {
       setIsOpen(true);
     } else {
@@ -78,6 +80,11 @@ export function OnboardingDialog() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  // Prevent dialog from being part of the initial server render
+  if (!isOpen) {
+    return null;
   }
 
   return (

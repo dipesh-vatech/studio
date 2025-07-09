@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -33,7 +34,7 @@ import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
 import { OnboardingDialog } from '@/components/onboarding-dialog';
 
 function ProtectedLayout({ children }: { children: ReactNode }) {
-  const { user, loadingAuth, deals, dismissDealNotification } = useAppData();
+  const { user, userProfile, loadingAuth, deals, dismissDealNotification } = useAppData();
 
   useEffect(() => {
     if (!loadingAuth && !user) {
@@ -65,7 +66,7 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
       };
     });
 
-  if (loadingAuth) {
+  if (loadingAuth || !userProfile) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -79,7 +80,7 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      <OnboardingDialog />
+      {userProfile && userProfile.onboardingCompleted === false && <OnboardingDialog />}
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2">
