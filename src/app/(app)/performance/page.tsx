@@ -454,10 +454,10 @@ export default function PerformancePage() {
                        <FormField control={form.control} name="conversion" render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"><div className="space-y-0.5"><FormLabel>Conversion</FormLabel><FormDescription>Did this post lead to a direct conversion?</FormDescription></div>
                           <FormControl>
-                            <>
+                            <span className="cursor-pointer">
                               <Badge variant={field.value ? "default" : "outline"}>{field.value ? "Yes" : "No"}</Badge>
                               <input type="checkbox" checked={field.value} onChange={field.onChange} className="hidden" />
-                            </>
+                            </span>
                           </FormControl>
                           </FormItem>
                         )} />
