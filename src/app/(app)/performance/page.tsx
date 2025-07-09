@@ -231,7 +231,7 @@ function AnalysisResultDialog({ post, open, onOpenChange }: { post: PerformanceP
             Get expert feedback on your content performance.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+        <div className="max-h-[60vh] overflow-y-auto p-1">
           {!analysisResult && !isLoading && (
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
               <Search className="h-10 w-10 text-muted-foreground mb-4" />
@@ -248,7 +248,7 @@ function AnalysisResultDialog({ post, open, onOpenChange }: { post: PerformanceP
               <p>Analyzing your data...</p>
             </div>
           ) : analysisResult ? (
-            <div className="space-y-6">
+            <div className="space-y-6 pr-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
