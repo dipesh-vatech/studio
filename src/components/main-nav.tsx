@@ -16,7 +16,6 @@ import {
   Settings,
   CalendarDays,
   DollarSign,
-  Search,
 } from 'lucide-react';
 
 const links = [
