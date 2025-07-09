@@ -146,8 +146,8 @@ export default function LandingPage() {
       description: 'Perfect for creators getting started.',
       features: [
         'Up to 10 deals',
+        'Manual Content Tracking',
         'Basic AI Pitch Generator',
-        'Content Analytics',
         'Community Support',
       ],
       buttonText: 'Get Started',
@@ -160,7 +160,8 @@ export default function LandingPage() {
       isPopular: true,
       features: [
         'Unlimited deals',
-        'Advanced AI Features',
+        'AI Performance Analysis',
+        'AI Content Idea Generation',
         'AI Contract Analysis',
         'Financial Analytics',
         'Priority Support',
@@ -414,3 +415,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    

@@ -538,8 +538,8 @@ function BillingSettings() {
       description: 'For individuals and starters.',
       features: [
         'Up to 10 deals',
+        'Manual Content Tracking',
         'Basic AI Pitch Generator',
-        'Performance Tracking',
         'Community Support',
       ],
     },
@@ -549,7 +549,8 @@ function BillingSettings() {
       description: 'For professionals and teams.',
       features: [
         'Unlimited deals',
-        'Advanced AI Features',
+        'AI Performance Analysis',
+        'AI Content Idea Generation',
         'AI Contract Analysis',
         'Financial Analytics',
         'Priority Support',
@@ -687,3 +688,5 @@ export default function SettingsPage() {
     </Suspense>
   );
 }
+
+    

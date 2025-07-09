@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -31,7 +32,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Star, Trash2, ThumbsUp, MessageSquare, Share, Bookmark, PlusCircle, Check, Lightbulb, TrendingUp, Search, Pencil } from 'lucide-react';
+import { Loader2, Star, Trash2, ThumbsUp, MessageSquare, Share, Bookmark, PlusCircle, Check, Lightbulb, TrendingUp, Search, Pencil, WandSparkles } from 'lucide-react';
 import type { PerformancePost } from '@/lib/types';
 import {
   Dialog,
@@ -198,6 +199,8 @@ function AnalysisResultDialog({ post, open, onOpenChange }: { post: PerformanceP
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalyzePostPerformanceOutput | null>(null);
 
+  const isProPlan = userProfile?.plan === 'Pro';
+
   async function getAnalysis() {
     setIsLoading(true);
     setAnalysisResult(null);
@@ -238,12 +241,25 @@ function AnalysisResultDialog({ post, open, onOpenChange }: { post: PerformanceP
         <div className="max-h-[60vh] overflow-y-auto p-1">
           {!analysisResult && !isLoading && (
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
-              <Search className="h-10 w-10 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold">Ready to Analyze?</h3>
-              <p className="text-muted-foreground text-sm mb-4">Click the button below to get AI-powered insights on this post.</p>
-              <Button onClick={getAnalysis}>
-                Analyze Post
-              </Button>
+             {isProPlan ? (
+                <>
+                  <Search className="h-10 w-10 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold">Ready to Analyze?</h3>
+                  <p className="text-muted-foreground text-sm mb-4">Click the button below to get AI-powered insights on this post.</p>
+                  <Button onClick={getAnalysis}>
+                    Analyze Post
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <WandSparkles className="h-10 w-10 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold">Upgrade to Pro for AI Analysis</h3>
+                  <p className="text-muted-foreground text-sm mb-4">Unlock expert-level analysis by upgrading your plan.</p>
+                  <Button asChild>
+                    <Link href="/settings?tab=billing">Upgrade Your Plan</Link>
+                  </Button>
+                </>
+              )}
             </div>
           )}
           {isLoading ? (
@@ -659,3 +675,5 @@ export default function PerformancePage() {
     </>
   );
 }
+
+    
