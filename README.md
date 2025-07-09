@@ -14,12 +14,17 @@ Open the `.env` file in the root of the project and add your keys. **Note:** Env
 
 *   **Google AI (Gemini) Key:** You can generate a free API key from [Google AI Studio](https://aistudio.google.com/app/apikey). The correct variable name for this key is `GOOGLE_API_KEY`.
 
+*   **Admin Email (Optional):** To designate an admin user who bypasses plan restrictions, set the `NEXT_PUBLIC_ADMIN_EMAIL` variable to their email address.
+
 The `.env` file has placeholders for all the required keys:
 ```
 # Firebase Configuration
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
 ...
+
+# Admin User Email
+NEXT_PUBLIC_ADMIN_EMAIL=admin@example.com
 
 # Google AI (Gemini) API Key
 GOOGLE_API_KEY=...
