@@ -73,3 +73,48 @@ export interface UserProfile {
   plan?: 'Free' | 'Pro';
   onboardingCompleted?: boolean;
 }
+
+import { type User } from 'firebase/auth';
+
+export interface AppDataContextType {
+  deals: Deal[];
+  contracts: Contract[];
+  performancePosts: PerformancePost[];
+  user: User | null;
+  userProfile: UserProfile | null;
+  isAdmin: boolean;
+  loadingAuth: boolean;
+  loadingData: boolean;
+  signOut: () => Promise<void>;
+  addDeal: (values: Omit<Deal, 'id' | 'status' | 'paid' | 'tasks'>) => Promise<void>;
+  updateDealStatus: (dealId: string, newStatus: DealStatus) => Promise<void>;
+  addPerformancePost: (postData: Omit<PerformancePost, 'id' | 'date'>) => Promise<void>;
+  updatePerformancePost: (postId: string, postData: Omit<PerformancePost, 'id' | 'date'>) => Promise<void>;
+  processContract: (file: File) => Promise<void>;
+  addManualContract: (values: ManualContract) => Promise<void>;
+  updateContractStatus: (
+    contractId: string,
+    newStatus: Contract['status']
+  ) => Promise<void>;
+  updateUserProfile: (data: {
+    displayName: string;
+    profileType: ProfileType;
+    niche?: string;
+  }) => Promise<void>;
+  updateUserPassword: (password: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
+  updateNotificationSettings: (settings: NotificationSettings) => Promise<void>;
+  dismissDealNotification: (dealId: string) => Promise<void>;
+  updateUserPlan: (plan: 'Free' | 'Pro') => void;
+  addTaskToDeal: (dealId: string, taskTitle: string) => Promise<void>;
+  updateTaskStatus: (
+    dealId: string,
+    taskId: string,
+    completed: boolean
+  ) => Promise<void>;
+  deleteTask: (dealId: string, taskId: string) => Promise<void>;
+  deleteDeal: (dealId: string) => Promise<void>;
+  deleteContract: (contractId: string) => Promise<void>;
+  deletePerformancePost: (postId: string) => Promise<void>;
+  markOnboardingAsCompleted: () => Promise<void>;
+}

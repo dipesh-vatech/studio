@@ -194,12 +194,12 @@ function PerformanceSkeleton() {
 
 
 function AnalysisResultDialog({ post, open, onOpenChange }: { post: PerformancePost, open: boolean, onOpenChange: (open: boolean) => void }) {
-  const { userProfile } = useAppData();
+  const { userProfile, isAdmin } = useAppData();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalyzePostPerformanceOutput | null>(null);
 
-  const isProPlan = userProfile?.plan === 'Pro';
+  const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
 
   async function getAnalysis() {
     setIsLoading(true);
@@ -675,5 +675,3 @@ export default function PerformancePage() {
     </>
   );
 }
-
-    

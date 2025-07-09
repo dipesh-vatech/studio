@@ -18,6 +18,7 @@ import type {
   NotificationSettings,
   Task,
   ManualContract,
+  AppDataContextType,
 } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db, storage } from '@/lib/firebase';
@@ -46,50 +47,6 @@ import {
 } from 'firebase/auth';
 import { ref, uploadBytes } from 'firebase/storage';
 import { extractContractDetails } from '@/ai/flows/extract-contract-details';
-
-type PerformancePostInput = Omit<PerformancePost, 'id' | 'date'>;
-
-interface AppDataContextType {
-  deals: Deal[];
-  contracts: Contract[];
-  performancePosts: PerformancePost[];
-  user: User | null;
-  userProfile: UserProfile | null;
-  loadingAuth: boolean;
-  loadingData: boolean;
-  signOut: () => Promise<void>;
-  addDeal: (values: Omit<Deal, 'id' | 'status' | 'paid' | 'tasks'>) => Promise<void>;
-  updateDealStatus: (dealId: string, newStatus: DealStatus) => Promise<void>;
-  addPerformancePost: (postData: PerformancePostInput) => Promise<void>;
-  updatePerformancePost: (postId: string, postData: PerformancePostInput) => Promise<void>;
-  processContract: (file: File) => Promise<void>;
-  addManualContract: (values: ManualContract) => Promise<void>;
-  updateContractStatus: (
-    contractId: string,
-    newStatus: Contract['status']
-  ) => Promise<void>;
-  updateUserProfile: (data: {
-    displayName: string;
-    profileType: ProfileType;
-    niche?: string;
-  }) => Promise<void>;
-  updateUserPassword: (password: string) => Promise<void>;
-  deleteAccount: () => Promise<void>;
-  updateNotificationSettings: (settings: NotificationSettings) => Promise<void>;
-  dismissDealNotification: (dealId: string) => Promise<void>;
-  updateUserPlan: (plan: 'Free' | 'Pro') => void;
-  addTaskToDeal: (dealId: string, taskTitle: string) => Promise<void>;
-  updateTaskStatus: (
-    dealId: string,
-    taskId: string,
-    completed: boolean
-  ) => Promise<void>;
-  deleteTask: (dealId: string, taskId: string) => Promise<void>;
-  deleteDeal: (dealId: string) => Promise<void>;
-  deleteContract: (contractId: string) => Promise<void>;
-  deletePerformancePost: (postId: string) => Promise<void>;
-  markOnboardingAsCompleted: () => Promise<void>;
-}
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
@@ -123,6 +80,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const { toast } = useToast();
+
+  const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   useEffect(() => {
     if (!auth) {
@@ -340,7 +299,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     
-    if (userProfile?.plan === 'Free' && deals.length >= 10) {
+    if (userProfile?.plan === 'Free' && deals.length >= 10 && !isAdmin) {
       toast({
         title: 'Free Plan Limit Reached',
         description: 'Upgrade to the Pro plan to add more than 10 deals.',
@@ -423,7 +382,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addPerformancePost = async (
-    postData: PerformancePostInput
+    postData: Omit<PerformancePost, 'id' | 'date'>
   ) => {
     if (!db || !user) {
       toast({
@@ -466,7 +425,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  const updatePerformancePost = async (postId: string, postData: PerformancePostInput) => {
+  const updatePerformancePost = async (postId: string, postData: Omit<PerformancePost, 'id' | 'date'>) => {
     if (!db || !user) {
       toast({ title: 'Error', description: 'Cannot update post while offline.', variant: 'destructive' });
       return;
@@ -477,7 +436,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     
     try {
       const postRef = doc(db, 'performancePosts', postId);
-      await updateDoc(postRef, postData);
+      await updateDoc(postRef, postData as any);
        toast({
         title: 'Post Updated!',
         description: `Your post "${postData.postTitle}" has been successfully updated.`,
@@ -543,7 +502,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     
     const contractId = doc(collection(db, 'temp')).id;
 
-    if (userProfile?.plan !== 'Pro') {
+    if (userProfile?.plan !== 'Pro' && !isAdmin) {
       toast({
         title: 'Upgrade Required',
         description: 'AI Contract Analysis is a Pro feature. Please upgrade your plan to use it.',
@@ -1032,6 +991,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         userProfile,
+        isAdmin,
         loadingAuth,
         loadingData,
         signOut: signOutUser,

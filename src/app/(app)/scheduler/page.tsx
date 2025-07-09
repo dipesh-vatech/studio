@@ -49,7 +49,7 @@ import { suggestPostTime } from '@/ai/flows/suggest-post-time';
 type AiTask = 'ideas' | 'timing' | null;
 
 export default function SchedulerPage() {
-  const { deals, userProfile } = useAppData();
+  const { deals, userProfile, isAdmin } = useAppData();
   const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
@@ -59,7 +59,7 @@ export default function SchedulerPage() {
   const [postTimeSuggestion, setPostTimeSuggestion] = useState<string>('');
 
   const firstDayOfCurrentMonth = startOfMonth(currentDate);
-  const isProPlan = userProfile?.plan === 'Pro';
+  const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
 
   const daysInMonth = useMemo(() => {
     return eachDayOfInterval({

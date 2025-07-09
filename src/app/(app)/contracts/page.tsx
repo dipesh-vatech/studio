@@ -144,14 +144,15 @@ export default function ContractsPage() {
     deleteContract,
     loadingData,
     addManualContract,
-    userProfile
+    userProfile,
+    isAdmin,
   } = useAppData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
   
-  const isProPlan = userProfile?.plan === 'Pro';
+  const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
 
   const form = useForm<z.infer<typeof manualContractSchema>>({
     resolver: zodResolver(manualContractSchema),

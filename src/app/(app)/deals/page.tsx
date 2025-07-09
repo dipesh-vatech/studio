@@ -429,11 +429,11 @@ const DealTable = ({
 };
 
 export default function DealsPage() {
-  const { deals, addDeal, updateDealStatus, userProfile } = useAppData();
+  const { deals, addDeal, updateDealStatus, userProfile, isAdmin } = useAppData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const dealLimitReached = userProfile?.plan === 'Free' && deals.length >= 10;
+  const dealLimitReached = userProfile?.plan === 'Free' && deals.length >= 10 && !isAdmin;
 
   const form = useForm<z.infer<typeof newDealSchema>>({
     resolver: zodResolver(newDealSchema),
