@@ -38,12 +38,12 @@ export default function LandingPage() {
         'From initial contact to final payment, CollabFlow provides a centralized hub to keep track of every detail. Never miss a deadline or a deliverable again, ensuring professional and reliable partnerships.',
       images: [
         { 
-          src: 'https://placehold.co/600x400.png', 
+          src: '/deals-management.png', 
           alt: 'Deals Management Dashboard',
           hint: 'deals management' 
         },
         { 
-          src: 'https://placehold.co/600x400.png', 
+          src: '/contract-analysis.png', 
           alt: 'AI Contract Analysis',
           hint: 'contract analysis'
         },
@@ -75,12 +75,12 @@ export default function LandingPage() {
         'Go beyond surface-level numbers. Our AI-powered tools analyze your post performance, providing qualitative feedback on what worked, why it worked, and how to create even better content next time.',
       images: [
         {
-          src: 'https://placehold.co/600x400.png',
+          src: '/content-analytics.png',
           alt: 'Content Analytics Dashboard',
           hint: 'content analytics'
         },
         {
-          src: 'https://placehold.co/600x400.png',
+          src: '/ai-analysis.png',
           alt: 'AI Performance Analysis',
           hint: 'ai analysis'
         }
@@ -112,7 +112,7 @@ export default function LandingPage() {
         'Take control of your business with a clear financial overview. Track your earnings, monitor outstanding payments, and identify your most valuable partnerships to maximize your revenue.',
       images: [
         {
-          src: 'https://placehold.co/600x400.png',
+          src: '/financial-analytics.png',
           alt: 'Financial Analytics Dashboard',
           hint: 'financial dashboard'
         }
@@ -276,7 +276,7 @@ export default function LandingPage() {
         <section className="container pb-20 md:pb-32">
           <div className="relative mx-auto max-w-5xl">
             <Image
-              src="https://placehold.co/1200x740.png"
+              src="/collabflow-Dashboard.png"
               width={1200}
               height={740}
               alt="CollabFlow App Dashboard"
