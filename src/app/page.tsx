@@ -319,15 +319,14 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className={cn(
-                  'flex flex-col gap-4',
-                  feature.images.length > 1 && 'grid grid-cols-2'
+                  'flex flex-col gap-4'
               )}>
                 {feature.images.map((image, imgIndex) => (
                    <Image
                     key={imgIndex}
                     src={image.src}
-                    width={feature.images.length > 1 ? 400 : 600}
-                    height={feature.images.length > 1 ? 280 : 400}
+                    width={600}
+                    height={400}
                     alt={image.alt}
                     className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
                     data-ai-hint={image.hint}
