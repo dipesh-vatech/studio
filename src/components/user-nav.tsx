@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -60,12 +61,6 @@ export function UserNav() {
             <Link href="/settings?tab=billing">
               <CreditCard className="mr-2 h-4 w-4" />
               <span>Billing</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
