@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,8 @@ import {
   Search,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 export default function LandingPage() {
   const navLinks = [
@@ -33,10 +36,7 @@ export default function LandingPage() {
       title: 'Manage Your Deals From Start to Finish',
       description:
         'From initial contact to final payment, CollabFlow provides a centralized hub to keep track of every detail. Never miss a deadline or a deliverable again, ensuring professional and reliable partnerships.',
-      images: [
-        { src: '/deals-management.png', alt: 'Deals Management Dashboard' },
-        { src: '/contract-analysis.png', alt: 'AI Contract Analysis' },
-      ],
+      image: { src: '/deals-management.png', alt: 'Deals Management Dashboard' },
       subFeatures: [
         {
           icon: Handshake,
@@ -62,10 +62,7 @@ export default function LandingPage() {
       title: 'Uncover Actionable Content Insights',
       description:
         'Go beyond surface-level numbers. Our AI-powered tools analyze your post performance, providing qualitative feedback on what worked, why it worked, and how to create even better content next time.',
-      images: [
-        { src: '/content-analytics.png', alt: 'Content Analytics Dashboard' },
-        { src: '/ai-post-analysis.png', alt: 'AI Post Analysis' },
-      ],
+      image: { src: '/content-analytics.png', alt: 'Content Analytics Dashboard' },
       subFeatures: [
         {
           icon: BarChart,
@@ -91,10 +88,7 @@ export default function LandingPage() {
       title: 'Master Your Financials',
       description:
         'Take control of your business with a clear financial overview. Track your earnings, monitor outstanding payments, and identify your most valuable partnerships to maximize your revenue.',
-      images: [
-        { src: '/financial-analytics.png', alt: 'Financial Analytics Dashboard' },
-        { src: '/payment-tracking.png', alt: 'Payment Tracking' },
-      ],
+      image: { src: '/financial-analytics.png', alt: 'Financial Analytics Dashboard' },
       subFeatures: [
         {
           icon: DollarSign,
@@ -107,6 +101,11 @@ export default function LandingPage() {
             title: 'Track Payments',
             description:
                 'Never lose track of an invoice. Monitor all outstanding and completed payments in one simple view.',
+        },
+        {
+            icon: Award,
+            title: 'Identify Top Partners',
+            description: 'Quickly see which brand collaborations are driving the most revenue for your business.'
         }
       ],
     },
@@ -130,6 +129,7 @@ export default function LandingPage() {
       name: 'Pro',
       price: '$25',
       description: 'For professionals scaling their brand.',
+      isPopular: true,
       features: [
         'Unlimited deals',
         'Advanced AI Features',
@@ -216,12 +216,20 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1">
-        <section className="container py-20 text-center sm:py-24 md:py-32">
+        <section className="relative container py-20 text-center sm:py-24 md:py-32">
+          <div 
+            className="absolute -top-20 left-0 -z-10 h-64 w-64 bg-primary/10 blur-3xl"
+            aria-hidden="true"
+          />
+          <div 
+            className="absolute -bottom-20 right-0 -z-10 h-64 w-64 bg-accent/10 blur-3xl"
+            aria-hidden="true"
+          />
           <div className="flex flex-col items-center">
-            <div className="mb-4 flex items-center justify-center space-x-2 rounded-full bg-secondary px-4 py-1 text-sm font-medium text-primary">
-              <Award className="h-5 w-5" />
-              <span>AI-POWERED COLLABORATION MANAGEMENT</span>
-            </div>
+            <Badge variant="outline" className="mb-4 text-sm font-medium border-primary/30 text-primary">
+              <Award className="mr-2 h-4 w-4" />
+              AI-POWERED COLLABORATION MANAGEMENT
+            </Badge>
             <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
               Streamline Your Creator Collaborations
             </h1>
@@ -244,6 +252,7 @@ export default function LandingPage() {
               height={740}
               alt="CollabFlow App Dashboard"
               className="rounded-lg border bg-card shadow-2xl"
+              priority
             />
           </div>
         </section>
@@ -253,7 +262,7 @@ export default function LandingPage() {
           {features.map((feature, index) => (
             <div
               key={feature.title}
-              className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12 lg:gap-20"
+              className="grid grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16 lg:gap-24"
             >
               <div className={index % 2 === 1 ? 'md:order-last' : ''}>
                 <div className="max-w-md">
@@ -278,33 +287,24 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  {feature.subFeatures.length > 2 && (
-                    <div className="mt-10">
-                      <Button size="lg" asChild>
-                        <Link href="/signup">Get Started Now</Link>
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-4">
-                {feature.images.map((image, imgIndex) => (
-                  <Image
-                    key={imgIndex}
-                    src={image.src}
-                    width={600}
-                    height={400}
-                    alt={image.alt}
-                    className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
-                  />
-                ))}
+                <Image
+                  src={feature.image.src}
+                  width={600}
+                  height={400}
+                  alt={feature.image.alt}
+                  className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
+                />
               </div>
             </div>
           ))}
         </section>
         
         {/* Pricing Section */}
-        <section id="pricing" className="container py-16 md:py-24">
+        <section id="pricing" className="bg-muted/30">
+        <div className="container py-16 md:py-24">
            <div className="mx-auto max-w-2xl text-center">
              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
                Choose the Right Plan for You
@@ -315,12 +315,13 @@ export default function LandingPage() {
            </div>
            <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:mx-auto lg:max-w-4xl">
             {pricingPlans.map((plan) => (
-              <Card key={plan.name} className={plan.name === 'Pro' ? 'border-2 border-primary shadow-2xl' : 'shadow-lg'}>
-                 <CardHeader className="text-center">
+              <Card key={plan.name} className={cn('flex flex-col', plan.isPopular ? 'border-2 border-primary shadow-2xl' : 'shadow-lg')}>
+                 <CardHeader className="text-center relative">
+                    {plan.isPopular && <Badge className="absolute top-0 -translate-y-1/2">Most Popular</Badge>}
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
                  </CardHeader>
-                 <CardContent className="space-y-6">
+                 <CardContent className="space-y-6 flex-1">
                    <div className="text-center">
                      <span className="text-4xl font-bold">{plan.price}</span>
                      <span className="text-muted-foreground">{plan.price !== '$0' && '/month'}</span>
@@ -342,10 +343,11 @@ export default function LandingPage() {
                </Card>
             ))}
            </div>
+           </div>
         </section>
         
         {/* About Section */}
-        <section id="about" className="bg-secondary">
+        <section id="about" className="bg-background">
           <div className="container py-16 md:py-24">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
