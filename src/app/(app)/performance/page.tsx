@@ -74,7 +74,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useAppData } from '@/components/app-provider';
-import { subMonths, format, parseISO } from 'date-fns';
+import { subDays, subMonths, format, parseISO, startOfWeek, eachDayOfInterval } from 'date-fns';
 import {
   analyzePostPerformance,
   AnalyzePostPerformanceOutput,
@@ -91,6 +91,8 @@ const postFormSchema = z.object({
   conversion: z.boolean().default(false),
   postDescription: z.string().optional(),
 });
+
+type TimeRange = '7d' | '30d' | '6m';
 
 function MobilePostSkeleton() {
   return (
@@ -308,6 +310,7 @@ export default function PerformancePage() {
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<PerformancePost | null>(null);
   const [analyzingPost, setAnalyzingPost] = useState<PerformancePost | null>(null);
+  const [timeRange, setTimeRange] = useState<TimeRange>('6m');
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof postFormSchema>>({
@@ -351,34 +354,82 @@ export default function PerformancePage() {
     setIsPostDialogOpen(true);
   };
 
-
   const chartConfig = {
     likes: { label: 'Likes', color: 'hsl(var(--primary))' },
     comments: { label: 'Comments', color: 'hsl(var(--accent))' },
   };
 
   const engagementChartData = useMemo(() => {
-    const monthLabels = Array.from({ length: 6 }).map((_, i) => format(subMonths(new Date(), 5 - i), 'MMM'));
-    const chartData = monthLabels.map((label) => ({ date: label, likes: 0, comments: 0 }));
+    if (!performancePosts) return [];
+    
+    const now = new Date();
+    let startDate: Date;
+    let dateFormat: string;
+    let labels: { date: string, likes: number, comments: number }[];
 
-    if (!performancePosts) return chartData;
+    switch (timeRange) {
+      case '7d':
+        startDate = subDays(now, 6);
+        dateFormat = 'EEE'; // e.g., Mon
+        labels = eachDayOfInterval({ start: startDate, end: now }).map(day => ({
+          date: format(day, dateFormat),
+          likes: 0,
+          comments: 0
+        }));
+        break;
+      case '30d':
+        startDate = subDays(now, 29);
+        dateFormat = 'MMM d'; // e.g., Jul 15
+        labels = eachDayOfInterval({ start: startDate, end: now }).map(day => ({
+          date: format(day, dateFormat),
+          likes: 0,
+          comments: 0
+        }));
+        break;
+      case '6m':
+      default:
+        startDate = subMonths(now, 5);
+        dateFormat = 'MMM'; // e.g., Jul
+        labels = Array.from({ length: 6 }).map((_, i) => ({
+          date: format(subMonths(now, 5 - i), dateFormat),
+          likes: 0,
+          comments: 0,
+        }));
+        break;
+    }
 
-    performancePosts.forEach((post) => {
+    const relevantPosts = performancePosts.filter(post => {
+      try {
+        return parseISO(post.date) >= startDate;
+      } catch (e) {
+        return false;
+      }
+    });
+
+    relevantPosts.forEach((post) => {
       try {
         const postDate = parseISO(post.date);
-        const postMonth = format(postDate, 'MMM');
-        const monthData = chartData.find((d) => d.date === postMonth);
-        if (monthData) {
-          monthData.likes += post.likes;
-          monthData.comments += post.comments;
+        let key: string;
+        if (timeRange === '7d') {
+          key = format(postDate, 'EEE');
+        } else if (timeRange === '30d') {
+          key = format(postDate, 'MMM d');
+        } else { // 6m
+          key = format(postDate, 'MMM');
+        }
+
+        const dataPoint = labels.find(l => l.date === key);
+        if (dataPoint) {
+          dataPoint.likes += post.likes;
+          dataPoint.comments += post.comments;
         }
       } catch (e) {
         // Ignore posts with invalid dates
       }
     });
-
-    return chartData;
-  }, [performancePosts]);
+    
+    return labels;
+  }, [performancePosts, timeRange]);
 
   async function onPostSubmit(values: z.infer<typeof postFormSchema>) {
     setIsSubmitting(true);
@@ -419,11 +470,23 @@ export default function PerformancePage() {
     <>
       <div className="flex flex-col gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Engagement Overview</CardTitle>
-            <CardDescription>
-              Monthly likes and comments trend for the last 6 months.
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Engagement Overview</CardTitle>
+              <CardDescription>
+                Monthly likes and comments trend for your posts.
+              </CardDescription>
+            </div>
+            <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a time range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">Last 7 Days</SelectItem>
+                <SelectItem value="30d">Last 30 Days</SelectItem>
+                <SelectItem value="6m">Last 6 Months</SelectItem>
+              </SelectContent>
+            </Select>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
