@@ -17,6 +17,7 @@ import {
   DollarSign,
   CalendarDays,
   Check,
+  Search,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -29,13 +30,12 @@ export default function LandingPage() {
 
   const features = [
     {
-      title: 'Manage Your Deals Seamlessly',
+      title: 'Manage Your Deals From Start to Finish',
       description:
-        'From initial contact to final payment, CollabFlow provides a centralized hub to keep track of every detail of your collaborations. Never miss a deadline or a deliverable again, ensuring professional and reliable partnerships.',
+        'From initial contact to final payment, CollabFlow provides a centralized hub to keep track of every detail. Never miss a deadline or a deliverable again, ensuring professional and reliable partnerships.',
       images: [
-        { src: '/deals-management.png', alt: 'Deals Management Dashboard' },
-        { src: '/contract-analysis.png', alt: 'AI Contract Analysis' },
-        { src: '/pitch-ai.png', alt: 'AI Pitch Email Generator' },
+        { src: 'https://placehold.co/600x400.png', alt: 'Deals Management Dashboard', "data-ai-hint": "dashboard management" },
+        { src: 'https://placehold.co/600x400.png', alt: 'AI Contract Analysis', "data-ai-hint": "contract analysis" },
       ],
       subFeatures: [
         {
@@ -52,40 +52,62 @@ export default function LandingPage() {
         },
         {
           icon: Lightbulb,
-          title: 'Generate Pitches',
+          title: 'Generate Pitches with AI',
           description:
             'Let AI craft personalized and professional pitch emails, helping you land your next big collaboration.',
         },
       ],
     },
     {
-      title: 'Get Powerful, Reliable Metrics',
+      title: 'Uncover Actionable Content Insights',
       description:
-        'Measure brand awareness and presence with confidence. CollabFlow uses state-of-the-art technology and AI-powered insights to help you track reach, engagement, and financial performance across all your campaigns.',
+        'Go beyond surface-level numbers. Our AI-powered tools analyze your post performance, providing qualitative feedback on what worked, why it worked, and how to create even better content next time.',
       images: [
-        { src: '/performance-tracking.png', alt: 'Performance Tracking Chart' },
-        { src: '/financial-analytics.png', alt: 'Financial Analytics Dashboard' },
-        { src: '/ai-scheduler.png', alt: 'AI-Powered Content Scheduler' },
+        { src: 'https://placehold.co/600x400.png', alt: 'Content Analytics Dashboard', "data-ai-hint": "content analytics" },
+        { src: 'https://placehold.co/600x400.png', alt: 'AI Post Analysis', "data-ai-hint": "AI analysis" },
       ],
       subFeatures: [
         {
           icon: BarChart,
-          title: 'Deep Content Analytics',
+          title: 'Deep Engagement Analytics',
           description:
-            'Log post performance and get AI-driven analysis on what worked, why it worked, and how to improve.',
+            'Track your likes, comments, and shares over time with dynamic charts and discover your growth trends.',
         },
         {
-          icon: DollarSign,
-          title: 'Analyze Financials',
+          icon: Search,
+          title: 'AI Performance Review',
           description:
-            'Track your earnings, monitor outstanding payments, and identify your most valuable partnerships with our financial dashboard.',
+            'Get expert-level analysis on your posts to understand performance and receive actionable suggestions for improvement.',
         },
         {
           icon: CalendarDays,
           title: 'AI-Powered Scheduling',
           description:
-            'Visualize your content calendar, and let AI generate creative post ideas and suggest the best times to engage your audience.',
+            'Visualize your content calendar and let AI generate creative post ideas and suggest the best times to engage your audience.',
         },
+      ],
+    },
+     {
+      title: 'Master Your Financials',
+      description:
+        'Take control of your business with a clear financial overview. Track your earnings, monitor outstanding payments, and identify your most valuable partnerships to maximize your revenue.',
+      images: [
+        { src: 'https://placehold.co/600x400.png', alt: 'Financial Analytics Dashboard', "data-ai-hint": "financial dashboard" },
+        { src: 'https://placehold.co/600x400.png', alt: 'Payment Tracking', "data-ai-hint": "payment tracking" },
+      ],
+      subFeatures: [
+        {
+          icon: DollarSign,
+          title: 'Visualize Your Revenue',
+          description:
+            'See income over time and identify your top-earning brand collaborations with easy-to-read charts.',
+        },
+        {
+            icon: Check,
+            title: 'Track Payments',
+            description:
+                'Never lose track of an invoice. Monitor all outstanding and completed payments in one simple view.',
+        }
       ],
     },
   ];
@@ -98,7 +120,7 @@ export default function LandingPage() {
       features: [
         'Up to 10 deals',
         'Basic AI Pitch Generator',
-        'Performance Tracking',
+        'Content Analytics',
         'Community Support',
       ],
       buttonText: 'Get Started',
@@ -217,11 +239,12 @@ export default function LandingPage() {
         <section className="container pb-20 md:pb-32">
           <div className="relative mx-auto max-w-5xl">
             <Image
-              src="/Dashboard.png"
+              src="https://placehold.co/1200x740.png"
               width={1200}
               height={740}
               alt="CollabFlow App Dashboard"
               className="rounded-lg border bg-card shadow-2xl"
+              data-ai-hint="dashboard product"
             />
           </div>
         </section>
@@ -256,11 +279,13 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-10">
-                     <Button size="lg" asChild>
-                       <Link href="/signup">Get Started Now</Link>
-                     </Button>
-                  </div>
+                  {feature.subFeatures.length > 2 && (
+                    <div className="mt-10">
+                      <Button size="lg" asChild>
+                        <Link href="/signup">Get Started Now</Link>
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-4">
@@ -271,6 +296,7 @@ export default function LandingPage() {
                     width={600}
                     height={400}
                     alt={image.alt}
+                    data-ai-hint={image['data-ai-hint']}
                     className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
                   />
                 ))}
