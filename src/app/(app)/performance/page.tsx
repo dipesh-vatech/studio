@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -31,7 +31,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Star, Trash2, ThumbsUp, MessageSquare, Share, Bookmark, PlusCircle, Check, Lightbulb, TrendingUp, Search } from 'lucide-react';
+import { Loader2, Star, Trash2, ThumbsUp, MessageSquare, Share, Bookmark, PlusCircle, Check, Lightbulb, TrendingUp, Search, Pencil } from 'lucide-react';
 import type { PerformancePost } from '@/lib/types';
 import {
   Dialog,
@@ -81,6 +81,7 @@ import {
 } from '@/ai/flows/analyze-post-performance';
 
 const postFormSchema = z.object({
+  id: z.string().optional(),
   postTitle: z.string().min(1, 'Post title is required'),
   platform: z.enum(['Instagram', 'TikTok', 'YouTube']),
   likes: z.coerce.number().min(0),
@@ -299,11 +300,13 @@ export default function PerformancePage() {
   const {
     performancePosts,
     addPerformancePost,
+    updatePerformancePost,
     loadingData,
     deletePerformancePost,
   } = useAppData();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAddPostOpen, setIsAddPostOpen] = useState(false);
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<PerformancePost | null>(null);
   const [analyzingPost, setAnalyzingPost] = useState<PerformancePost | null>(null);
   const { toast } = useToast();
 
@@ -320,6 +323,34 @@ export default function PerformancePage() {
       postDescription: '',
     },
   });
+  
+  useEffect(() => {
+    if (editingPost) {
+      form.reset(editingPost);
+    } else {
+      form.reset({
+        postTitle: '',
+        platform: 'Instagram',
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        saves: 0,
+        conversion: false,
+        postDescription: '',
+      });
+    }
+  }, [editingPost, form]);
+  
+  const handleEditClick = (post: PerformancePost) => {
+    setEditingPost(post);
+    setIsPostDialogOpen(true);
+  };
+
+  const handleAddClick = () => {
+    setEditingPost(null);
+    setIsPostDialogOpen(true);
+  };
+
 
   const chartConfig = {
     likes: { label: 'Likes', color: 'hsl(var(--primary))' },
@@ -349,17 +380,21 @@ export default function PerformancePage() {
     return chartData;
   }, [performancePosts]);
 
-  async function onAddPostSubmit(values: z.infer<typeof postFormSchema>) {
+  async function onPostSubmit(values: z.infer<typeof postFormSchema>) {
     setIsSubmitting(true);
     try {
-      await addPerformancePost(values);
-      setIsAddPostOpen(false);
-      form.reset();
+      if (editingPost) {
+        await updatePerformancePost(editingPost.id, values);
+      } else {
+        await addPerformancePost(values);
+      }
+      setIsPostDialogOpen(false);
+      setEditingPost(null);
     } catch (error) {
-      console.error('Error adding post data:', error);
+      console.error('Error saving post data:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add post data. Please try again.',
+        description: 'Failed to save post data. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -414,21 +449,26 @@ export default function PerformancePage() {
                   Detailed metrics for your recent posts.
                 </CardDescription>
               </div>
-              <Dialog open={isAddPostOpen} onOpenChange={setIsAddPostOpen}>
+              <Dialog open={isPostDialogOpen} onOpenChange={(isOpen) => {
+                  if (!isOpen) {
+                    setEditingPost(null);
+                  }
+                  setIsPostDialogOpen(isOpen);
+                }}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button onClick={handleAddClick}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Post Manually
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Add Post Performance</DialogTitle>
+                    <DialogTitle>{editingPost ? 'Edit' : 'Add'} Post Performance</DialogTitle>
                     <DialogDescription>
                       Enter the details and performance metrics for your post.
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onAddPostSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onPostSubmit)} className="space-y-4">
                       <FormField control={form.control} name="postTitle" render={({ field }) => (
                         <FormItem><FormLabel>Post Title</FormLabel><FormControl><Input placeholder="e.g. My new summer look!" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
@@ -470,7 +510,7 @@ export default function PerformancePage() {
                         )} />
                       <DialogFooter>
                         <Button type="submit" disabled={isSubmitting}>
-                          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Post
+                          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {editingPost ? 'Save Changes' : 'Save Post'}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -495,6 +535,7 @@ export default function PerformancePage() {
                         <TableCell>{post.saves.toLocaleString()}</TableCell>
                         <TableCell>{post.conversion ? <Badge className="bg-green-100 text-green-800 border-none hover:bg-green-200"><Star className="mr-2 h-3 w-3" />Yes</Badge> : <Badge variant="outline">No</Badge>}</TableCell>
                         <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => handleEditClick(post)}><Pencil className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" onClick={() => setAnalyzingPost(post)}><Search className="h-4 w-4" /></Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
@@ -518,6 +559,7 @@ export default function PerformancePage() {
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex-1"><h3 className="font-semibold text-base leading-tight">{post.postTitle}</h3><div className="flex items-center gap-2 mt-2"><Badge variant="secondary">{post.platform}</Badge>{post.conversion ? <Badge className="bg-green-100 text-green-800 border-none hover:bg-green-200 text-xs"><Star className="mr-1.5 h-3 w-3" />Conversion</Badge> : <Badge variant="outline" className="text-xs">No Conversion</Badge>}</div></div>
                         <div className="flex">
+                           <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => handleEditClick(post)}><Pencil className="h-4 w-4" /></Button>
                            <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" onClick={() => setAnalyzingPost(post)}><Search className="h-4 w-4" /></Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="shrink-0 h-8 w-8"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>

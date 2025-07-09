@@ -47,6 +47,8 @@ import {
 import { ref, uploadBytes } from 'firebase/storage';
 import { extractContractDetails } from '@/ai/flows/extract-contract-details';
 
+type PerformancePostInput = Omit<PerformancePost, 'id' | 'date'>;
+
 interface AppDataContextType {
   deals: Deal[];
   contracts: Contract[];
@@ -58,9 +60,8 @@ interface AppDataContextType {
   signOut: () => Promise<void>;
   addDeal: (values: Omit<Deal, 'id' | 'status' | 'paid' | 'tasks'>) => Promise<void>;
   updateDealStatus: (dealId: string, newStatus: DealStatus) => Promise<void>;
-  addPerformancePost: (
-    postData: Omit<PerformancePost, 'id' | 'date'>
-  ) => Promise<void>;
+  addPerformancePost: (postData: PerformancePostInput) => Promise<void>;
+  updatePerformancePost: (postId: string, postData: PerformancePostInput) => Promise<void>;
   processContract: (file: File) => Promise<void>;
   addManualContract: (values: ManualContract) => Promise<void>;
   updateContractStatus: (
@@ -422,7 +423,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addPerformancePost = async (
-    postData: Omit<PerformancePost, 'id' | 'date'>
+    postData: PerformancePostInput
   ) => {
     if (!db || !user) {
       toast({
@@ -461,6 +462,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
         description: 'Could not save the post to the database.',
         variant: 'destructive',
       });
+      throw error;
+    }
+  };
+  
+  const updatePerformancePost = async (postId: string, postData: PerformancePostInput) => {
+    if (!db || !user) {
+      toast({ title: 'Error', description: 'Cannot update post while offline.', variant: 'destructive' });
+      return;
+    }
+    
+    const originalPosts = [...performancePosts];
+    setPerformancePosts(prev => prev.map(p => p.id === postId ? { ...p, ...postData } : p));
+    
+    try {
+      const postRef = doc(db, 'performancePosts', postId);
+      await updateDoc(postRef, postData);
+       toast({
+        title: 'Post Updated!',
+        description: `Your post "${postData.postTitle}" has been successfully updated.`,
+      });
+    } catch (error) {
+      setPerformancePosts(originalPosts);
+      console.error('Error updating performance post: ', error);
+      toast({ title: 'Error', description: 'Could not update the post.', variant: 'destructive' });
       throw error;
     }
   };
@@ -1016,6 +1041,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addDeal,
         updateDealStatus,
         addPerformancePost,
+        updatePerformancePost,
         processContract,
         addManualContract,
         updateContractStatus,
