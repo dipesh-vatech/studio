@@ -70,9 +70,9 @@ export default function LandingPage() {
       subFeatures: [
         {
           icon: BarChart,
-          title: 'Track Performance',
+          title: 'Deep Content Analytics',
           description:
-            'Use AI to analyze post URLs and generate realistic performance metrics to track your impact.',
+            'Log post performance and get AI-driven analysis on what worked, why it worked, and how to improve.',
         },
         {
           icon: DollarSign,
