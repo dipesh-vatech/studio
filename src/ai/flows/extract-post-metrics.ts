@@ -41,12 +41,12 @@ const prompt = ai.definePrompt({
 
 Analyze the attached screenshot and extract the following information:
 - The post's title or caption.
-- The number of likes.
-- The number of comments.
-- The number of shares (if visible).
-- The number of saves (if visible).
+- The number of likes. Look for a number next to a heart icon.
+- The number of comments. Look for a number next to a speech bubble icon.
+- The number of shares (if visible). Look for a number next to a paper plane or share icon.
+- The number of saves (if visible). Look for a number next to a bookmark icon.
 
-If a metric is not clearly visible in the image, do not guess or include it in the output. Provide only the information you can see.
+If a metric is not clearly visible in the image, do not guess or include it in the output. Provide only the information you can see. If you see text like "Liked by X and Y others", you can use that to determine the number of likes.
 
 Screenshot: {{media url=screenshotDataUri}}
   `,
