@@ -43,7 +43,7 @@ This extension is required to send notification emails.
 1.  **Install:** Find and install the "Trigger Email" extension.
 2.  **Configuration:** During installation, you will be asked for the following:
     *   **Cloud Functions location:** **CRITICAL!** Select **`Iowa (us-central1)`**.
-    *   **Firestore Instance Location:** **CRITICAL!** Set this to **`nam5`**. This must match your database's actual location. The deployment will fail if this is incorrect.
+    *   **Firestore Instance Location:** **CRITICAL!** Select **`Multi-region (United States)`**. This must match your database's actual location (`nam5`), and is a common source of errors. The deployment will fail if this is incorrect.
     *   **Mail Collection:** Set this to `mail`. This must match the collection name used in the Cloud Function.
     *   **Default FROM address:** Enter the email address you are sending from (e.g., `noreply@yourdomain.com`).
     *   **SMTP Connection URI:** This is the most critical step. You need to provide the connection details for your email provider. The format is `smtps://<user>:<password>@<server>:<port>`.
