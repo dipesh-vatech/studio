@@ -46,6 +46,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(1, 'Name is required.'),
@@ -542,6 +545,7 @@ function BillingSettings() {
         'Basic AI Pitch Generator',
         'Community Support',
       ],
+      isPopular: false,
     },
     {
       name: 'Pro',
@@ -555,6 +559,7 @@ function BillingSettings() {
         'Financial Analytics',
         'Priority Support',
       ],
+      isPopular: true,
     },
   ];
 
@@ -579,15 +584,22 @@ function BillingSettings() {
           {plans.map((plan) => (
             <Card
               key={plan.name}
-              className={
-                currentPlan === plan.name ? 'border-2 border-primary' : ''
-              }
+              className={cn(
+                'flex flex-col',
+                plan.isPopular ? 'border-2 border-primary' : '',
+                currentPlan === plan.name && 'ring-2 ring-primary' // Added for current plan indication
+              )}
             >
-              <CardHeader>
+              <CardHeader className="relative">
+                {plan.isPopular && (
+                  <Badge className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
+                    Most Popular
+                  </Badge>
+                )}
                 <CardTitle>{plan.name}</CardTitle>
                 <CardDescription>{plan.description}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 flex-1">
                 <div className="text-4xl font-bold">
                   {plan.price}
                   <span className="text-lg font-normal text-muted-foreground">
@@ -688,5 +700,3 @@ export default function SettingsPage() {
     </Suspense>
   );
 }
-
-    
