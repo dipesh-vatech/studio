@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -438,7 +437,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t">
-        <div className="container flex items-center justify-between py-8">
+        <div className="container flex items-center justify-center py-8">
            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CollabFlow. All rights reserved.</p>
         </div>
       </footer>
