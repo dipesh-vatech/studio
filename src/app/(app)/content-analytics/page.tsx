@@ -328,7 +328,7 @@ function fileToDataUri(file: File): Promise<string> {
   });
 }
 
-export default function PerformancePage() {
+export default function ContentAnalyticsPage() {
   const {
     performancePosts,
     addPerformancePost,
@@ -643,9 +643,25 @@ export default function PerformancePage() {
                                 </SelectContent>
                               </Select><FormMessage /></FormItem>
                           )} />
-                          <FormField control={form.control} name="postDescription" render={({ field }) => (
-                            <FormItem><FormLabel>Post Description (for AI)</FormLabel><FormControl><Textarea placeholder="Describe your post. What was the format (e.g., Reel, Carousel, Story)? What was the call to action?" {...field} /></FormControl><FormMessage /></FormItem>
-                          )} />
+                          <FormField
+                            control={form.control}
+                            name="postDescription"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Post Description (for AI)</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="e.g. A Reel showing a new outfit, with a call to action to shop the look."
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Provide context for the AI analysis. Describe the post's content, format (e.g. Reel, Story), and goal to get more accurate feedback.
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                           <div className="grid grid-cols-2 gap-4">
                             <FormField control={form.control} name="likes" render={({ field }) => (<FormItem><FormLabel>Likes</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                             <FormField control={form.control} name="comments" render={({ field }) => (<FormItem><FormLabel>Comments</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
