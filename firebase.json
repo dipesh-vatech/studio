@@ -13,5 +13,15 @@
   ],
   "firestore": {
     "indexes": "firestore.indexes.json"
+  },
+  "apphosting": {
+    "source": ".",
+    "region": "us-central1",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/.*",
+      "**/node_modules/**"
+    ]
   }
 }
