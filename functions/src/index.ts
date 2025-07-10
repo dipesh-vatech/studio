@@ -5,7 +5,6 @@
  * This file contains the backend logic for CollabFlow's notification system.
  * It uses a scheduled Cloud Function to check for upcoming deal deadlines
  * and creates email documents in a 'mail' collection, which can then be
-
  * processed by the Firebase Trigger Email extension.
  */
 
@@ -21,19 +20,6 @@ if (admin.apps.length === 0) {
 const db = admin.firestore();
 
 /**
- * A helper function to get a date string in YYYY-MM-DD format from a Date object.
- * It uses UTC methods to avoid timezone issues.
- * @param {Date} date The date to format.
- * @returns {string} The formatted date string.
- */
-const getUtcDateString = (date: Date): string => {
-  const year = date.getUTCFullYear();
-  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-  const day = date.getUTCDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-/**
  * A Pub/Sub triggered function that runs daily to check for deal deadlines.
  * This function is designed to be invoked by a Cloud Scheduler job.
  */
@@ -47,79 +33,71 @@ export const dailydealremindercheck = onMessagePublished(
     logger.info('Running daily deal reminder check via Pub/Sub...');
 
     const now = new Date();
-    
-    // Calculate target dates in UTC
-    const oneDayFromNowDate = new Date(now);
-    oneDayFromNowDate.setUTCDate(now.getUTCDate() + 1);
-    const oneDayFromNow = getUtcDateString(oneDayFromNowDate);
-    
-    const threeDaysFromNowDate = new Date(now);
-    threeDaysFromNowDate.setUTCDate(now.getUTCDate() + 3);
-    const threeDaysFromNow = getUtcDateString(threeDaysFromNowDate);
-    
-    logger.info(
-      `Checking for deals due on: ${oneDayFromNow} or ${threeDaysFromNow}`
-    );
-
-    const dealsSnapshot = await db
-      .collection('deals')
-      .where('status', 'in', ['Upcoming', 'In Progress'])
-      .get();
-
-    if (dealsSnapshot.empty) {
-      logger.info('No upcoming or in-progress deals found.');
-      return;
-    }
-
-    logger.info(
-      `Found ${dealsSnapshot.docs.length} potentially relevant deals to check.`
-    );
-
     // Use a map to batch emails by user to avoid sending multiple emails
-    const emailsToSend = new Map<string, {to: string; deals: any[]}>();
+    const emailsToSend = new Map<string, { to: string; deals: any[] }>();
 
-    for (const doc of dealsSnapshot.docs) {
-      const deal = doc.data();
-      // Ensure dueDate exists and has a toDate method (i.e., is a Firestore Timestamp)
-      if (!deal.dueDate || typeof deal.dueDate.toDate !== 'function') {
-        logger.warn(`Deal ${doc.id} has invalid or missing dueDate.`);
-        continue;
-      }
+    // Helper function to process deals for a given number of days from now
+    const processDealsForDay = async (daysFromNow: 1 | 3) => {
+      // Calculate the start and end of the target day in UTC
+      const targetDateStart = new Date(now);
+      targetDateStart.setUTCHours(0, 0, 0, 0);
+      targetDateStart.setUTCDate(targetDateStart.getUTCDate() + daysFromNow);
 
-      const dealDueDate = getUtcDateString(deal.dueDate.toDate());
-      let daysUntilDue = -1;
+      const targetDateEnd = new Date(targetDateStart);
+      targetDateEnd.setUTCHours(23, 59, 59, 999);
 
-      if (dealDueDate === oneDayFromNow) {
-        daysUntilDue = 1;
-      } else if (dealDueDate === threeDaysFromNow) {
-        daysUntilDue = 3;
-      }
+      logger.info(`Checking for deals due between ${targetDateStart.toISOString()} and ${targetDateEnd.toISOString()}`);
       
-      if (daysUntilDue > 0) {
-        logger.info(`Found a matching deal: ${deal.campaignName} due in ${daysUntilDue} day(s).`);
+      const dealsSnapshot = await db
+        .collection('deals')
+        .where('status', 'in', ['Upcoming', 'In Progress'])
+        .where('dueDate', '>=', targetDateStart)
+        .where('dueDate', '<=', targetDateEnd)
+        .get();
+
+      if (dealsSnapshot.empty) {
+        logger.info(`No deals found with a due date in ${daysFromNow} day(s).`);
+        return;
+      }
+
+      logger.info(`Found ${dealsSnapshot.docs.length} deals due in ${daysFromNow} day(s).`);
+
+      for (const doc of dealsSnapshot.docs) {
+        const deal = doc.data();
+        logger.info(`Processing deal: ${deal.campaignName} (ID: ${doc.id})`);
+
         const userSnapshot = await db.collection('users').doc(deal.userId).get();
         if (!userSnapshot.exists) {
-            logger.info(`User ${deal.userId} not found for deal ${doc.id}.`);
-            continue;
+          logger.warn(`User ${deal.userId} not found for deal ${doc.id}.`);
+          continue;
         }
 
         const user = userSnapshot.data();
-        if (!user || !user.notificationSettings?.email?.dealReminders) {
-            logger.info(`User ${deal.userId} has reminders disabled for deal ${doc.id}.`);
-            continue;
+        if (!user || !user.email) {
+          logger.warn(`User ${deal.userId} for deal ${doc.id} is missing an email address.`);
+          continue;
+        }
+
+        if (!user.notificationSettings?.email?.dealReminders) {
+          logger.info(`User ${deal.userId} has reminders disabled for deal ${doc.id}.`);
+          continue;
         }
 
         if (!emailsToSend.has(deal.userId)) {
-          emailsToSend.set(deal.userId, {to: user.email, deals: []});
+          emailsToSend.set(deal.userId, { to: user.email, deals: [] });
         }
-        
+
         emailsToSend.get(deal.userId)!.deals.push({
           campaignName: deal.campaignName,
-          daysUntilDue,
+          daysUntilDue: daysFromNow,
         });
       }
-    }
+    };
 
+    // Run checks for 1 and 3 days from now
+    await processDealsForDay(1);
+    await processDealsForDay(3);
+    
     if (emailsToSend.size === 0) {
       logger.info('No reminders to send today based on due dates and user preferences.');
       return;
@@ -127,11 +105,11 @@ export const dailydealremindercheck = onMessagePublished(
 
     // Create email documents in the 'mail' collection for the extension to pick up
     const emailPromises = Array.from(emailsToSend.values()).map(
-      ({to, deals}) => {
+      ({ to, deals }) => {
         const subject = 'Upcoming Deal Deadlines on CollabFlow';
         const dealsListHtml = deals
           .map(
-            d =>
+            (d) =>
               `<li><b>${d.campaignName}</b> is due in ${d.daysUntilDue} day(s).</li>`
           )
           .join('');
