@@ -81,12 +81,13 @@ This extension is required to run the daily notification check.
 If you see a permission error during extension installation, add the **`Service Account User`** role to your user account in the [Google Cloud IAM page](https://console.cloud.google.com/iam-admin/iam).
 
 ### 5. Install Dependencies
+Run this command in your local terminal:
 ```bash
 npm install
 ```
 
 ### 6. Run the Development Servers
-You need to run two servers concurrently: one for the Next.js frontend and one for the Genkit AI backend.
+You need to run two servers concurrently in two separate local terminals: one for the Next.js frontend and one for the Genkit AI backend.
 
 **Terminal 1: Next.js App**
 ```bash
@@ -108,25 +109,25 @@ Navigate to [http://localhost:9002](http://localhost:9002) in your browser.
 To share your app, you can deploy it to a public URL with Firebase App Hosting.
 
 ### 1. Install Firebase CLI (One-Time Setup)
-If you don't have the Firebase Command Line Interface (CLI) installed, open your terminal and run this command. This will install the tool globally on your system so you can deploy from any project.
+If you don't have the Firebase Command Line Interface (CLI) installed, open your local terminal and run this command. This will install the tool globally on your system so you can deploy from any project.
 ```bash
 npm install -g firebase-tools
 ```
 
-### 2. Log In to Firebase
+### 2. Log In to Firebase (One-Time Setup)
 Connect the CLI to your Firebase account. This will open a browser window for you to sign in.
 ```bash
 firebase login
 ```
 
 ### 3. Build Your App for Production
-This command prepares your Next.js application for deployment by compiling and optimizing it.
+This command prepares your Next.js application for deployment by compiling and optimizing it. You must run this command in your local terminal **every time** you want to deploy a new version.
 ```bash
 npm run build
 ```
 
 ### 4. Deploy to Firebase
-Run the deploy command. If it's your first time, you may be asked to select your Firebase project.
+Run the deploy command in your local terminal. This will publish your built app to the web.
 ```bash
 firebase deploy --only apphosting
 ```

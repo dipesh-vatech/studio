@@ -88,13 +88,13 @@ If you see an error like `Permission 'iam.serviceaccounts.actAs' denied` during 
 
 
 ### 4. Install Dependencies
-If you haven't already, install the project dependencies:
+If you haven't already, install the project dependencies by running this in your local terminal:
 ```bash
 npm install
 ```
 
 ### 5. Run the Development Servers
-You need to run two servers concurrently: one for the Next.js frontend and one for the Genkit AI backend.
+You need to run two servers concurrently in separate local terminals: one for the Next.js frontend and one for the Genkit AI backend.
 
 **Terminal 1: Next.js App**
 ```bash
@@ -115,34 +115,28 @@ Navigate to [http://localhost:9002](http://localhost:9002) in your browser.
 
 To share your app with others, you need to deploy it to a public URL. This project is set up to use Firebase App Hosting.
 
-### Prerequisites
+### Prerequisites (One-Time Setup)
 
-1.  **Install Firebase CLI:** If you don't have it, install it globally:
+1.  **Install Firebase CLI:** If you don't have it, install it globally from your local terminal:
     ```bash
     npm install -g firebase-tools
     ```
 
-2.  **Log in to Firebase:**
+2.  **Log in to Firebase:** Run this in your local terminal to connect to your account:
     ```bash
     firebase login
     ```
 
-### Deployment Steps
+### Deployment Steps (Run Every Time)
 
-1.  **Initialize App Hosting (if not already done):**
-    If this is your first time deploying, you might need to link your project to Firebase. Run:
-    ```bash
-    firebase init apphosting
-    ```
-    Follow the prompts to select your Firebase project.
-
-2.  **Build your app for production:**
+1.  **Build your app for production:**
+    This command prepares your app for deployment. Run it in your local terminal.
     ```bash
     npm run build
     ```
 
-3.  **Deploy to Firebase:**
-    Run the deploy command:
+2.  **Deploy to Firebase:**
+    This command publishes your built app. Run it in your local terminal.
     ```bash
     firebase deploy --only apphosting
     ```
