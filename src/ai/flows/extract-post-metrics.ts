@@ -34,28 +34,19 @@ export async function extractPostMetrics(input: ExtractPostMetricsInput): Promis
 
 const prompt = ai.definePrompt({
   name: 'extractPostMetricsPrompt',
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-1.5-flash',
   input: {schema: ExtractPostMetricsInputSchema},
   output: {schema: ExtractPostMetricsOutputSchema},
-  prompt: `You are an expert data extractor. Your task is to analyze the provided screenshot of a social media post and extract key performance metrics with high accuracy.
+  prompt: `You are an expert data extractor. Analyze the provided screenshot of a social media post and extract the key performance metrics with high accuracy.
 
 Analyze the attached screenshot: {{media url=screenshotDataUri}}
 
 Follow these instructions precisely:
-
-1.  **Extract Post Title/Caption:** Find the main text or caption of the post.
-2.  **Extract Likes:**
-    *   Look for text that says "Liked by [username] and [number] others".
-    *   If you find this pattern, you MUST calculate the total likes by adding 1 (for the username) to the [number].
-    *   **Example:** If you see "Liked by Craig and 24 others", the total likes is 25. You must output 25.
-    *   If you just see a number next to a heart icon, use that number.
-3.  **Extract Comments:**
-    *   PRIORITY 1: Look for text that says "[username] and [number] other commented". If found, you MUST calculate the total comments by adding 1 to the [number]. For example, "shivdip_2602 and 1 other commented" means the total is 2. You MUST output 2.
-    *   PRIORITY 2: If the above pattern is not found, look for text that says "View all [number] comments". If found, use that number.
-    *   PRIORITY 3: If neither of the above text patterns are found, look for a number next to a comment bubble icon. If you find it, use that number for the comments.
-4.  **Extract Shares & Saves:** Look for numbers next to a share icon (like a paper plane) or a save icon (like a bookmark).
-5.  **Output:** Provide only the data you can confidently extract in the specified format. If a metric is not visible, do not include it.
-  `,
+1.  **Extract Likes:** Find the number next to the heart icon. If you see text like "Liked by [username] and [number] others", the total likes is the [number] + 1.
+2.  **Extract Comments:** Find the number next to the comment bubble icon. If you see text like "[username] and [number] other commented", the total comments is the [number] + 1. If you see "View all [number] comments", use that [number].
+3.  **Extract Shares & Saves:** Look for numbers next to a share icon (like a paper plane) or a save icon (like a bookmark).
+4.  **Extract Post Title/Caption:** Find the main text or caption of the post.
+5.  **Output:** Provide only the data you can confidently extract in the specified format. If a metric is not visible, do not include it.`,
 });
 
 const extractPostMetricsFlow = ai.defineFlow(
