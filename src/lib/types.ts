@@ -67,6 +67,7 @@ export interface NotificationSettings {
 }
 
 export interface UserProfile {
+  email: string;
   profileType: ProfileType;
   niche?: string;
   notificationSettings?: NotificationSettings;

@@ -131,6 +131,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else {
           // Create a default profile if it doesn't exist
           const defaultProfile: UserProfile = {
+            email: user.email || '', // Save user's email
             profileType: 'influencer',
             notificationSettings: defaultNotificationSettings,
             plan: 'Free',
@@ -886,7 +887,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await updateDoc(dealRef, { tasks: updatedTasks });
         toast({ title: 'Task deleted' });
       }
-    } catch (error) {
+    } catch (error)
       console.error('Error deleting task: ', error);
       setDeals(originalDeals);
       toast({
