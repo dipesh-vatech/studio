@@ -23,7 +23,7 @@ const db = admin.firestore();
  */
 exports.dailydealremindercheck = (0, pubsub_1.onMessagePublished)({
     topic: 'daily-tick',
-    region: 'us-central1', // Ensure this matches your project's region
+    region: 'nam5', // Ensure this matches your project's region
     memory: '256MiB',
 }, async (event) => {
     logger.info('Running daily deal reminder check via Pub/Sub...');
