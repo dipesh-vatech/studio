@@ -19,15 +19,14 @@ if (admin.apps.length === 0) {
 const db = admin.firestore();
 
 /**
- * A scheduled function that runs once every day at midnight.
- * It checks for all deals that are due in 3 days or 1 day and sends
- * an email reminder to the user if they have enabled notifications.
+ * A Pub/Sub triggered function that checks for upcoming deal deadlines.
+ * This function is designed to be invoked by a Cloud Scheduler job.
  */
 export const dailyDealReminderCheck = functions
-  .region("us-central1") // Set the region to match Firestore
-  .pubsub.schedule("every 24 hours")
+  .region("us-central1") // We'll keep this for consistency
+  .pubsub.topic("daily-tick")
   .onRun(async (context) => {
-    console.log("Running daily deal reminder check...");
+    console.log("Running daily deal reminder check via Pub/Sub...");
 
     const now = new Date();
     const dealsSnapshot = await db
@@ -76,7 +75,7 @@ export const dailyDealReminderCheck = functions
       return null;
     }
 
-    // Create email documents in the 'mail' collection
+    // Create email documents in the 'mail' collection for the extension to pick up
     const emailPromises = Array.from(emailsToSend.values()).map(
       ({ to, deals }) => {
         const subject = "Upcoming Deal Deadlines on CollabFlow";
