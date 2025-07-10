@@ -5,6 +5,7 @@
  * This file contains the backend logic for CollabFlow's notification system.
  * It uses a scheduled Cloud Function to check for upcoming deal deadlines
  * and creates email documents in a 'mail' collection, which can then be
+
  * processed by the Firebase Trigger Email extension.
  */
 

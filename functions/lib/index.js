@@ -8,9 +8,10 @@
  * processed by the Firebase Trigger Email extension.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dailyDealReminderCheck = void 0;
-const functions = require("firebase-functions");
+exports.dailydealremindercheck = void 0;
+const pubsub_1 = require("firebase-functions/v2/pubsub");
 const admin = require("firebase-admin");
+const logger = require("firebase-functions/logger");
 // Initialize the Firebase Admin SDK
 if (admin.apps.length === 0) {
     admin.initializeApp();
@@ -32,12 +33,13 @@ const getUtcDateString = (date) => {
  * A Pub/Sub triggered function that runs daily to check for deal deadlines.
  * This function is designed to be invoked by a Cloud Scheduler job.
  */
-exports.dailyDealReminderCheck = functions
-    .region('us-central1')
-    .pubsub.topic('daily-tick')
-    .onRun(async (context) => {
+exports.dailydealremindercheck = (0, pubsub_1.onMessagePublished)({
+    topic: 'daily-tick',
+    region: 'us-central1',
+    memory: '256MiB',
+}, async (event) => {
     var _a, _b;
-    console.log('Running daily deal reminder check via Pub/Sub...');
+    logger.info('Running daily deal reminder check via Pub/Sub...');
     const now = new Date();
     // Calculate target dates in UTC
     const oneDayFromNowDate = new Date(now);
@@ -46,23 +48,23 @@ exports.dailyDealReminderCheck = functions
     const threeDaysFromNowDate = new Date(now);
     threeDaysFromNowDate.setUTCDate(now.getUTCDate() + 3);
     const threeDaysFromNow = getUtcDateString(threeDaysFromNowDate);
-    console.log(`Checking for deals due on: ${oneDayFromNow} or ${threeDaysFromNow}`);
+    logger.info(`Checking for deals due on: ${oneDayFromNow} or ${threeDaysFromNow}`);
     const dealsSnapshot = await db
         .collection('deals')
         .where('status', 'in', ['Upcoming', 'In Progress'])
         .get();
     if (dealsSnapshot.empty) {
-        console.log('No upcoming or in-progress deals found.');
-        return null;
+        logger.info('No upcoming or in-progress deals found.');
+        return;
     }
-    console.log(`Found ${dealsSnapshot.docs.length} potentially relevant deals to check.`);
+    logger.info(`Found ${dealsSnapshot.docs.length} potentially relevant deals to check.`);
     // Use a map to batch emails by user to avoid sending multiple emails
     const emailsToSend = new Map();
     for (const doc of dealsSnapshot.docs) {
         const deal = doc.data();
         // Ensure dueDate exists and has a toDate method (i.e., is a Firestore Timestamp)
         if (!deal.dueDate || typeof deal.dueDate.toDate !== 'function') {
-            console.warn(`Deal ${doc.id} has invalid or missing dueDate.`);
+            logger.warn(`Deal ${doc.id} has invalid or missing dueDate.`);
             continue;
         }
         const dealDueDate = getUtcDateString(deal.dueDate.toDate());
@@ -74,15 +76,15 @@ exports.dailyDealReminderCheck = functions
             daysUntilDue = 3;
         }
         if (daysUntilDue > 0) {
-            console.log(`Found a matching deal: ${deal.campaignName} due in ${daysUntilDue} day(s).`);
+            logger.info(`Found a matching deal: ${deal.campaignName} due in ${daysUntilDue} day(s).`);
             const userSnapshot = await db.collection('users').doc(deal.userId).get();
             if (!userSnapshot.exists) {
-                console.log(`User ${deal.userId} not found for deal ${doc.id}.`);
+                logger.info(`User ${deal.userId} not found for deal ${doc.id}.`);
                 continue;
             }
             const user = userSnapshot.data();
             if (!user || !((_b = (_a = user.notificationSettings) === null || _a === void 0 ? void 0 : _a.email) === null || _b === void 0 ? void 0 : _b.dealReminders)) {
-                console.log(`User ${deal.userId} has reminders disabled for deal ${doc.id}.`);
+                logger.info(`User ${deal.userId} has reminders disabled for deal ${doc.id}.`);
                 continue;
             }
             if (!emailsToSend.has(deal.userId)) {
@@ -95,8 +97,8 @@ exports.dailyDealReminderCheck = functions
         }
     }
     if (emailsToSend.size === 0) {
-        console.log('No reminders to send today based on due dates and user preferences.');
-        return null;
+        logger.info('No reminders to send today based on due dates and user preferences.');
+        return;
     }
     // Create email documents in the 'mail' collection for the extension to pick up
     const emailPromises = Array.from(emailsToSend.values()).map(({ to, deals }) => {
@@ -111,7 +113,7 @@ exports.dailyDealReminderCheck = functions
           <p>Log in to your dashboard to view more details.</p>
           <p>Best,<br/>The CollabFlow Team</p>
         `;
-        console.log(`Creating email document for: ${to}`);
+        logger.info(`Creating email document for: ${to}`);
         return db.collection('mail').add({
             to: [to],
             message: {
@@ -121,7 +123,6 @@ exports.dailyDealReminderCheck = functions
         });
     });
     await Promise.all(emailPromises);
-    console.log(`Successfully created ${emailPromises.length} email tasks.`);
-    return null;
+    logger.info(`Successfully created ${emailPromises.length} email tasks.`);
 });
 //# sourceMappingURL=index.js.map
