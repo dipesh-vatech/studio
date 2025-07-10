@@ -10,7 +10,6 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { format, addDays, startOfDay } from "date-fns";
 
 // Initialize the Firebase Admin SDK
 if (admin.apps.length === 0) {
@@ -19,6 +18,13 @@ if (admin.apps.length === 0) {
 
 const db = admin.firestore();
 
+// Helper to format a Date object to a 'YYYY-MM-DD' string in UTC
+const getUtcDateString = (date: Date) => {
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split('T')[0];
+};
+
 /**
  * A Pub/Sub triggered function that checks for upcoming deal deadlines.
  * This function is designed to be invoked by a Cloud Scheduler job.
@@ -26,15 +32,22 @@ const db = admin.firestore();
 export const dailyDealReminderCheck = functions
   .region("us-central1") 
   .pubsub.topic("daily-tick")
-  .onRun(async (context) => {
+  .onRun(async (context: functions.EventContext) => {
     console.log("Running daily deal reminder check via Pub/Sub...");
 
     const now = new Date();
-    // Use startOfDay to remove time component and avoid timezone issues
-    const oneDayFromNow = format(startOfDay(addDays(now, 1)), "yyyy-MM-dd");
-    const threeDaysFromNow = format(startOfDay(addDays(now, 3)), "yyyy-MM-dd");
     
-    console.log(`Checking for deals due on: ${oneDayFromNow} or ${threeDaysFromNow}`);
+    const oneDayFromNowDate = new Date(now);
+    oneDayFromNowDate.setDate(now.getDate() + 1);
+    const oneDayFromNow = getUtcDateString(oneDayFromNowDate);
+    
+    const threeDaysFromNowDate = new Date(now);
+    threeDaysFromNowDate.setDate(now.getDate() + 3);
+    const threeDaysFromNow = getUtcDateString(threeDaysFromNowDate);
+    
+    console.log(
+      `Checking for deals due on: ${oneDayFromNow} or ${threeDaysFromNow}`
+    );
 
     const dealsSnapshot = await db
       .collection("deals")
@@ -46,7 +59,9 @@ export const dailyDealReminderCheck = functions
       return null;
     }
     
-    console.log(`Found ${dealsSnapshot.docs.length} potentially relevant deals.`);
+    console.log(
+      `Found ${dealsSnapshot.docs.length} potentially relevant deals to check.`
+    );
 
     // Use a map to batch emails by user to avoid sending multiple emails
     const emailsToSend = new Map<string, { to: string; deals: any[] }>();
@@ -60,7 +75,7 @@ export const dailyDealReminderCheck = functions
       }
       
       // Convert Firestore timestamp to a JS Date, then format to yyyy-MM-dd to compare dates only
-      const dealDueDate = format(startOfDay(deal.dueDate.toDate()), "yyyy-MM-dd");
+      const dealDueDate = getUtcDateString(deal.dueDate.toDate());
       let daysUntilDue = -1;
 
       if (dealDueDate === oneDayFromNow) {

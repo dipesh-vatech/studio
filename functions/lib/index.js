@@ -44,31 +44,44 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.dailyDealReminderCheck = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
-const date_fns_1 = require("date-fns");
 // Initialize the Firebase Admin SDK
 if (admin.apps.length === 0) {
     admin.initializeApp();
 }
 const db = admin.firestore();
+// Helper to format a Date object to a 'YYYY-MM-DD' string in UTC
+const getUtcDateString = (date) => {
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split('T')[0];
+};
 /**
- * A scheduled function that runs once every day at midnight.
- * It checks for all deals that are due in 3 days or 1 day and sends
- * an email reminder to the user if they have enabled notifications.
+ * A Pub/Sub triggered function that checks for upcoming deal deadlines.
+ * This function is designed to be invoked by a Cloud Scheduler job.
  */
-exports.dailyDealReminderCheck = functions.pubsub
-    .schedule("every 24 hours")
+exports.dailyDealReminderCheck = functions
+    .region('us-central1')
+    .pubsub.topic('daily-tick')
     .onRun(async (context) => {
     var _a, _b;
-    console.log("Running daily deal reminder check...");
+    console.log('Running daily deal reminder check via Pub/Sub...');
     const now = new Date();
+    const oneDayFromNowDate = new Date(now);
+    oneDayFromNowDate.setDate(now.getDate() + 1);
+    const oneDayFromNow = getUtcDateString(oneDayFromNowDate);
+    const threeDaysFromNowDate = new Date(now);
+    threeDaysFromNowDate.setDate(now.getDate() + 3);
+    const threeDaysFromNow = getUtcDateString(threeDaysFromNowDate);
+    console.log(`Checking for deals due on: ${oneDayFromNow} or ${threeDaysFromNow}`);
     const dealsSnapshot = await db
-        .collection("deals")
-        .where("status", "in", ["Upcoming", "In Progress"])
+        .collection('deals')
+        .where('status', 'in', ['Upcoming', 'In Progress'])
         .get();
     if (dealsSnapshot.empty) {
-        console.log("No upcoming or in-progress deals found.");
+        console.log('No upcoming or in-progress deals found.');
         return null;
     }
+    console.log(`Found ${dealsSnapshot.docs.length} potentially relevant deals to check.`);
     // Use a map to batch emails by user to avoid sending multiple emails
     const emailsToSend = new Map();
     for (const doc of dealsSnapshot.docs) {
@@ -78,11 +91,18 @@ exports.dailyDealReminderCheck = functions.pubsub
             console.warn(`Deal ${doc.id} has invalid or missing dueDate.`);
             continue;
         }
-        const dueDate = (0, date_fns_1.parseISO)(deal.dueDate.toDate().toISOString());
-        const daysUntilDue = (0, date_fns_1.differenceInDays)(dueDate, now);
-        // Check if the deal is due in 3 days or 1 day
-        if (daysUntilDue === 3 || daysUntilDue === 1) {
-            const userSnapshot = await db.collection("users").doc(deal.userId).get();
+        // Convert Firestore timestamp to a JS Date, then format to yyyy-MM-dd to compare dates only
+        const dealDueDate = getUtcDateString(deal.dueDate.toDate());
+        let daysUntilDue = -1;
+        if (dealDueDate === oneDayFromNow) {
+            daysUntilDue = 1;
+        }
+        else if (dealDueDate === threeDaysFromNow) {
+            daysUntilDue = 3;
+        }
+        // Check if the deal is due in exactly 3 days or 1 day.
+        if (daysUntilDue > 0) {
+            const userSnapshot = await db.collection('users').doc(deal.userId).get();
             if (!userSnapshot.exists)
                 continue;
             const user = userSnapshot.data();
@@ -98,15 +118,15 @@ exports.dailyDealReminderCheck = functions.pubsub
         }
     }
     if (emailsToSend.size === 0) {
-        console.log("No reminders to send today.");
+        console.log('No reminders to send today based on due dates.');
         return null;
     }
-    // Create email documents in the 'mail' collection
+    // Create email documents in the 'mail' collection for the extension to pick up
     const emailPromises = Array.from(emailsToSend.values()).map(({ to, deals }) => {
-        const subject = "Upcoming Deal Deadlines on CollabFlow";
+        const subject = 'Upcoming Deal Deadlines on CollabFlow';
         const dealsListHtml = deals
-            .map((d) => `<li><b>${d.campaignName}</b> is due in ${d.daysUntilDue} day(s).</li>`)
-            .join("");
+            .map(d => `<li><b>${d.campaignName}</b> is due in ${d.daysUntilDue} day(s).</li>`)
+            .join('');
         const html = `
           <p>Hi there,</p>
           <p>This is a friendly reminder from CollabFlow about your upcoming deadlines:</p>
@@ -115,7 +135,7 @@ exports.dailyDealReminderCheck = functions.pubsub
           <p>Best,<br/>The CollabFlow Team</p>
         `;
         console.log(`Creating email document for: ${to}`);
-        return db.collection("mail").add({
+        return db.collection('mail').add({
             to: [to],
             message: {
                 subject,
