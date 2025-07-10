@@ -42,7 +42,8 @@ This extension is required to send notification emails.
 
 1.  **Install:** Find and install the "Trigger Email" extension.
 2.  **Configuration:** During installation, you will be asked for the following:
-    *   **Function location:** **CRITICAL!** Set this to `us-central1`. Your Firestore database is in the `nam5` (North America) multi-region, and this is the correct corresponding region for the function.
+    *   **Cloud Functions location:** **CRITICAL!** Set this to `us-central1`.
+    *   **Firestore Instance Location:** **CRITICAL!** Set this to `nam5`. This must match your database's actual location.
     *   **Mail Collection:** Set this to `mail`. This must match the collection name used in the Cloud Function.
     *   **Default FROM address:** Enter the email address you are sending from (e.g., `noreply@yourdomain.com`).
     *   **SMTP Connection URI:** This is the most critical step. You need to provide the connection details for your email provider. The format is `smtps://<user>:<password>@<server>:<port>`.
@@ -70,7 +71,7 @@ This extension is required to run the daily notification check.
 
 1.  **Install:** Find and install the "Trigger a function on a schedule with Cloud Scheduler" extension.
 2.  **Configuration:**
-    *   **Function location:** **CRITICAL!** Set this to `us-central1` to match your other services.
+    *   **Cloud Functions location:** **CRITICAL!** Set this to `us-central1`.
     *   **Schedule:** Set the schedule (e.g., `every 24 hours`).
     *   **Pub/Sub topic:** Set this to `daily-tick`. This must match the topic name in the Cloud Function.
 
