@@ -68,7 +68,7 @@ export default function LandingPage() {
           description:
             'Let AI craft personalized and professional pitch emails, helping you land your next big collaboration.',
           image: {
-            src: 'https://placehold.co/600x400.png',
+            src: '/ai-pitch-generation.png',
             alt: 'AI Pitch Generation',
             hint: 'ai pitch'
           }
@@ -108,7 +108,7 @@ export default function LandingPage() {
           description:
             'Visualize your content calendar and let AI generate creative post ideas and suggest the best times to engage your audience.',
           image: {
-            src: 'https://placehold.co/600x400.png',
+            src: '/ai-scheduling.png',
             alt: 'AI Scheduling',
             hint: 'ai scheduling'
           }
@@ -137,7 +137,7 @@ export default function LandingPage() {
             description:
                 'Never lose track of an invoice. Monitor all outstanding and completed payments in one simple view.',
             image: {
-                src: 'https://placehold.co/600x400.png',
+                src: '/payment-tracking.png',
                 alt: 'Payment Tracking',
                 hint: 'payment tracking'
             }
@@ -147,7 +147,7 @@ export default function LandingPage() {
             title: 'Identify Top Partners',
             description: 'Quickly see which brand collaborations are driving the most revenue for your business.',
             image: {
-                src: 'https://placehold.co/600x400.png',
+                src: '/partner-analytics.png',
                 alt: 'Top Partners Analytics',
                 hint: 'partner analytics'
             }
