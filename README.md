@@ -41,17 +41,29 @@ This project relies on two Firebase Extensions. You must install and configure t
 This extension is required to send notification emails.
 
 1.  **Install:** Find and install the "Trigger Email" extension.
-2.  **Configuration:**
-    *   **SMTP Connection URI:** This is the most critical step. You need to provide the connection details for your email provider.
-        *   **For Gmail/Google Workspace:**
-            1.  You **must** use an **App Password**. You cannot use your regular Google password.
-            2.  Enable 2-Step Verification on your Google Account.
-            3.  Go to your Google Account settings and generate an [App Password](https://myaccount.google.com/apppasswords).
-            4.  Your URI will look like this: `smtps://your.email@gmail.com:YOUR_16_DIGIT_APP_PASSWORD@smtp.gmail.com:465`
+2.  **Configuration:** During installation, you will be asked for the following:
     *   **Mail Collection:** Set this to `mail`. This must match the collection name used in the Cloud Function.
-    *   **Default FROM address:** Enter the email address you are sending from (e.g., your.email@gmail.com).
+    *   **Default FROM address:** Enter the email address you are sending from (e.g., `noreply@yourdomain.com`).
+    *   **SMTP Connection URI:** This is the most critical step. You need to provide the connection details for your email provider. The format is `smtps://<user>:<password>@<server>:<port>`.
 
-#### B. Cloud Scheduler
+##### SMTP Configuration for Brevo (Recommended)
+
+1.  Log in to your [Brevo](https://www.brevo.com/) account.
+2.  In the top-right menu, go to **SMTP & API**.
+3.  You will see your SMTP credentials. You need the **Login** email and you must generate an **SMTP Key** to use as the password.
+4.  Click **Create a new SMTP Key**. Give it a descriptive name (e.g., "CollabFlow App") and copy the key.
+5.  Your Brevo SMTP server is `smtp-relay.brevo.com` and the recommended port is `465`.
+6.  Your final URI will look like this. Replace the placeholders with your actual Brevo credentials:
+    `smtps://your.brevo.login@email.com:YOUR_BREVO_SMTP_KEY@smtp-relay.brevo.com:465`
+
+##### SMTP Configuration for Gmail/Google Workspace
+
+1.  You **must** use an **App Password**. You cannot use your regular Google password.
+2.  Enable 2-Step Verification on your Google Account.
+3.  Go to your Google Account settings and generate an [App Password](https://myaccount.google.com/apppasswords).
+4.  Your URI will look like this: `smtps://your.email@gmail.com:YOUR_16_DIGIT_APP_PASSWORD@smtp.gmail.com:465`
+
+#### B. Cloud Scheduler Extension
 
 This extension is required to run the daily notification check.
 
