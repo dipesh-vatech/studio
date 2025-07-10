@@ -31,7 +31,7 @@ const getUtcDateString = (date: Date) => {
 export const dailyDealReminderCheck = functions
   .region('us-central1')
   .pubsub.topic('daily-tick')
-  .onRun(async context => {
+  .onRun(async (context) => {
     console.log('Running daily deal reminder check via Pub/Sub...');
 
     const now = new Date();
