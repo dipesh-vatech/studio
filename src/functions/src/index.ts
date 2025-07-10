@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Firebase Cloud Functions for sending scheduled notifications.
  *
@@ -9,7 +10,7 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { differenceInCalendarDays, parseISO } from "date-fns";
+import { format, addDays, startOfDay, parseISO } from "date-fns";
 
 // Initialize the Firebase Admin SDK
 if (admin.apps.length === 0) {
@@ -29,6 +30,12 @@ export const dailyDealReminderCheck = functions
     console.log("Running daily deal reminder check via Pub/Sub...");
 
     const now = new Date();
+    // Use startOfDay to remove time component and avoid timezone issues
+    const oneDayFromNow = format(startOfDay(addDays(now, 1)), "yyyy-MM-dd");
+    const threeDaysFromNow = format(startOfDay(addDays(now, 3)), "yyyy-MM-dd");
+    
+    console.log(`Checking for deals due on: ${oneDayFromNow} or ${threeDaysFromNow}`);
+
     const dealsSnapshot = await db
       .collection("deals")
       .where("status", "in", ["Upcoming", "In Progress"])
@@ -38,6 +45,8 @@ export const dailyDealReminderCheck = functions
       console.log("No upcoming or in-progress deals found.");
       return null;
     }
+    
+    console.log(`Found ${dealsSnapshot.docs.length} potentially relevant deals.`);
 
     // Use a map to batch emails by user to avoid sending multiple emails
     const emailsToSend = new Map<string, { to: string; deals: any[] }>();
@@ -49,11 +58,19 @@ export const dailyDealReminderCheck = functions
         console.warn(`Deal ${doc.id} has invalid or missing dueDate.`);
         continue;
       }
-      const dueDate = parseISO(deal.dueDate.toDate().toISOString());
-      const daysUntilDue = differenceInCalendarDays(dueDate, now);
+      
+      // Convert Firestore timestamp to a JS Date, then format to yyyy-MM-dd to compare dates only
+      const dealDueDate = format(startOfDay(deal.dueDate.toDate()), "yyyy-MM-dd");
+      let daysUntilDue = -1;
+
+      if (dealDueDate === oneDayFromNow) {
+        daysUntilDue = 1;
+      } else if (dealDueDate === threeDaysFromNow) {
+        daysUntilDue = 3;
+      }
 
       // Check if the deal is due in exactly 3 days or 1 day.
-      if (daysUntilDue === 3 || daysUntilDue === 1) {
+      if (daysUntilDue > 0) {
         const userSnapshot = await db.collection("users").doc(deal.userId).get();
         if (!userSnapshot.exists) continue;
 
@@ -71,7 +88,7 @@ export const dailyDealReminderCheck = functions
     }
 
     if (emailsToSend.size === 0) {
-      console.log("No reminders to send today.");
+      console.log("No reminders to send today based on due dates.");
       return null;
     }
 
