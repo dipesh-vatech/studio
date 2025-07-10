@@ -9,7 +9,7 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { differenceInDays, parseISO } from "date-fns";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 
 // Initialize the Firebase Admin SDK
 if (admin.apps.length === 0) {
@@ -50,9 +50,9 @@ export const dailyDealReminderCheck = functions
         continue;
       }
       const dueDate = parseISO(deal.dueDate.toDate().toISOString());
-      const daysUntilDue = differenceInDays(dueDate, now);
+      const daysUntilDue = differenceInCalendarDays(dueDate, now);
 
-      // Check if the deal is due in 3 days or 1 day
+      // Check if the deal is due in exactly 3 days or 1 day.
       if (daysUntilDue === 3 || daysUntilDue === 1) {
         const userSnapshot = await db.collection("users").doc(deal.userId).get();
         if (!userSnapshot.exists) continue;
