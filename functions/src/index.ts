@@ -8,8 +8,9 @@
  * processed by the Firebase Trigger Email extension.
  */
 
-import * as functions from 'firebase-functions';
+import { onMessagePublished } from 'firebase-functions/v2/pubsub';
 import * as admin from 'firebase-admin';
+import * as logger from 'firebase-functions/logger';
 
 // Initialize the Firebase Admin SDK
 if (admin.apps.length === 0) {
@@ -35,11 +36,14 @@ const getUtcDateString = (date: Date): string => {
  * A Pub/Sub triggered function that runs daily to check for deal deadlines.
  * This function is designed to be invoked by a Cloud Scheduler job.
  */
-export const dailyDealReminderCheck = functions
-  .region('us-central1')
-  .pubsub.topic('daily-tick')
-  .onRun(async (context: functions.EventContext) => {
-    console.log('Running daily deal reminder check via Pub/Sub...');
+export const dailydealremindercheck = onMessagePublished(
+  {
+    topic: 'daily-tick',
+    region: 'us-central1',
+    memory: '256MiB',
+  },
+  async (event) => {
+    logger.info('Running daily deal reminder check via Pub/Sub...');
 
     const now = new Date();
     
@@ -52,7 +56,7 @@ export const dailyDealReminderCheck = functions
     threeDaysFromNowDate.setUTCDate(now.getUTCDate() + 3);
     const threeDaysFromNow = getUtcDateString(threeDaysFromNowDate);
     
-    console.log(
+    logger.info(
       `Checking for deals due on: ${oneDayFromNow} or ${threeDaysFromNow}`
     );
 
@@ -62,11 +66,11 @@ export const dailyDealReminderCheck = functions
       .get();
 
     if (dealsSnapshot.empty) {
-      console.log('No upcoming or in-progress deals found.');
-      return null;
+      logger.info('No upcoming or in-progress deals found.');
+      return;
     }
 
-    console.log(
+    logger.info(
       `Found ${dealsSnapshot.docs.length} potentially relevant deals to check.`
     );
 
@@ -77,7 +81,7 @@ export const dailyDealReminderCheck = functions
       const deal = doc.data();
       // Ensure dueDate exists and has a toDate method (i.e., is a Firestore Timestamp)
       if (!deal.dueDate || typeof deal.dueDate.toDate !== 'function') {
-        console.warn(`Deal ${doc.id} has invalid or missing dueDate.`);
+        logger.warn(`Deal ${doc.id} has invalid or missing dueDate.`);
         continue;
       }
 
@@ -91,16 +95,16 @@ export const dailyDealReminderCheck = functions
       }
       
       if (daysUntilDue > 0) {
-        console.log(`Found a matching deal: ${deal.campaignName} due in ${daysUntilDue} day(s).`);
+        logger.info(`Found a matching deal: ${deal.campaignName} due in ${daysUntilDue} day(s).`);
         const userSnapshot = await db.collection('users').doc(deal.userId).get();
         if (!userSnapshot.exists) {
-            console.log(`User ${deal.userId} not found for deal ${doc.id}.`);
+            logger.info(`User ${deal.userId} not found for deal ${doc.id}.`);
             continue;
         }
 
         const user = userSnapshot.data();
         if (!user || !user.notificationSettings?.email?.dealReminders) {
-            console.log(`User ${deal.userId} has reminders disabled for deal ${doc.id}.`);
+            logger.info(`User ${deal.userId} has reminders disabled for deal ${doc.id}.`);
             continue;
         }
 
@@ -116,8 +120,8 @@ export const dailyDealReminderCheck = functions
     }
 
     if (emailsToSend.size === 0) {
-      console.log('No reminders to send today based on due dates and user preferences.');
-      return null;
+      logger.info('No reminders to send today based on due dates and user preferences.');
+      return;
     }
 
     // Create email documents in the 'mail' collection for the extension to pick up
@@ -139,7 +143,7 @@ export const dailyDealReminderCheck = functions
           <p>Best,<br/>The CollabFlow Team</p>
         `;
 
-        console.log(`Creating email document for: ${to}`);
+        logger.info(`Creating email document for: ${to}`);
         return db.collection('mail').add({
           to: [to],
           message: {
@@ -151,6 +155,6 @@ export const dailyDealReminderCheck = functions
     );
 
     await Promise.all(emailPromises);
-    console.log(`Successfully created ${emailPromises.length} email tasks.`);
-    return null;
-  });
+    logger.info(`Successfully created ${emailPromises.length} email tasks.`);
+  }
+);
