@@ -23,7 +23,7 @@ const links = [
   { href: '/deals', label: 'Deals', icon: Handshake },
   { href: '/scheduler', label: 'Scheduler', icon: CalendarDays },
   { href: '/financials', label: 'Financials', icon: DollarSign },
-  { href: '/performance', label: 'Content Analytics', icon: BarChart },
+  { href: '/content-analytics', label: 'Content Analytics', icon: BarChart },
   { href: '/contracts', label: 'Contracts', icon: FileText },
   { href: '/pitch-generator', label: 'Pitch AI', icon: Lightbulb },
   { href: '/settings', label: 'Settings', icon: Settings },
