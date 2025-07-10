@@ -30,13 +30,45 @@ NEXT_PUBLIC_ADMIN_EMAIL=admin@example.com
 GOOGLE_API_KEY=...
 ```
 
-### 2. Install Dependencies
+### 2. Configure Firebase Extensions
+
+This project relies on two Firebase Extensions. You must install and configure them from the Firebase Console.
+
+*   Go to **Build > Extensions > Explore extensions** in your Firebase project.
+
+#### A. Trigger Email Extension
+
+This extension is required to send notification emails.
+
+1.  **Install:** Find and install the "Trigger Email" extension.
+2.  **Configuration:**
+    *   **SMTP Connection URI:** This is the most critical step. You need to provide the connection details for your email provider.
+        *   **For Gmail/Google Workspace:**
+            1.  You **must** use an **App Password**. You cannot use your regular Google password.
+            2.  Enable 2-Step Verification on your Google Account.
+            3.  Go to your Google Account settings and generate an [App Password](https://myaccount.google.com/apppasswords).
+            4.  Your URI will look like this: `smtps://your.email@gmail.com:YOUR_16_DIGIT_APP_PASSWORD@smtp.gmail.com:465`
+    *   **Mail Collection:** Set this to `mail`. This must match the collection name used in the Cloud Function.
+    *   **Default FROM address:** Enter the email address you are sending from (e.g., your.email@gmail.com).
+
+#### B. Cloud Scheduler
+
+This extension is required to run the daily notification check.
+
+1.  **Install:** Find and install the "Trigger a function on a schedule with Cloud Scheduler" extension.
+2.  **Configuration:**
+    *   **Function location:** Choose the same location as your functions (e.g., `us-central1`).
+    *   **Schedule:** Set the schedule (e.g., `every 24 hours`).
+    *   **Pub/Sub topic:** Set this to `daily-tick`. This must match the topic name in the Cloud Function.
+
+
+### 3. Install Dependencies
 If you haven't already, install the project dependencies:
 ```bash
 npm install
 ```
 
-### 3. Run the Development Servers
+### 4. Run the Development Servers
 You need to run two servers concurrently: one for the Next.js frontend and one for the Genkit AI backend.
 
 **Terminal 1: Next.js App**
@@ -51,7 +83,7 @@ npm run genkit:watch
 ```
 This starts the Genkit development server, which handles AI requests from the app.
 
-### 4. Open the App
+### 5. Open the App
 Navigate to [http://localhost:9002](http://localhost:9002) in your browser.
 
 ## Deployment
