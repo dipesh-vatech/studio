@@ -22,6 +22,7 @@ import {
   CalendarDays,
   Check,
   Search,
+  Bell,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -46,7 +47,7 @@ export default function LandingPage() {
           description:
             'Seamlessly manage every stage of your brand deals, from upcoming to completed, all in one place.',
           image: { 
-            src: '/deals-management.png', 
+            src: '/deals-management-img.png', 
             alt: 'Deals Management Dashboard',
             hint: 'deals management' 
           },
@@ -57,7 +58,7 @@ export default function LandingPage() {
           description:
             'Instantly extract key details like payment, deliverables, and dates from contracts with our AI parser.',
           image: { 
-            src: '/contract-analysis.png', 
+            src: '/contract-analysis-img.png', 
             alt: 'AI Contract Analysis',
             hint: 'contract analysis'
           },
@@ -68,7 +69,7 @@ export default function LandingPage() {
           description:
             'Let AI craft personalized and professional pitch emails, helping you land your next big collaboration.',
           image: {
-            src: '/ai-pitch-generation.png',
+            src: '/pitch-ai-img.png',
             alt: 'AI Pitch Generation',
             hint: 'ai pitch'
           }
@@ -86,7 +87,7 @@ export default function LandingPage() {
           description:
             'Track your likes, comments, and shares over time with dynamic charts and discover your growth trends.',
           image: {
-            src: '/content-analytics.png',
+            src: '/content-analytics-img.png',
             alt: 'Content Analytics Dashboard',
             hint: 'content analytics'
           },
@@ -108,7 +109,7 @@ export default function LandingPage() {
           description:
             'Visualize your content calendar and let AI generate creative post ideas and suggest the best times to engage your audience.',
           image: {
-            src: '/ai-scheduling.png',
+            src: '/ai-schedular-img.png',
             alt: 'AI Scheduling',
             hint: 'ai scheduling'
           }
@@ -116,9 +117,9 @@ export default function LandingPage() {
       ],
     },
      {
-      title: 'Master Your Financials',
+      title: 'Master Your Financials & Stay on Track',
       description:
-        'Take control of your business with a clear financial overview. Track your earnings, monitor outstanding payments, and identify your most valuable partnerships to maximize your revenue.',
+        'Take control of your business with a clear financial overview. Track your earnings, monitor outstanding payments, and receive automated reminders so you never miss a deadline.',
       subFeatures: [
         {
           icon: DollarSign,
@@ -143,13 +144,13 @@ export default function LandingPage() {
             }
         },
         {
-            icon: Award,
-            title: 'Identify Top Partners',
-            description: 'Quickly see which brand collaborations are driving the most revenue for your business.',
+            icon: Bell,
+            title: 'Automated Deadline Reminders',
+            description: 'Never miss a deadline. Get automated email notifications for upcoming posts and invoices 3 days and 1 day before they\'re due.',
             image: {
-                src: '/partner-analytics.png',
-                alt: 'Top Partners Analytics',
-                hint: 'partner analytics'
+                src: '/email-notification.png',
+                alt: 'Email notification reminder',
+                hint: 'email notification'
             }
         }
       ],
@@ -160,7 +161,7 @@ export default function LandingPage() {
     {
       name: 'Free',
       price: '$0',
-      description: 'Perfect for creators getting started.',
+      description: 'For individuals and starters.',
       features: [
         'Up to 10 deals',
         'Manual Content Tracking',
