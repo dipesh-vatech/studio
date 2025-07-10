@@ -440,10 +440,6 @@ export default function LandingPage() {
       <footer className="border-t">
         <div className="container flex items-center justify-between py-8">
            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CollabFlow. All rights reserved.</p>
-           <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-                <Link href="/terms" className="hover:text-primary">Terms of Service</Link>
-                <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
-           </nav>
         </div>
       </footer>
     </div>
