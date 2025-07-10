@@ -23,7 +23,7 @@ const db = admin.firestore();
  */
 exports.dailydealremindercheck = (0, pubsub_1.onMessagePublished)({
     topic: 'daily-tick',
-    region: 'us-central1',
+    region: 'us-central1', // Ensure this matches your project's region
     memory: '256MiB',
 }, async (event) => {
     logger.info('Running daily deal reminder check via Pub/Sub...');
@@ -53,7 +53,7 @@ exports.dailydealremindercheck = (0, pubsub_1.onMessagePublished)({
         logger.info(`Found ${dealsSnapshot.docs.length} deals due in ${daysFromNow} day(s).`);
         for (const doc of dealsSnapshot.docs) {
             const deal = doc.data();
-            logger.info(`Processing deal: ${deal.campaignName} (ID: ${doc.id})`);
+            logger.info(`Processing deal: ${deal.campaignName} (ID: ${doc.id}) for user ${deal.userId}`);
             const userSnapshot = await db.collection('users').doc(deal.userId).get();
             if (!userSnapshot.exists) {
                 logger.warn(`User ${deal.userId} not found for deal ${doc.id}.`);
