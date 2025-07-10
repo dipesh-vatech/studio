@@ -50,10 +50,10 @@ Follow these instructions precisely:
     *   **Example:** If you see "Liked by Craig and 24 others", the total likes is 25. You must output 25.
     *   If you just see a number next to a heart icon, use that number.
 3.  **Extract Comments:**
-    *   Look for text that says "View all [number] comments".
-    *   If you find this pattern, you MUST use that number as the total comments.
-    *   **Example:** If you see "View all 2 comments", the total comments is 2. You must output 2.
+    *   Look for text that says "View all [number] comments". If found, use that number.
+    *   Look for text that says "[username] and [number] other commented". If found, you MUST calculate the total comments by adding 1 to the [number]. For example, "shivdip_2602 and 1 other commented" means the total is 2.
     *   If you just see a number next to a comment bubble icon, use that number.
+    *   **Example:** If you see "View all 2 comments", the total comments is 2. You must output 2.
 4.  **Extract Shares & Saves:** Look for numbers next to a share icon (like a paper plane) or a save icon (like a bookmark).
 5.  **Output:** Provide only the data you can confidently extract in the specified format. If a metric is not visible, do not include it.
   `,
