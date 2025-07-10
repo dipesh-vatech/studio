@@ -43,10 +43,24 @@ This extension is required to send notification emails.
 1.  **Install:** Find and install the "Trigger Email" extension.
 2.  **Configuration:** During installation, you will be asked for the following:
     *   **Cloud Functions location:** **CRITICAL!** Select **`Iowa (us-central1)`**.
-    *   **Firestore Instance Location:** **CRITICAL!** Set this to **`nam5`**. This must match your database's actual location. The deployment will fail if this is incorrect.
+    *   **Firestore Instance Location:** **CRITICAL!** Select **`Multi-region (United States)`** from the dropdown. This corresponds to `nam5` and must match your database's actual location.
     *   **Mail Collection:** Set this to `mail`. This must match the collection name used in the Cloud Function.
     *   **Default FROM address:** Enter the email address you are sending from (e.g., `noreply@yourdomain.com`).
-    *   **SMTP Connection URI:** This is the most critical step. You need to provide the connection details for your email provider. The format is `smtps://<user>:<password>@<server>:<port>`.
+    *   **SMTP Connection URI:** This is the most critical step. You need to provide the connection details for your email provider. The format is `smtps://<user>:<password>@<server>:<port>`. See the specific guides below.
+
+##### SMTP Password - IMPORTANT!
+
+You have two ways to provide your password (your SMTP Key). **Choose only ONE.**
+
+*   **Method 1 (Recommended): Use a Cloud Secret**
+    1.  In the `SMTP password` field, click "Create secret" and paste your SMTP Key.
+    2.  In the `SMTP Connection URI`, use the placeholder `${SMTP_PASSWORD}` for the password.
+    3.  Example URI: `smtps://your.login@email.com:${SMTP_PASSWORD}@smtp-relay.brevo.com:465`
+
+*   **Method 2 (Simpler): Embed in URI**
+    1.  Leave the `SMTP password` field **blank**.
+    2.  Paste your actual SMTP key directly into the `SMTP Connection URI`.
+    3.  Example URI: `smtps://your.login@email.com:the-real-smtp-key-goes-here@smtp-relay.brevo.com:465`
 
 ##### SMTP Configuration for Brevo (Recommended)
 
@@ -54,16 +68,16 @@ This extension is required to send notification emails.
 2.  In the top-right menu, go to **SMTP & API**.
 3.  You will see your SMTP credentials. You need the **Login** email and you must generate an **SMTP Key** to use as the password.
 4.  Click **Create a new SMTP Key**. Give it a descriptive name (e.g., "CollabFlow App") and copy the key.
-5.  Your Brevo SMTP server is `smtp-relay.brevo.com` and the recommended port is `465`.
-6.  Your final URI will look like this. Replace the placeholders with your actual Brevo credentials:
-    `smtps://your.brevo.login@email.com:YOUR_BREVO_SMTP_KEY@smtp-relay.brevo.com:465`
+5.  Your Brevo SMTP server is `smtp-relay.brevo.com` and the recommended port for `smtps://` is `465`.
+6.  Your final URI will look like this (using Method 1):
+    `smtps://your.brevo.login@email.com:${SMTP_PASSWORD}@smtp-relay.brevo.com:465`
 
 ##### SMTP Configuration for Gmail/Google Workspace
 
 1.  You **must** use an **App Password**. You cannot use your regular Google password.
 2.  Enable 2-Step Verification on your Google Account.
 3.  Go to your Google Account settings and generate an [App Password](https://myaccount.google.com/apppasswords).
-4.  Your URI will look like this: `smtps://your.email@gmail.com:YOUR_16_DIGIT_APP_PASSWORD@smtp.gmail.com:465`
+4.  Your URI will look like this (using Method 1): `smtps://your.email@gmail.com:${SMTP_PASSWORD}@smtp.gmail.com:465`
 
 #### B. Cloud Scheduler Extension
 
