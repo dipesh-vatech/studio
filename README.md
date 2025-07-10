@@ -5,7 +5,15 @@ This is a NextJS application for managing influencer collaborations, built with 
 
 ## Getting Started
 
-### 1. Set Up Environment Variables
+### 1. Clone the Repository
+First, clone the project to your local machine using a terminal or command prompt.
+```bash
+git clone https://github.com/your-username/your-repository-name.git
+cd your-repository-name
+```
+**Note:** Replace `https://github.com/your-username/your-repository-name.git` with your actual repository URL.
+
+### 2. Set Up Environment Variables
 
 Before running the application, you need to configure your local environment by providing API keys. **This project is configured to run on the free tiers of Firebase and Google AI, making it free to deploy and test for most feedback-gathering scenarios.**
 
@@ -23,7 +31,10 @@ The `.env` file has placeholders for all the required keys:
 # These keys are safe to be public.
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
 
 # Admin User Email (Optional)
 NEXT_PUBLIC_ADMIN_EMAIL=admin@example.com
@@ -32,7 +43,7 @@ NEXT_PUBLIC_ADMIN_EMAIL=admin@example.com
 GOOGLE_API_KEY=...
 ```
 
-### 2. Configure Firebase Extensions
+### 3. Configure Firebase Extensions
 
 This project relies on two Firebase Extensions. You must install and configure them from the Firebase Console.
 
@@ -65,16 +76,16 @@ This extension is required to run the daily notification check.
     *   **Schedule:** Set the schedule (e.g., `every 24 hours`).
     *   **Pub/Sub topic:** Set this to `daily-tick`. This must match the topic name in the Cloud Function.
 
-### 3. Permissions Troubleshooting
+### 4. Permissions Troubleshooting
 
 If you see a permission error during extension installation, add the **`Service Account User`** role to your user account in the [Google Cloud IAM page](https://console.cloud.google.com/iam-admin/iam).
 
-### 4. Install Dependencies
+### 5. Install Dependencies
 ```bash
 npm install
 ```
 
-### 5. Run the Development Servers
+### 6. Run the Development Servers
 You need to run two servers concurrently: one for the Next.js frontend and one for the Genkit AI backend.
 
 **Terminal 1: Next.js App**
@@ -89,35 +100,35 @@ npm run genkit:watch
 ```
 This starts the Genkit development server, which handles AI requests from the app.
 
-### 6. Open the App
+### 7. Open the App
 Navigate to [http://localhost:9002](http://localhost:9002) in your browser.
 
 ## Deployment to the Web
 
-To share your app, deploy it to a public URL with Firebase App Hosting.
+To share your app, you can deploy it to a public URL with Firebase App Hosting.
 
-### Deployment Steps
+### 1. Install Firebase CLI (One-Time Setup)
+If you don't have the Firebase Command Line Interface (CLI) installed, open your terminal and run this command. This will install the tool globally on your system so you can deploy from any project.
+```bash
+npm install -g firebase-tools
+```
 
-1.  **Install Firebase CLI:** If you don't have it, install it globally:
-    ```bash
-    npm install -g firebase-tools
-    ```
+### 2. Log In to Firebase
+Connect the CLI to your Firebase account. This will open a browser window for you to sign in.
+```bash
+firebase login
+```
 
-2.  **Log in to Firebase:**
-    ```bash
-    firebase login
-    ```
-    This will open a browser window to authenticate your account.
+### 3. Build Your App for Production
+This command prepares your Next.js application for deployment by compiling and optimizing it.
+```bash
+npm run build
+```
 
-3.  **Build your app for production:**
-    ```bash
-    npm run build
-    ```
-
-4.  **Deploy to Firebase:**
-    Run the deploy command. If it's your first time, you may be asked to select your Firebase project.
-    ```bash
-    firebase deploy --only apphosting
-    ```
+### 4. Deploy to Firebase
+Run the deploy command. If it's your first time, you may be asked to select your Firebase project.
+```bash
+firebase deploy --only apphosting
+```
 
 After the command completes, it will output the public URL for your deployed application. You can share this link with anyone!
