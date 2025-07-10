@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Firebase Cloud Functions for sending scheduled notifications.
  *
@@ -17,31 +18,38 @@ if (admin.apps.length === 0) {
 
 const db = admin.firestore();
 
-// Helper to format a Date object to a 'YYYY-MM-DD' string in UTC
-const getUtcDateString = (date: Date) => {
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-    .toISOString()
-    .split('T')[0];
+/**
+ * A helper function to get a date string in YYYY-MM-DD format from a Date object.
+ * It uses UTC methods to avoid timezone issues.
+ * @param {Date} date The date to format.
+ * @returns {string} The formatted date string.
+ */
+const getUtcDateString = (date: Date): string => {
+  const year = date.getUTCFullYear();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 /**
- * A Pub/Sub triggered function that checks for upcoming deal deadlines.
+ * A Pub/Sub triggered function that runs daily to check for deal deadlines.
  * This function is designed to be invoked by a Cloud Scheduler job.
  */
 export const dailyDealReminderCheck = functions
   .region('us-central1')
   .pubsub.topic('daily-tick')
-  .onRun(async (context) => {
+  .onRun(async (context: functions.EventContext) => {
     console.log('Running daily deal reminder check via Pub/Sub...');
 
     const now = new Date();
     
+    // Calculate target dates in UTC
     const oneDayFromNowDate = new Date(now);
-    oneDayFromNowDate.setDate(now.getDate() + 1);
+    oneDayFromNowDate.setUTCDate(now.getUTCDate() + 1);
     const oneDayFromNow = getUtcDateString(oneDayFromNowDate);
     
     const threeDaysFromNowDate = new Date(now);
-    threeDaysFromNowDate.setDate(now.getDate() + 3);
+    threeDaysFromNowDate.setUTCDate(now.getUTCDate() + 3);
     const threeDaysFromNow = getUtcDateString(threeDaysFromNowDate);
     
     console.log(
@@ -73,7 +81,6 @@ export const dailyDealReminderCheck = functions
         continue;
       }
 
-      // Convert Firestore timestamp to a JS Date, then format to yyyy-MM-dd to compare dates only
       const dealDueDate = getUtcDateString(deal.dueDate.toDate());
       let daysUntilDue = -1;
 
@@ -82,18 +89,25 @@ export const dailyDealReminderCheck = functions
       } else if (dealDueDate === threeDaysFromNow) {
         daysUntilDue = 3;
       }
-
-      // Check if the deal is due in exactly 3 days or 1 day.
+      
       if (daysUntilDue > 0) {
+        console.log(`Found a matching deal: ${deal.campaignName} due in ${daysUntilDue} day(s).`);
         const userSnapshot = await db.collection('users').doc(deal.userId).get();
-        if (!userSnapshot.exists) continue;
+        if (!userSnapshot.exists) {
+            console.log(`User ${deal.userId} not found for deal ${doc.id}.`);
+            continue;
+        }
 
         const user = userSnapshot.data();
-        if (!user || !user.notificationSettings?.email?.dealReminders) continue;
+        if (!user || !user.notificationSettings?.email?.dealReminders) {
+            console.log(`User ${deal.userId} has reminders disabled for deal ${doc.id}.`);
+            continue;
+        }
 
         if (!emailsToSend.has(deal.userId)) {
           emailsToSend.set(deal.userId, {to: user.email, deals: []});
         }
+        
         emailsToSend.get(deal.userId)!.deals.push({
           campaignName: deal.campaignName,
           daysUntilDue,
@@ -102,7 +116,7 @@ export const dailyDealReminderCheck = functions
     }
 
     if (emailsToSend.size === 0) {
-      console.log('No reminders to send today based on due dates.');
+      console.log('No reminders to send today based on due dates and user preferences.');
       return null;
     }
 
