@@ -6,7 +6,7 @@ This is a NextJS application for managing influencer collaborations, built with 
 
 ### 1. Set Up Environment Variables
 
-Before running the application, you need to configure your local environment by providing API keys.
+Before running the application, you need to configure your local environment by providing API keys. **This project is configured to run on the free tiers of Firebase and Google AI, making it free to deploy and test for most feedback-gathering scenarios.**
 
 Open the `.env` file in the root of the project and add your keys. **Note:** Environment variable names are case-sensitive. Please use the exact names shown below.
 
@@ -19,14 +19,15 @@ Open the `.env` file in the root of the project and add your keys. **Note:** Env
 The `.env` file has placeholders for all the required keys:
 ```
 # Firebase Configuration
+# These keys are safe to be public.
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
 ...
 
-# Admin User Email
+# Admin User Email (Optional)
 NEXT_PUBLIC_ADMIN_EMAIL=admin@example.com
 
-# Google AI (Gemini) API Key
+# Google AI (Gemini) API Key (Kept server-side)
 GOOGLE_API_KEY=...
 ```
 
