@@ -1,3 +1,4 @@
+
 # CollabFlow
 
 This is a NextJS application for managing influencer collaborations, built with Firebase and Genkit.
@@ -46,27 +47,13 @@ This extension is required to send notification emails.
     *   **Cloud Functions location:** **CRITICAL!** Select **`Iowa (us-central1)`**.
     *   **Firestore Instance Location:** **CRITICAL!** Select **`Multi-region (United States)`** from the dropdown. This corresponds to `nam5` and must match your database's actual location.
     *   **Mail Collection:** Set this to `mail`. This must match the collection name used in the Cloud Function.
-    *   **Default FROM address:** Enter a verified sender email from your Brevo account (e.g., `noreply@yourdomain.com`).
-    *   **SMTP Connection URI:** This is the most critical step. You need to provide the connection details for your email provider. See the specific guides below.
+    *   **Default FROM address:** Enter a verified sender email from your email provider (e.g., `noreply@yourdomain.com`).
+    *   **SMTP Connection URI:** This is the most critical step. You need to provide the connection details for your email provider.
 
-##### SMTP Configuration - IMPORTANT!
+##### SMTP Configuration
 
 To avoid authentication errors, we strongly recommend embedding your SMTP key directly into the connection URI.
-
-**Recommended Method: Embed Key in URI**
-
-1.  Leave the `SMTP password` field **blank**.
-2.  Get your SMTP credentials from your email provider (e.g., Brevo). You will need your **Login/Username** and your **SMTP Key/Password**.
-3.  Construct the URI in the following format: `smtps://<user>:<password>@<server>:<port>`
-4.  Paste this full URI into the **SMTP Connection URI** field in the extension configuration.
-
-**Example for Brevo:**
-Your Brevo server is `smtp-relay.brevo.com` and the correct port for `smtps://` is `465`.
-Your final URI should look like this:
-`smtps://your.brevo.login@email.com:the-real-smtp-key-goes-here@smtp-relay.brevo.com:465`
-
-**Alternative Method (Using Secrets):**
-If you prefer to use Google Cloud Secret Manager, you can create a secret named `SMTP_PASSWORD` and use the placeholder `${SMTP_PASSWORD}` in the URI. However, be aware that the extension UI can be confusing and may not link the secret correctly, leading to authentication errors. If you encounter issues, use the direct embedding method above.
+Your final URI should look like this: `smtps://your.login@email.com:the-real-smtp-key@smtp-relay.brevo.com:465`
 
 #### B. Cloud Scheduler Extension
 
@@ -80,15 +67,9 @@ This extension is required to run the daily notification check.
 
 ### 3. Permissions Troubleshooting
 
-If you see an error like `Permission 'iam.serviceaccounts.actAs' denied` during extension installation, you need to add a role to your user account.
-
-1.  **Go to the IAM Page:** Open the [Google Cloud IAM page](https://console.cloud.google.com/iam-admin/iam) for your project.
-2.  **Find Your Account:** In the list of "Principals", find your own email address.
-3.  **Add Role:** Click the pencil icon next to your email, click **"ADD ANOTHER ROLE"**, search for and select the **`Service Account User`** role, and click **SAVE**.
-4.  Retry the extension installation. It might take a minute for the permission to apply.
+If you see a permission error during extension installation, add the **`Service Account User`** role to your user account in the [Google Cloud IAM page](https://console.cloud.google.com/iam-admin/iam).
 
 ### 4. Install Dependencies
-If you haven't already, install the project dependencies:
 ```bash
 npm install
 ```
@@ -111,11 +92,11 @@ This starts the Genkit development server, which handles AI requests from the ap
 ### 6. Open the App
 Navigate to [http://localhost:9002](http://localhost:9002) in your browser.
 
-## Deployment
+## Deployment to the Web
 
-To share your app with others, you need to deploy it to a public URL. This project is set up to use Firebase App Hosting.
+To share your app, deploy it to a public URL with Firebase App Hosting.
 
-### Prerequisites
+### Deployment Steps
 
 1.  **Install Firebase CLI:** If you don't have it, install it globally:
     ```bash
@@ -126,25 +107,17 @@ To share your app with others, you need to deploy it to a public URL. This proje
     ```bash
     firebase login
     ```
+    This will open a browser window to authenticate your account.
 
-### Deployment Steps
-
-1.  **Initialize App Hosting (if not already done):**
-    If this is your first time deploying, you might need to link your project to Firebase. Run:
-    ```bash
-    firebase init apphosting
-    ```
-    Follow the prompts to select your Firebase project.
-
-2.  **Build your app for production:**
+3.  **Build your app for production:**
     ```bash
     npm run build
     ```
 
-3.  **Deploy to Firebase:**
-    Run the deploy command:
+4.  **Deploy to Firebase:**
+    Run the deploy command. If it's your first time, you may be asked to select your Firebase project.
     ```bash
     firebase deploy --only apphosting
     ```
 
-After the command completes, it will output the public URL for your deployed application. You can share this link with your tester.
+After the command completes, it will output the public URL for your deployed application. You can share this link with anyone!
