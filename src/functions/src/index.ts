@@ -10,7 +10,7 @@
 
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import { format, addDays, startOfDay, parseISO } from "date-fns";
+import { format, addDays, startOfDay } from "date-fns";
 
 // Initialize the Firebase Admin SDK
 if (admin.apps.length === 0) {
