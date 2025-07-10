@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,7 +32,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Star, Trash2, ThumbsUp, MessageSquare, Share, Bookmark, PlusCircle, Check, Lightbulb, TrendingUp, Search, Pencil, WandSparkles } from 'lucide-react';
+import { Loader2, Star, Trash2, ThumbsUp, MessageSquare, Share, Bookmark, PlusCircle, Check, Lightbulb, TrendingUp, Search, Pencil, WandSparkles, Upload } from 'lucide-react';
 import type { PerformancePost } from '@/lib/types';
 import {
   Dialog,
@@ -80,7 +80,11 @@ import {
   analyzePostPerformance,
   AnalyzePostPerformanceOutput,
 } from '@/ai/flows/analyze-post-performance';
+import {
+  extractPostMetrics,
+} from '@/ai/flows/extract-post-metrics';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label } from '@/components/ui/label';
 
 const postFormSchema = z.object({
   id: z.string().optional(),
@@ -315,6 +319,15 @@ function AnalysisResultDialog({ post, open, onOpenChange }: { post: PerformanceP
   );
 }
 
+function fileToDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function PerformancePage() {
   const {
     performancePosts,
@@ -322,13 +335,19 @@ export default function PerformancePage() {
     updatePerformancePost,
     loadingData,
     deletePerformancePost,
+    userProfile, 
+    isAdmin
   } = useAppData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<PerformancePost | null>(null);
   const [analyzingPost, setAnalyzingPost] = useState<PerformancePost | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('6m');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
   const { toast } = useToast();
+  
+  const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
 
   const form = useForm<z.infer<typeof postFormSchema>>({
     resolver: zodResolver(postFormSchema),
@@ -343,7 +362,7 @@ export default function PerformancePage() {
       postDescription: '',
     },
   });
-  
+
   useEffect(() => {
     if (editingPost) {
       form.reset(editingPost);
@@ -359,7 +378,8 @@ export default function PerformancePage() {
         postDescription: '',
       });
     }
-  }, [editingPost, form]);
+    setSelectedFile(null);
+  }, [editingPost, isPostDialogOpen, form]);
   
   const handleEditClick = (post: PerformancePost) => {
     setEditingPost(post);
@@ -369,6 +389,42 @@ export default function PerformancePage() {
   const handleAddClick = () => {
     setEditingPost(null);
     setIsPostDialogOpen(true);
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
+  const handleExtractMetrics = async () => {
+    if (!selectedFile) return;
+    setIsExtracting(true);
+    try {
+      const screenshotDataUri = await fileToDataUri(selectedFile);
+      const result = await extractPostMetrics({ screenshotDataUri });
+      
+      // Update form values with extracted data
+      if (result.postTitle) form.setValue('postTitle', result.postTitle, { shouldValidate: true });
+      if (result.likes) form.setValue('likes', result.likes, { shouldValidate: true });
+      if (result.comments) form.setValue('comments', result.comments, { shouldValidate: true });
+      if (result.shares) form.setValue('shares', result.shares, { shouldValidate: true });
+      if (result.saves) form.setValue('saves', result.saves, { shouldValidate: true });
+      
+      toast({
+        title: 'Metrics Extracted!',
+        description: 'Please review and confirm the extracted data.',
+      });
+    } catch (error) {
+      console.error('Error extracting metrics:', error);
+      toast({
+        title: 'Extraction Failed',
+        description: 'Could not extract metrics from the image. Please enter them manually.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const chartConfig = {
@@ -537,20 +593,42 @@ export default function PerformancePage() {
                 }}>
                 <DialogTrigger asChild>
                   <Button onClick={handleAddClick}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Post Manually
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Post
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>{editingPost ? 'Edit' : 'Add'} Post Performance</DialogTitle>
                     <DialogDescription>
-                      Enter the details and performance metrics for your post.
+                      Upload a screenshot to extract metrics with AI, or enter them manually.
                     </DialogDescription>
                   </DialogHeader>
+                   <div className="border rounded-lg p-4 space-y-4">
+                      <h4 className="font-semibold text-center text-sm">Extract Metrics with AI (Pro)</h4>
+                      {isProPlan ? (
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                           <div className="grid w-full max-w-sm items-center gap-1.5 flex-1">
+                            <Label htmlFor="post-screenshot">Post Screenshot</Label>
+                            <Input id="post-screenshot" type="file" accept="image/*" onChange={handleFileChange} />
+                          </div>
+                          <Button onClick={handleExtractMetrics} disabled={!selectedFile || isExtracting} className="w-full sm:w-auto mt-4 sm:mt-0 self-end">
+                            {isExtracting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
+                            Extract
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="text-center text-sm text-muted-foreground p-4 bg-muted/50 rounded-md">
+                          <p className="mb-2">Upgrade to Pro to unlock AI metric extraction from screenshots.</p>
+                          <Button size="sm" asChild>
+                            <Link href="/settings?tab=billing">Upgrade Your Plan</Link>
+                          </Button>
+                        </div>
+                      )}
+                  </div>
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onPostSubmit)}>
-                      <ScrollArea className="h-[60vh]">
-                        <div className="space-y-4 p-4">
+                      <ScrollArea className="h-[40vh]">
+                        <div className="space-y-4 p-1">
                           <FormField control={form.control} name="postTitle" render={({ field }) => (
                             <FormItem><FormLabel>Post Title</FormLabel><FormControl><Input placeholder="e.g. My new summer look!" {...field} /></FormControl><FormMessage /></FormItem>
                           )} />
@@ -593,7 +671,7 @@ export default function PerformancePage() {
                         </div>
                       </ScrollArea>
                       <DialogFooter className="pt-4">
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting || isExtracting}>
                           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {editingPost ? 'Save Changes' : 'Save Post'}
                         </Button>
                       </DialogFooter>
