@@ -7,56 +7,29 @@
  * and creates email documents in a 'mail' collection, which can then be
  * processed by the Firebase Trigger Email extension.
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dailyDealReminderCheck = void 0;
-const functions = __importStar(require("firebase-functions"));
-const admin = __importStar(require("firebase-admin"));
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 // Initialize the Firebase Admin SDK
 if (admin.apps.length === 0) {
     admin.initializeApp();
 }
 const db = admin.firestore();
-// Helper to format a Date object to a 'YYYY-MM-DD' string in UTC
+/**
+ * A helper function to get a date string in YYYY-MM-DD format from a Date object.
+ * It uses UTC methods to avoid timezone issues.
+ * @param {Date} date The date to format.
+ * @returns {string} The formatted date string.
+ */
 const getUtcDateString = (date) => {
-    return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-        .toISOString()
-        .split('T')[0];
+    const year = date.getUTCFullYear();
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
 /**
- * A Pub/Sub triggered function that checks for upcoming deal deadlines.
+ * A Pub/Sub triggered function that runs daily to check for deal deadlines.
  * This function is designed to be invoked by a Cloud Scheduler job.
  */
 exports.dailyDealReminderCheck = functions
@@ -66,11 +39,12 @@ exports.dailyDealReminderCheck = functions
     var _a, _b;
     console.log('Running daily deal reminder check via Pub/Sub...');
     const now = new Date();
+    // Calculate target dates in UTC
     const oneDayFromNowDate = new Date(now);
-    oneDayFromNowDate.setDate(now.getDate() + 1);
+    oneDayFromNowDate.setUTCDate(now.getUTCDate() + 1);
     const oneDayFromNow = getUtcDateString(oneDayFromNowDate);
     const threeDaysFromNowDate = new Date(now);
-    threeDaysFromNowDate.setDate(now.getDate() + 3);
+    threeDaysFromNowDate.setUTCDate(now.getUTCDate() + 3);
     const threeDaysFromNow = getUtcDateString(threeDaysFromNowDate);
     console.log(`Checking for deals due on: ${oneDayFromNow} or ${threeDaysFromNow}`);
     const dealsSnapshot = await db
@@ -91,7 +65,6 @@ exports.dailyDealReminderCheck = functions
             console.warn(`Deal ${doc.id} has invalid or missing dueDate.`);
             continue;
         }
-        // Convert Firestore timestamp to a JS Date, then format to yyyy-MM-dd to compare dates only
         const dealDueDate = getUtcDateString(deal.dueDate.toDate());
         let daysUntilDue = -1;
         if (dealDueDate === oneDayFromNow) {
@@ -100,14 +73,18 @@ exports.dailyDealReminderCheck = functions
         else if (dealDueDate === threeDaysFromNow) {
             daysUntilDue = 3;
         }
-        // Check if the deal is due in exactly 3 days or 1 day.
         if (daysUntilDue > 0) {
+            console.log(`Found a matching deal: ${deal.campaignName} due in ${daysUntilDue} day(s).`);
             const userSnapshot = await db.collection('users').doc(deal.userId).get();
-            if (!userSnapshot.exists)
+            if (!userSnapshot.exists) {
+                console.log(`User ${deal.userId} not found for deal ${doc.id}.`);
                 continue;
+            }
             const user = userSnapshot.data();
-            if (!user || !((_b = (_a = user.notificationSettings) === null || _a === void 0 ? void 0 : _a.email) === null || _b === void 0 ? void 0 : _b.dealReminders))
+            if (!user || !((_b = (_a = user.notificationSettings) === null || _a === void 0 ? void 0 : _a.email) === null || _b === void 0 ? void 0 : _b.dealReminders)) {
+                console.log(`User ${deal.userId} has reminders disabled for deal ${doc.id}.`);
                 continue;
+            }
             if (!emailsToSend.has(deal.userId)) {
                 emailsToSend.set(deal.userId, { to: user.email, deals: [] });
             }
@@ -118,7 +95,7 @@ exports.dailyDealReminderCheck = functions
         }
     }
     if (emailsToSend.size === 0) {
-        console.log('No reminders to send today based on due dates.');
+        console.log('No reminders to send today based on due dates and user preferences.');
         return null;
     }
     // Create email documents in the 'mail' collection for the extension to pick up
