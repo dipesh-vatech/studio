@@ -37,18 +37,25 @@ const prompt = ai.definePrompt({
   model: 'googleai/gemini-2.0-flash',
   input: {schema: ExtractPostMetricsInputSchema},
   output: {schema: ExtractPostMetricsOutputSchema},
-  prompt: `You are an expert at analyzing social media screenshots. Your task is to extract key performance metrics from the provided image.
+  prompt: `You are an expert data extractor. Your task is to analyze the provided screenshot of a social media post and extract key performance metrics with high accuracy.
 
-Analyze the attached screenshot and extract the following information:
-- The post's title or caption.
-- The number of likes. This is usually next to a heart icon. VERY IMPORTANT: Also look for text patterns like "Liked by [username] and [number] others". If you see "Liked by Craig and 24 others", the total likes are 25.
-- The number of comments. This is usually next to a speech bubble icon. VERY IMPORTANT: Also look for text like "View all [number] comments". If you see "View all 2 comments", the total comments are 2.
-- The number of shares (if visible). Look for a number next to a paper plane or share icon.
-- The number of saves (if visible). Look for a number next to a bookmark icon.
+Analyze the attached screenshot: {{media url=screenshotDataUri}}
 
-If a metric is not clearly visible in the image, do not guess or include it in the output. Provide only the information you can see.
+Follow these instructions precisely:
 
-Screenshot: {{media url=screenshotDataUri}}
+1.  **Extract Post Title/Caption:** Find the main text or caption of the post.
+2.  **Extract Likes:**
+    *   Look for text that says "Liked by [username] and [number] others".
+    *   If you find this pattern, you MUST calculate the total likes by adding 1 (for the username) to the [number].
+    *   **Example:** If you see "Liked by Craig and 24 others", the total likes is 25. You must output 25.
+    *   If you just see a number next to a heart icon, use that number.
+3.  **Extract Comments:**
+    *   Look for text that says "View all [number] comments".
+    *   If you find this pattern, you MUST use that number as the total comments.
+    *   **Example:** If you see "View all 2 comments", the total comments is 2. You must output 2.
+    *   If you just see a number next to a comment bubble icon, use that number.
+4.  **Extract Shares & Saves:** Look for numbers next to a share icon (like a paper plane) or a save icon (like a bookmark).
+5.  **Output:** Provide only the data you can confidently extract in the specified format. If a metric is not visible, do not include it.
   `,
 });
 
