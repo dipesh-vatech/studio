@@ -1,5 +1,7 @@
 
+'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -37,36 +39,39 @@ export default function LandingPage() {
       title: 'Manage Your Deals From Start to Finish',
       description:
         'From initial contact to final payment, CollabFlow provides a centralized hub to keep track of every detail. Never miss a deadline or a deliverable again, ensuring professional and reliable partnerships.',
-      images: [
-        { 
-          src: '/deals-management.png', 
-          alt: 'Deals Management Dashboard',
-          hint: 'deals management' 
-        },
-        { 
-          src: '/contract-analysis.png', 
-          alt: 'AI Contract Analysis',
-          hint: 'contract analysis'
-        },
-      ],
       subFeatures: [
         {
           icon: Handshake,
           title: 'Track Collaborations',
           description:
             'Seamlessly manage every stage of your brand deals, from upcoming to completed, all in one place.',
+          image: { 
+            src: '/deals-management.png', 
+            alt: 'Deals Management Dashboard',
+            hint: 'deals management' 
+          },
         },
         {
           icon: FileText,
           title: 'AI Contract Analysis',
           description:
             'Instantly extract key details like payment, deliverables, and dates from contracts with our AI parser.',
+          image: { 
+            src: '/contract-analysis.png', 
+            alt: 'AI Contract Analysis',
+            hint: 'contract analysis'
+          },
         },
         {
           icon: Lightbulb,
           title: 'Generate Pitches with AI',
           description:
             'Let AI craft personalized and professional pitch emails, helping you land your next big collaboration.',
+          image: {
+            src: 'https://placehold.co/600x400.png',
+            alt: 'AI Pitch Generation',
+            hint: 'ai pitch'
+          }
         },
       ],
     },
@@ -74,36 +79,39 @@ export default function LandingPage() {
       title: 'Uncover Actionable Content Insights',
       description:
         'Go beyond surface-level numbers. Our AI-powered tools analyze your post performance, providing qualitative feedback on what worked, why it worked, and how to create even better content next time.',
-      images: [
-        {
-          src: '/content-analytics.png',
-          alt: 'Content Analytics Dashboard',
-          hint: 'content analytics'
-        },
-        {
-          src: '/ai-analysis.png',
-          alt: 'AI Performance Analysis',
-          hint: 'ai analysis'
-        }
-      ],
       subFeatures: [
         {
           icon: BarChart,
           title: 'Deep Engagement Analytics',
           description:
             'Track your likes, comments, and shares over time with dynamic charts and discover your growth trends.',
+          image: {
+            src: '/content-analytics.png',
+            alt: 'Content Analytics Dashboard',
+            hint: 'content analytics'
+          },
         },
         {
           icon: Search,
           title: 'AI Performance Review',
           description:
             'Get expert-level analysis on your posts to understand performance and receive actionable suggestions for improvement.',
+          image: {
+            src: '/ai-analysis.png',
+            alt: 'AI Performance Analysis',
+            hint: 'ai analysis'
+          },
         },
         {
           icon: CalendarDays,
           title: 'AI-Powered Scheduling',
           description:
             'Visualize your content calendar and let AI generate creative post ideas and suggest the best times to engage your audience.',
+          image: {
+            src: 'https://placehold.co/600x400.png',
+            alt: 'AI Scheduling',
+            hint: 'ai scheduling'
+          }
         },
       ],
     },
@@ -111,30 +119,38 @@ export default function LandingPage() {
       title: 'Master Your Financials',
       description:
         'Take control of your business with a clear financial overview. Track your earnings, monitor outstanding payments, and identify your most valuable partnerships to maximize your revenue.',
-      images: [
-        {
-          src: '/financial-analytics.png',
-          alt: 'Financial Analytics Dashboard',
-          hint: 'financial dashboard'
-        }
-      ],
       subFeatures: [
         {
           icon: DollarSign,
           title: 'Visualize Your Revenue',
           description:
             'See income over time and identify your top-earning brand collaborations with easy-to-read charts.',
+          image: {
+            src: '/financial-analytics.png',
+            alt: 'Financial Analytics Dashboard',
+            hint: 'financial dashboard'
+          },
         },
         {
             icon: Check,
             title: 'Track Payments',
             description:
                 'Never lose track of an invoice. Monitor all outstanding and completed payments in one simple view.',
+            image: {
+                src: 'https://placehold.co/600x400.png',
+                alt: 'Payment Tracking',
+                hint: 'payment tracking'
+            }
         },
         {
             icon: Award,
             title: 'Identify Top Partners',
-            description: 'Quickly see which brand collaborations are driving the most revenue for your business.'
+            description: 'Quickly see which brand collaborations are driving the most revenue for your business.',
+            image: {
+                src: 'https://placehold.co/600x400.png',
+                alt: 'Top Partners Analytics',
+                hint: 'partner analytics'
+            }
         }
       ],
     },
@@ -171,6 +187,66 @@ export default function LandingPage() {
       buttonVariant: 'default',
     },
   ];
+
+  const FeatureBlock = ({ feature, index }: { feature: (typeof features)[0], index: number }) => {
+    const [activeImage, setActiveImage] = useState(feature.subFeatures[0].image);
+
+    return (
+       <div
+        className="grid grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16 lg:gap-24"
+      >
+        <div className={cn(index % 2 === 1 ? 'md:order-last' : '')}>
+          <div className="max-w-md">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              {feature.title}
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              {feature.description}
+            </p>
+            <ul className="mt-8 space-y-2">
+              {feature.subFeatures.map((sub) => (
+                <li key={sub.title}>
+                  <button
+                    onClick={() => setActiveImage(sub.image)}
+                    className={cn(
+                        "w-full text-left p-4 rounded-lg transition-colors",
+                        activeImage.src === sub.image.src ? 'bg-primary/10' : 'hover:bg-muted/50'
+                    )}
+                  >
+                    <div className="flex items-start gap-4">
+                        <div className={cn(
+                            "flex h-8 w-8 items-center justify-center rounded-full shrink-0 mt-1",
+                            activeImage.src === sub.image.src ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'
+                        )}>
+                            <sub.icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold">{sub.title}</h3>
+                            <p className="mt-1 text-muted-foreground">
+                                {sub.description}
+                            </p>
+                        </div>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div className="flex items-center justify-center min-h-[450px]">
+            <Image
+                src={activeImage.src}
+                width={600}
+                height={400}
+                alt={activeImage.alt}
+                className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
+                data-ai-hint={activeImage.hint}
+            />
+        </div>
+      </div>
+    );
+  };
+
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
@@ -291,51 +367,7 @@ export default function LandingPage() {
         {/* Features Section */}
         <section id="features" className="container space-y-16 py-16 sm:space-y-24 md:py-24">
           {features.map((feature, index) => (
-            <div
-              key={feature.title}
-              className="grid grid-cols-1 items-center gap-12 md:grid-cols-2 md:gap-16 lg:gap-24"
-            >
-              <div className={cn(index % 2 === 1 ? 'md:order-last' : '')}>
-                <div className="max-w-md">
-                  <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                    {feature.title}
-                  </h2>
-                  <p className="mt-4 text-lg text-muted-foreground">
-                    {feature.description}
-                  </p>
-                  <ul className="mt-8 space-y-6">
-                    {feature.subFeatures.map((sub) => (
-                      <li key={sub.title} className="flex items-start gap-4">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
-                          <sub.icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{sub.title}</h3>
-                          <p className="mt-1 text-muted-foreground">
-                            {sub.description}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-              <div className={cn(
-                  'flex flex-col gap-4'
-              )}>
-                {feature.images.map((image, imgIndex) => (
-                   <Image
-                    key={imgIndex}
-                    src={image.src}
-                    width={600}
-                    height={400}
-                    alt={image.alt}
-                    className="w-full h-auto rounded-lg border bg-card object-contain shadow-lg"
-                    data-ai-hint={image.hint}
-                  />
-                ))}
-              </div>
-            </div>
+             <FeatureBlock key={feature.title} feature={feature} index={index} />
           ))}
         </section>
         
