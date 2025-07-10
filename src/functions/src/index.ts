@@ -23,7 +23,7 @@ const db = admin.firestore();
  * This function is designed to be invoked by a Cloud Scheduler job.
  */
 export const dailyDealReminderCheck = functions
-  .region("us-central1") // We'll keep this for consistency
+  .region("us-central1") 
   .pubsub.topic("daily-tick")
   .onRun(async (context) => {
     console.log("Running daily deal reminder check via Pub/Sub...");
