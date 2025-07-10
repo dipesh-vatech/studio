@@ -81,6 +81,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const statusColors: Record<DealStatus, string> = {
   Upcoming: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -520,91 +521,94 @@ export default function DealsPage() {
                   <Form {...form}>
                     <form
                       onSubmit={form.handleSubmit(onSubmit)}
-                      className="space-y-4"
                     >
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="brandName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Brand Name</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="e.g. BrandFresh"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="campaignName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Campaign Name</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="e.g. Summer Launch"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="deliverables"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Deliverables</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="e.g. 2 posts, 3 stories"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="dueDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Due Date</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="payment"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Payment ($)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  placeholder="e.g. 1500"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <DialogFooter>
+                      <ScrollArea className="h-[60vh]">
+                        <div className="space-y-4 p-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="brandName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Brand Name</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g. BrandFresh"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="campaignName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Campaign Name</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g. Summer Launch"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name="deliverables"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Deliverables</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="e.g. 2 posts, 3 stories"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="dueDate"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Due Date</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="payment"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Payment ($)</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="e.g. 1500"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </ScrollArea>
+                      <DialogFooter className="pt-4">
                         <Button type="submit" disabled={isSubmitting}>
                           {isSubmitting && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

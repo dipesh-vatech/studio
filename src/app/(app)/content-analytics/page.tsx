@@ -80,6 +80,7 @@ import {
   analyzePostPerformance,
   AnalyzePostPerformanceOutput,
 } from '@/ai/flows/analyze-post-performance';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const postFormSchema = z.object({
   id: z.string().optional(),
@@ -547,47 +548,51 @@ export default function PerformancePage() {
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onPostSubmit)} className="space-y-4">
-                      <FormField control={form.control} name="postTitle" render={({ field }) => (
-                        <FormItem><FormLabel>Post Title</FormLabel><FormControl><Input placeholder="e.g. My new summer look!" {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name="platform" render={({ field }) => (
-                        <FormItem><FormLabel>Platform</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                            <SelectContent>
-                              <SelectItem value="Instagram">Instagram</SelectItem>
-                              <SelectItem value="TikTok">TikTok</SelectItem>
-                              <SelectItem value="YouTube">YouTube</SelectItem>
-                            </SelectContent>
-                          </Select><FormMessage /></FormItem>
-                      )} />
-                       <FormField control={form.control} name="postDescription" render={({ field }) => (
-                        <FormItem><FormLabel>Post Description (for AI)</FormLabel><FormControl><Textarea placeholder="Describe your post. What was the format (e.g., Reel, Carousel, Story)? What was the call to action?" {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="likes" render={({ field }) => (<FormItem><FormLabel>Likes</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="comments" render={({ field }) => (<FormItem><FormLabel>Comments</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="shares" render={({ field }) => (<FormItem><FormLabel>Shares</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="saves" render={({ field }) => (<FormItem><FormLabel>Saves</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                      </div>
-                       <FormField control={form.control} name="conversion" render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <div className="space-y-0.5">
-                              <FormLabel>Conversion</FormLabel>
-                              <FormDescription>
-                                Did this post lead to a direct conversion (e.g., a sale or sign-up)?
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )} />
-                      <DialogFooter>
+                    <form onSubmit={form.handleSubmit(onPostSubmit)}>
+                      <ScrollArea className="h-[60vh]">
+                        <div className="space-y-4 p-4">
+                          <FormField control={form.control} name="postTitle" render={({ field }) => (
+                            <FormItem><FormLabel>Post Title</FormLabel><FormControl><Input placeholder="e.g. My new summer look!" {...field} /></FormControl><FormMessage /></FormItem>
+                          )} />
+                          <FormField control={form.control} name="platform" render={({ field }) => (
+                            <FormItem><FormLabel>Platform</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Instagram">Instagram</SelectItem>
+                                  <SelectItem value="TikTok">TikTok</SelectItem>
+                                  <SelectItem value="YouTube">YouTube</SelectItem>
+                                </SelectContent>
+                              </Select><FormMessage /></FormItem>
+                          )} />
+                          <FormField control={form.control} name="postDescription" render={({ field }) => (
+                            <FormItem><FormLabel>Post Description (for AI)</FormLabel><FormControl><Textarea placeholder="Describe your post. What was the format (e.g., Reel, Carousel, Story)? What was the call to action?" {...field} /></FormControl><FormMessage /></FormItem>
+                          )} />
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField control={form.control} name="likes" render={({ field }) => (<FormItem><FormLabel>Likes</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="comments" render={({ field }) => (<FormItem><FormLabel>Comments</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="shares" render={({ field }) => (<FormItem><FormLabel>Shares</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="saves" render={({ field }) => (<FormItem><FormLabel>Saves</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                          </div>
+                          <FormField control={form.control} name="conversion" render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                  <FormLabel>Conversion</FormLabel>
+                                  <FormDescription>
+                                    Did this post lead to a direct conversion (e.g., a sale or sign-up)?
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )} />
+                        </div>
+                      </ScrollArea>
+                      <DialogFooter className="pt-4">
                         <Button type="submit" disabled={isSubmitting}>
                           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {editingPost ? 'Save Changes' : 'Save Post'}
                         </Button>
@@ -675,5 +680,3 @@ export default function PerformancePage() {
     </>
   );
 }
-
-    

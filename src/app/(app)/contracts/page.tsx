@@ -71,6 +71,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useAppData } from '@/components/app-provider';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const statusIcons: Record<Contract['status'], React.ElementType> = {
   Done: CheckCircle,
@@ -283,94 +284,97 @@ export default function ContractsPage() {
                   <Form {...form}>
                     <form
                       onSubmit={form.handleSubmit(onManualSubmit)}
-                      className="space-y-4 pt-4"
                     >
-                      <FormField
-                        control={form.control}
-                        name="fileName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>File/Contract Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g. Acme Corp Q3" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="brandName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Brand Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Acme Corp" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="payment"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Payment ($)</FormLabel>
-                              <FormControl>
-                                <Input type="number" placeholder="1500" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="startDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Start Date</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="endDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>End Date</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="deliverables"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Deliverables</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="e.g. 2 Instagram posts, 1 Story"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <DialogFooter>
+                      <ScrollArea className="h-[60vh]">
+                        <div className="space-y-4 p-4">
+                          <FormField
+                            control={form.control}
+                            name="fileName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>File/Contract Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g. Acme Corp Q3" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="brandName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Brand Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="e.g. Acme Corp" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="payment"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Payment ($)</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" placeholder="1500" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="startDate"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Start Date</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="endDate"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>End Date</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name="deliverables"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Deliverables</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="e.g. 2 Instagram posts, 1 Story"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </ScrollArea>
+                      <DialogFooter className="pt-4">
                         <Button type="submit" disabled={isSubmittingManual}>
                           {isSubmittingManual && (
                             <Loader className="mr-2 h-4 w-4 animate-spin" />

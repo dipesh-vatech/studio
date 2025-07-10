@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles } from 'lucide-react';
 import { type ProfileType } from '@/lib/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const onboardingSchema = z.object({
   displayName: z.string().min(1, 'Please enter your name.'),
@@ -102,40 +103,43 @@ export function OnboardingDialog() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 pt-4"
           >
-            <FormField
-              control={form.control}
-              name="displayName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Jane Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="niche"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your Niche</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. Fashion & Lifestyle, Tech Reviews"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    This helps our AI generate better ideas for you.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <ScrollArea className="max-h-[70vh]">
+              <div className="space-y-4 pt-4 p-1">
+                <FormField
+                  control={form.control}
+                  name="displayName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Jane Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="niche"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Niche</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Fashion & Lifestyle, Tech Reviews"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        This helps our AI generate better ideas for you.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </ScrollArea>
             <DialogFooter className="pt-4">
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? (
