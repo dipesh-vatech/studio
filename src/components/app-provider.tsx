@@ -256,7 +256,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     profileType: ProfileType;
     niche?: string;
   }) => {
-    if (!user || !db || !auth.currentUser) return;
+    if (!user || !db || !auth || !auth.currentUser) return;
     const { displayName, profileType, niche } = data;
 
     const originalUser = { ...user };
@@ -1033,5 +1033,7 @@ export function useAppData() {
   }
   return context;
 }
+
+    
 
     
