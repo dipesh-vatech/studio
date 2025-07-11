@@ -1,4 +1,4 @@
-import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getStorage, type Storage } from 'firebase/storage';
@@ -12,6 +12,9 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+// This function uses a more robust singleton pattern for Firebase initialization.
+// It prevents re-initialization errors in development (HMR) and ensures
+// services are available in serverless deployment environments like App Hosting.
 function initializeFirebaseServices() {
   const isFirebaseConfigured =
     firebaseConfig.apiKey &&
@@ -25,18 +28,18 @@ function initializeFirebaseServices() {
     console.warn(
       'Firebase config is incomplete. Firebase services will be disabled.'
     );
-    return { db: undefined, auth: undefined, storage: undefined };
+    return { app: undefined, db: undefined, auth: undefined, storage: undefined };
   }
 
   try {
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     const db = getFirestore(app);
     const auth = getAuth(app);
     const storage = getStorage(app);
-    return { db, auth, storage };
+    return { app, db, auth, storage };
   } catch (e) {
     console.error('Error initializing Firebase. Check your configuration.', e);
-    return { db: undefined, auth: undefined, storage: undefined };
+    return { app: undefined, db: undefined, auth: undefined, storage: undefined };
   }
 }
 
