@@ -21,7 +21,7 @@ import type {
   AppDataContextType,
 } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { auth, db, storage } from '@/lib/firebase';
+import { auth, db, storage, initializeFirebase } from '@/lib/firebase';
 import {
   collection,
   getDocs,
@@ -84,6 +84,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   useEffect(() => {
+    initializeFirebase();
+    
     if (!auth) {
       setLoadingAuth(false);
       return;
