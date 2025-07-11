@@ -21,7 +21,10 @@ import type {
   AppDataContextType,
 } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { auth, db, storage, initializeFirebase } from '@/lib/firebase';
+import { initializeApp, getApps, getApp, type FirebaseApp, type FirebaseOptions } from 'firebase/app';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getStorage, type Storage } from 'firebase/storage';
 import {
   collection,
   getDocs,
@@ -48,6 +51,10 @@ import {
 import { ref, uploadBytes } from 'firebase/storage';
 import { extractContractDetails } from '@/ai/flows/extract-contract-details';
 
+let auth: Auth;
+let db: Firestore;
+let storage: Storage;
+
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
 function fileToDataUri(file: File): Promise<string> {
@@ -69,7 +76,13 @@ const defaultNotificationSettings: NotificationSettings = {
   },
 };
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({
+  children,
+  firebaseConfig,
+}: {
+  children: ReactNode;
+  firebaseConfig: FirebaseOptions;
+}) {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [performancePosts, setPerformancePosts] = useState<PerformancePost[]>(
@@ -81,21 +94,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const { toast } = useToast();
 
-  const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-
   useEffect(() => {
-    initializeFirebase();
-    
-    if (!auth) {
+    const isFirebaseConfigured =
+      firebaseConfig.apiKey &&
+      firebaseConfig.authDomain &&
+      firebaseConfig.projectId;
+
+    let app: FirebaseApp;
+    if (isFirebaseConfigured) {
+      if (getApps().length === 0) {
+        app = initializeApp(firebaseConfig);
+      } else {
+        app = getApp();
+      }
+      auth = getAuth(app);
+      db = getFirestore(app);
+      storage = getStorage(app);
+    } else {
+      console.warn('Firebase config incomplete. Firebase services disabled.');
       setLoadingAuth(false);
       return;
     }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoadingAuth(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [firebaseConfig]);
+
+
+  const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   useEffect(() => {
     if (!user) {
@@ -1021,6 +1050,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteContract,
         deletePerformancePost,
         markOnboardingAsCompleted,
+        auth,
+        db,
+        storage,
       }}
     >
       {children}
@@ -1035,7 +1067,3 @@ export function useAppData() {
   }
   return context;
 }
-
-    
-
-    

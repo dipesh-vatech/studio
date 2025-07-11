@@ -15,7 +15,7 @@ import { MainNav } from '@/components/main-nav';
 import { UserNav } from '@/components/user-nav';
 import { Button } from '@/components/ui/button';
 import { Bell, BriefcaseBusiness, Loader2, Clock } from 'lucide-react';
-import { AppProvider, useAppData } from '@/components/app-provider';
+import { useAppData } from '@/components/app-provider';
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 import {
@@ -185,10 +185,7 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
   );
 }
 
+// AppProvider is now wrapping the children in the root layout, so we don't need it here.
 export default function AppLayout({ children }: { children: ReactNode }) {
-  return (
-    <AppProvider>
-      <ProtectedLayout>{children}</ProtectedLayout>
-    </AppProvider>
-  );
+  return <ProtectedLayout>{children}</ProtectedLayout>;
 }
