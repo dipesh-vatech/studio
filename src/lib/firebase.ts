@@ -12,37 +12,37 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// This function uses a more robust singleton pattern for Firebase initialization.
-// It prevents re-initialization errors in development (HMR) and ensures
-// services are available in serverless deployment environments like App Hosting.
-function initializeFirebaseServices() {
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
+let storage: Storage;
+
+// This function can be called from a client component to initialize Firebase.
+export function initializeFirebase() {
   const isFirebaseConfigured =
     firebaseConfig.apiKey &&
     firebaseConfig.authDomain &&
-    firebaseConfig.projectId &&
-    firebaseConfig.storageBucket &&
-    firebaseConfig.messagingSenderId &&
-    firebaseConfig.appId;
+    firebaseConfig.projectId;
 
-  if (!isFirebaseConfigured) {
-    console.warn(
+  if (isFirebaseConfigured && getApps().length === 0) {
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      storage = getStorage(app);
+    } catch (e) {
+      console.error('Error initializing Firebase. Check your configuration.', e);
+    }
+  } else if (getApps().length > 0) {
+    app = getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+  } else {
+     console.warn(
       'Firebase config is incomplete. Firebase services will be disabled.'
     );
-    return { app: undefined, db: undefined, auth: undefined, storage: undefined };
-  }
-
-  try {
-    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const storage = getStorage(app);
-    return { app, db, auth, storage };
-  } catch (e) {
-    console.error('Error initializing Firebase. Check your configuration.', e);
-    return { app: undefined, db: undefined, auth: undefined, storage: undefined };
   }
 }
-
-const { db, auth, storage } = initializeFirebaseServices();
 
 export { db, auth, storage };
