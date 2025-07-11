@@ -126,7 +126,7 @@ export default function LandingPage() {
           description:
             'See income over time and identify your top-earning brand collaborations with easy-to-read charts.',
           image: {
-            src: '/financial-analytics-img.png',
+            src: '/financial-analytics.png',
             alt: 'Financial Analytics Dashboard',
             hint: 'financial dashboard'
           },
