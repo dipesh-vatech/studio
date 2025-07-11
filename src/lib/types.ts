@@ -1,3 +1,5 @@
+import type { Auth, Firestore, Storage } from 'firebase/app';
+
 export type Task = {
   id: string;
   title: string;
@@ -118,4 +120,7 @@ export interface AppDataContextType {
   deleteContract: (contractId: string) => Promise<void>;
   deletePerformancePost: (postId: string) => Promise<void>;
   markOnboardingAsCompleted: () => Promise<void>;
+  auth: Auth | null;
+  db: Firestore | null;
+  storage: Storage | null;
 }

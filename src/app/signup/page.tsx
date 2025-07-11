@@ -17,7 +17,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { BriefcaseBusiness, Loader2 } from 'lucide-react';
-import { auth } from '@/lib/firebase';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -25,6 +24,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { useAppData } from '@/components/app-provider';
 
 const GoogleIcon = () => (
   <svg className="mr-2 h-4 w-4" viewBox="0 0 48 48">
@@ -56,6 +56,7 @@ const signupSchema = z.object({
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { auth } = useAppData();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
