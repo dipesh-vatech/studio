@@ -81,6 +81,8 @@ export interface UserProfile {
   notificationSettings?: NotificationSettings;
   plan?: 'Free' | 'Pro';
   onboardingCompleted?: boolean;
+  pitchGenerationCount?: number;
+  metricExtractionCount?: number;
 }
 
 import { type User } from 'firebase/auth';
@@ -131,4 +133,6 @@ export interface AppDataContextType {
   storage: Storage | null;
   saveContentIdeasToDeal: (dealId: string, ideas: string[]) => Promise<void>;
   saveAnalysisToPost: (postId: string, analysis: PerformancePost['aiAnalysis']) => Promise<void>;
+  incrementPitchGenerationCount: () => Promise<void>;
+  incrementMetricExtractionCount: () => Promise<void>;
 }

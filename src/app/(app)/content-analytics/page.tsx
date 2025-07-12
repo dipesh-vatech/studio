@@ -342,7 +342,8 @@ export default function ContentAnalyticsPage() {
     loadingData,
     deletePerformancePost,
     userProfile, 
-    isAdmin
+    isAdmin,
+    incrementMetricExtractionCount
   } = useAppData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
@@ -354,6 +355,9 @@ export default function ContentAnalyticsPage() {
   const { toast } = useToast();
   
   const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
+  const isFreePlan = userProfile?.plan === 'Free' && !isAdmin;
+  const freeExtractionUsed = isFreePlan && (userProfile?.metricExtractionCount || 0) >= 1;
+
 
   const form = useForm<z.infer<typeof postFormSchema>>({
     resolver: zodResolver(postFormSchema),
@@ -404,7 +408,7 @@ export default function ContentAnalyticsPage() {
   };
 
   const handleExtractMetrics = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || freeExtractionUsed) return;
     setIsExtracting(true);
     try {
       const screenshotDataUri = await fileToDataUri(selectedFile);
@@ -417,6 +421,10 @@ export default function ContentAnalyticsPage() {
       if (result.shares) form.setValue('shares', result.shares, { shouldValidate: true });
       if (result.saves) form.setValue('saves', result.saves, { shouldValidate: true });
       
+      if(isFreePlan) {
+        await incrementMetricExtractionCount();
+      }
+
       toast({
         title: 'Metrics Extracted!',
         description: 'Please review and confirm the extracted data.',
@@ -610,7 +618,7 @@ export default function ContentAnalyticsPage() {
                     </DialogDescription>
                   </DialogHeader>
                    <div className="border rounded-lg p-4 space-y-4">
-                      <h4 className="font-semibold text-center text-sm">Extract Metrics with AI (Pro)</h4>
+                      <h4 className="font-semibold text-center text-sm">Extract Metrics with AI</h4>
                       {isProPlan ? (
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                            <div className="grid w-full max-w-sm items-center gap-1.5 flex-1">
@@ -622,11 +630,22 @@ export default function ContentAnalyticsPage() {
                             Extract
                           </Button>
                         </div>
-                      ) : (
+                      ) : freeExtractionUsed ? (
                         <div className="text-center text-sm text-muted-foreground p-4 bg-muted/50 rounded-md">
-                          <p className="mb-2">Upgrade to Pro to unlock AI metric extraction from screenshots.</p>
+                          <p className="mb-2">You've used your free metric extraction. Upgrade to Pro for unlimited use.</p>
                           <Button size="sm" asChild>
                             <Link href="/settings?tab=billing">Upgrade Your Plan</Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                           <div className="grid w-full max-w-sm items-center gap-1.5 flex-1">
+                            <Label htmlFor="post-screenshot">Post Screenshot (1 free use)</Label>
+                            <Input id="post-screenshot" type="file" accept="image/*" onChange={handleFileChange} />
+                          </div>
+                          <Button onClick={handleExtractMetrics} disabled={!selectedFile || isExtracting} className="w-full sm:w-auto mt-4 sm:mt-0 self-end">
+                            {isExtracting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
+                            Extract for Free
                           </Button>
                         </div>
                       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from 'next/link';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,8 +21,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Sparkles, Loader2 } from "lucide-react";
+import { Copy, Sparkles, Loader2, WandSparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAppData } from "./app-provider";
 
 const formSchema = z.object({
   brandName: z.string().min(1, "Brand name is required"),
@@ -35,10 +37,30 @@ const formSchema = z.object({
     .min(1, "Please provide some examples"),
 });
 
+function UpgradePrompt() {
+    return (
+        <Card className="mt-4 border-dashed h-full flex flex-col">
+            <CardContent className="p-6 text-center flex-1 flex flex-col justify-center items-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mx-auto mb-3">
+                    <WandSparkles className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-semibold">Upgrade to Pro</h3>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
+                    You've used your free AI pitch generation. Upgrade to Pro for unlimited use!
+                </p>
+                <Button asChild>
+                    <Link href="/settings?tab=billing">Upgrade Your Plan</Link>
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
 export function PitchGeneratorForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [pitchEmail, setPitchEmail] = useState("");
   const { toast } = useToast();
+  const { userProfile, isAdmin, incrementPitchGenerationCount } = useAppData();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,12 +75,27 @@ export function PitchGeneratorForm() {
     },
   });
 
+  const isFreePlan = userProfile?.plan === 'Free' && !isAdmin;
+  const freeUseConsumed = isFreePlan && (userProfile?.pitchGenerationCount || 0) >= 1;
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (freeUseConsumed) {
+        toast({
+            title: "Limit Reached",
+            description: "Please upgrade to the Pro plan for unlimited pitch generations.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     setIsLoading(true);
     setPitchEmail("");
     try {
       const result = await generatePitchEmail(values as GeneratePitchEmailInput);
       setPitchEmail(result.pitchEmail);
+      if (isFreePlan) {
+        await incrementPitchGenerationCount();
+      }
     } catch (error) {
       console.error("Error generating pitch email:", error);
       toast({
@@ -78,6 +115,25 @@ export function PitchGeneratorForm() {
       description: "The pitch email has been copied to your clipboard.",
     });
   };
+
+  if (freeUseConsumed) {
+    return (
+        <div className="grid md:grid-cols-2 gap-8">
+            <UpgradePrompt />
+            <Card className="bg-muted/30">
+                <CardHeader>
+                    <CardTitle>Generated Email</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center text-muted-foreground">
+                        <WandSparkles className="h-8 w-8 mb-4" />
+                        <p>Upgrade to Pro to generate unlimited emails.</p>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+  }
 
   return (
     <div className="grid md:grid-cols-2 gap-8">

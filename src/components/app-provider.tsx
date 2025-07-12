@@ -39,6 +39,7 @@ import {
   setDoc,
   getDoc,
   deleteDoc,
+  increment,
 } from 'firebase/firestore';
 import {
   type User,
@@ -158,6 +159,12 @@ export function AppProvider({
           if (!profileData.plan) {
             profileData.plan = 'Free';
           }
+          if (profileData.pitchGenerationCount === undefined) {
+             profileData.pitchGenerationCount = 0;
+          }
+          if (profileData.metricExtractionCount === undefined) {
+             profileData.metricExtractionCount = 0;
+          }
           setUserProfile(profileData);
         } else {
           // Create a default profile if it doesn't exist
@@ -168,6 +175,8 @@ export function AppProvider({
             plan: 'Free',
             niche: '',
             onboardingCompleted: false,
+            pitchGenerationCount: 0,
+            metricExtractionCount: 0,
           };
           await setDoc(userDocRef, defaultProfile);
           setUserProfile(defaultProfile);
@@ -1042,6 +1051,36 @@ export function AppProvider({
     }
   };
 
+  const incrementPitchGenerationCount = async () => {
+    if (!user || !db) return;
+    
+    // Optimistic update
+    setUserProfile(prev => prev ? {...prev, pitchGenerationCount: (prev.pitchGenerationCount || 0) + 1} : null);
+
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userRef, { pitchGenerationCount: increment(1) });
+    } catch (error) {
+      console.error('Error incrementing pitch count:', error);
+      toast({ title: 'Error', description: 'Could not update usage count.', variant: 'destructive'});
+    }
+  };
+
+  const incrementMetricExtractionCount = async () => {
+    if (!user || !db) return;
+
+    // Optimistic update
+    setUserProfile(prev => prev ? {...prev, metricExtractionCount: (prev.metricExtractionCount || 0) + 1} : null);
+
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userRef, { metricExtractionCount: increment(1) });
+    } catch (error) {
+      console.error('Error incrementing extraction count:', error);
+      toast({ title: 'Error', description: 'Could not update usage count.', variant: 'destructive'});
+    }
+  };
+
   const signOutUser = async () => {
     if (auth) {
       await signOut(auth);
@@ -1088,7 +1127,9 @@ export function AppProvider({
         db,
         storage,
         saveContentIdeasToDeal,
-        saveAnalysisToPost
+        saveAnalysisToPost,
+        incrementPitchGenerationCount,
+        incrementMetricExtractionCount,
       }}
     >
       {children}
