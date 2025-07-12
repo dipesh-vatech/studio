@@ -94,6 +94,14 @@ const statusColors: Record<DealStatus, string> = {
   Overdue: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200',
 };
 
+const statusDotColors: Record<DealStatus, string> = {
+  Upcoming: 'bg-blue-500',
+  'In Progress': 'bg-yellow-500',
+  'Awaiting Payment': 'bg-orange-500',
+  Completed: 'bg-green-500',
+  Overdue: 'bg-red-500',
+};
+
 const newDealSchema = z.object({
   brandName: z.string().min(1, 'Brand name is required'),
   campaignName: z.string().min(1, 'Campaign name is required'),
@@ -251,12 +259,18 @@ const DealTable = ({
                             statusColors[deal.status]
                           )}
                         >
-                          <SelectValue />
+                           <div className="flex items-center gap-2">
+                            <span className={cn("h-2 w-2 rounded-full", statusDotColors[deal.status])}></span>
+                            <SelectValue />
+                          </div>
                         </SelectTrigger>
                         <SelectContent>
                           {Object.keys(statusColors).map((status) => (
                             <SelectItem key={status} value={status}>
-                              {status}
+                              <div className="flex items-center gap-2">
+                                <span className={cn("h-2 w-2 rounded-full", statusDotColors[status as DealStatus])}></span>
+                                <span>{status}</span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -375,12 +389,18 @@ const DealTable = ({
                             statusColors[deal.status]
                           )}
                         >
-                          <SelectValue />
+                          <div className="flex items-center gap-2">
+                              <span className={cn("h-2 w-2 rounded-full", statusDotColors[deal.status])}></span>
+                              <SelectValue />
+                            </div>
                         </SelectTrigger>
                         <SelectContent>
                           {Object.keys(statusColors).map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
+                             <SelectItem key={status} value={status}>
+                              <div className="flex items-center gap-2">
+                                <span className={cn("h-2 w-2 rounded-full", statusDotColors[status as DealStatus])}></span>
+                                <span>{status}</span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
