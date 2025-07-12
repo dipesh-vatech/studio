@@ -19,7 +19,7 @@ const GenerateContentIdeasInputSchema = z.object({
 export type GenerateContentIdeasInput = z.infer<typeof GenerateContentIdeasInputSchema>;
 
 const GenerateContentIdeasOutputSchema = z.object({
-  ideas: z.array(z.string()).describe('A list of creative content ideas for the campaign.'),
+  ideas: z.array(z.string()).describe('A list of 3 creative, short (1-2 sentence) content ideas for the campaign.'),
 });
 export type GenerateContentIdeasOutput = z.infer<typeof GenerateContentIdeasOutputSchema>;
 
@@ -40,7 +40,7 @@ Campaign Details:
 - Niche: {{{niche}}}
 - Deliverables: {{{deliverables}}}
 
-Based on these details, generate 3 distinct and creative content ideas that would perform well on social media. The ideas should be tailored to the niche and the required deliverables.
+Based on these details, generate 3 distinct and creative content ideas that would perform well on social media. The ideas should be tailored to the niche and the required deliverables. Keep each idea concise (1-2 sentences).
   `,
 });
 

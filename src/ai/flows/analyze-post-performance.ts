@@ -24,8 +24,8 @@ const AnalyzePostPerformanceInputSchema = z.object({
 export type AnalyzePostPerformanceInput = z.infer<typeof AnalyzePostPerformanceInputSchema>;
 
 const AnalyzePostPerformanceOutputSchema = z.object({
-  analysis: z.string().describe('A summary of the post performance, highlighting what went well.'),
-  suggestions: z.array(z.string()).describe('A list of actionable suggestions for improvement on future posts.'),
+  analysis: z.string().describe('A brief, 1-2 sentence summary of the post performance, highlighting what went well.'),
+  suggestions: z.array(z.string()).describe('A list of 3 actionable, concise suggestions for improvement on future posts.'),
   rating: z.number().min(1).max(10).describe('An overall performance rating from 1 to 10.'),
 });
 export type AnalyzePostPerformanceOutput = z.infer<typeof AnalyzePostPerformanceOutputSchema>;
@@ -52,12 +52,12 @@ Metrics:
 - Shares: {{{metrics.shares}}}
 - Saves: {{{metrics.saves}}}
 
-Based on these details, provide a detailed analysis.
-1.  **Analysis**: Write a summary of the performance. What do the metrics suggest? What likely went well?
-2.  **Suggestions**: Provide 3-4 specific, actionable suggestions for how to improve future content.
+Based on these details, provide a brief and concise analysis.
+1.  **Analysis**: Write a 1-2 sentence summary of the performance. What do the metrics suggest? What likely went well?
+2.  **Suggestions**: Provide 3 specific, actionable, and short suggestions for how to improve future content.
 3.  **Rating**: Give an overall performance rating on a scale of 1 to 10, where 10 is outstanding.
 
-Your analysis should be encouraging but also provide concrete, expert advice.
+Your analysis should be encouraging but also provide concrete, expert advice. Keep all text outputs as brief as possible.
   `,
 });
 

@@ -33,7 +33,7 @@ const GeneratePitchEmailInputSchema = z.object({
 export type GeneratePitchEmailInput = z.infer<typeof GeneratePitchEmailInputSchema>;
 
 const GeneratePitchEmailOutputSchema = z.object({
-  pitchEmail: z.string().describe('The generated pitch email.'),
+  pitchEmail: z.string().describe('The generated, concise pitch email.'),
 });
 export type GeneratePitchEmailOutput = z.infer<typeof GeneratePitchEmailOutputSchema>;
 
@@ -50,7 +50,7 @@ const prompt = ai.definePrompt({
   output: {schema: GeneratePitchEmailOutputSchema},
   prompt: `You are an expert marketing assistant specialized in writing personalized pitch emails for social media influencers to send to brands for potential collaborations.
 
-  Based on the influencer's stats and niche, you will generate a compelling pitch email tailored to the specified brand, highlighting relevant metrics and past successes.
+  Based on the influencer's stats and niche, you will generate a compelling but concise pitch email tailored to the specified brand, highlighting relevant metrics and past successes.
 
   Influencer Niche: {{{niche}}}
   Brand Name: {{{brandName}}}
@@ -60,9 +60,9 @@ const prompt = ai.definePrompt({
   Average Comments: {{{averageComments}}}
   Past Collaboration Examples: {{{pastCollaborationExamples}}}
 
-  Generate a professional and engaging pitch email that the influencer can send to the brand.
+  Generate a professional, engaging, and brief pitch email that the influencer can send to the brand.
   The AI tool will decide which metrics to incorporate from the past content data, focusing on the most impressive and relevant ones to capture the brand's attention and demonstrate the influencer's value and potential for a successful partnership.
-  Be sure to include a call to action.
+  Be sure to include a call to action. Keep the email to 3-4 short paragraphs.
   Do not include a subject line.
   Pitch Email:
   `,
