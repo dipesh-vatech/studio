@@ -440,6 +440,7 @@ export default function SchedulerPage() {
     { value: 'all', label: 'All' },
     { value: 'Upcoming', label: 'Upcoming' },
     { value: 'In Progress', label: 'In Progress' },
+    { value: 'Awaiting Payment', label: 'Awaiting Payment' },
     { value: 'Overdue', label: 'Overdue' },
     { value: 'Completed', label: 'Completed' },
   ];
