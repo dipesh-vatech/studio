@@ -385,7 +385,7 @@ const DealTable = ({
                       >
                         <SelectTrigger
                           className={cn(
-                            'w-[160px] h-8 text-xs border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 font-semibold',
+                            'w-auto h-8 text-xs border-none focus:ring-0 focus:ring-offset-0 rounded-full px-2.5 py-1 font-semibold',
                             statusColors[deal.status]
                           )}
                         >
