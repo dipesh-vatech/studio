@@ -52,6 +52,13 @@ import { generateContentIdeas } from '@/ai/flows/generate-content-ideas';
 import { suggestPostTime } from '@/ai/flows/suggest-post-time';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+
 
 type AiTask = 'ideas' | 'timing' | null;
 
@@ -136,6 +143,18 @@ function AiAssistant({
       setLoadingAi(null);
     }
   };
+  
+  const renderUpgradePrompt = () => (
+    <div className="text-center p-4 border border-dashed rounded-lg mt-4">
+      <h4 className="font-semibold text-sm">Upgrade for Advanced AI</h4>
+      <p className="text-xs text-muted-foreground mt-1 mb-3">
+        This feature is only available on the Pro plan.
+      </p>
+      <Button size="sm" asChild>
+        <Link href="/settings?tab=billing">Upgrade Plan</Link>
+      </Button>
+    </div>
+  );
 
   return (
     <Card className="bg-muted/30">
@@ -145,81 +164,71 @@ function AiAssistant({
           AI Assistant
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {isProPlan ? (
-          <>
-            <Button
-              onClick={handleGenerateIdeas}
-              disabled={loadingAi !== null || contentIdeas.length > 0}
-              className="w-full"
-            >
-              {loadingAi === 'ideas' ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Lightbulb className="mr-2 h-4 w-4" />
-              )}
-              {contentIdeas.length > 0
-                ? 'Ideas Generated'
-                : 'Generate Content Ideas'}
-            </Button>
-            <Button
-              onClick={handleSuggestTime}
-              disabled={loadingAi !== null}
-              className="w-full"
-            >
-              {loadingAi === 'timing' ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Clock className="mr-2 h-4 w-4" />
-              )}
-              Suggest Best Post Times
-            </Button>
-          </>
-        ) : (
-          <div className="text-center p-4 border border-dashed rounded-lg">
-            <h4 className="font-semibold text-sm">Upgrade for Advanced AI</h4>
-            <p className="text-xs text-muted-foreground mt-1 mb-3">
-              Generate content ideas and get posting time suggestions by
-              upgrading to Pro.
-            </p>
-            <Button size="sm" asChild>
-              <Link href="/settings?tab=billing">Upgrade Plan</Link>
-            </Button>
-          </div>
-        )}
-        <div className="h-40 space-y-4 overflow-y-auto pr-2 pt-2">
-          {loadingAi ? (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : (
-            <>
-              {contentIdeas.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-2">Content Ideas</h4>
-                  <ul className="space-y-2 text-sm list-disc list-inside bg-background/50 p-3 rounded-md">
-                    {contentIdeas.map((idea, i) => (
-                      <li key={i}>{idea}</li>
-                    ))}
-                  </ul>
+      <CardContent>
+         <Tabs defaultValue="ideas">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="ideas">
+              <Lightbulb className="mr-2 h-4 w-4" /> Ideas
+            </TabsTrigger>
+            <TabsTrigger value="timing">
+              <Clock className="mr-2 h-4 w-4" /> Timing
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="ideas" className="mt-4">
+            {isProPlan ? (
+              <>
+                <Button
+                  onClick={handleGenerateIdeas}
+                  disabled={loadingAi !== null || contentIdeas.length > 0}
+                  className="w-full"
+                >
+                  {loadingAi === 'ideas' ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Lightbulb className="mr-2 h-4 w-4" /> )}
+                  {contentIdeas.length > 0 ? 'Ideas Generated' : 'Generate Content Ideas'}
+                </Button>
+                <div className="h-40 overflow-y-auto pr-2 pt-4">
+                  {loadingAi === 'ideas' ? (
+                     <div className="flex h-full items-center justify-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>
+                  ) : contentIdeas.length > 0 ? (
+                    <div>
+                      <ul className="space-y-2 text-sm list-disc list-inside bg-background/50 p-3 rounded-md">
+                        {contentIdeas.map((idea, i) => (<li key={i}>{idea}</li>))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="flex h-full items-center justify-center rounded-lg border border-dashed text-center text-muted-foreground">
+                      <p className="text-sm p-4">Your AI-generated content ideas will appear here.</p>
+                    </div>
+                  )}
                 </div>
-              )}
-              {postTimeSuggestion && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Posting Time Suggestion</h4>
-                  <p className="text-sm bg-background/50 p-3 rounded-md">
-                    {postTimeSuggestion}
-                  </p>
+              </>
+            ) : renderUpgradePrompt()}
+          </TabsContent>
+          <TabsContent value="timing" className="mt-4">
+            {isProPlan ? (
+              <>
+                <Button
+                  onClick={handleSuggestTime}
+                  disabled={loadingAi !== null}
+                  className="w-full"
+                >
+                  {loadingAi === 'timing' ? (<Loader2 className="mr-2 h-4 w-4 animate-spin" />) : (<Clock className="mr-2 h-4 w-4" />)}
+                  Suggest Best Post Times
+                </Button>
+                 <div className="h-40 overflow-y-auto pr-2 pt-4">
+                  {loadingAi === 'timing' ? (
+                     <div className="flex h-full items-center justify-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>
+                  ) : postTimeSuggestion ? (
+                     <p className="text-sm bg-background/50 p-3 rounded-md">{postTimeSuggestion}</p>
+                  ) : (
+                    <div className="flex h-full items-center justify-center rounded-lg border border-dashed text-center text-muted-foreground">
+                       <p className="text-sm p-4">Your AI-generated time suggestions will appear here.</p>
+                    </div>
+                  )}
                 </div>
-              )}
-              {contentIdeas.length === 0 && !postTimeSuggestion && (
-                <div className="flex h-full items-center justify-center rounded-lg border border-dashed text-center text-muted-foreground">
-                  <p className="text-sm p-4">Your AI results will appear here.</p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+              </>
+            ) : renderUpgradePrompt()}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
