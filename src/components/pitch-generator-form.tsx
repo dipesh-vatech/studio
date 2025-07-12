@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, Sparkles, Loader2, WandSparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAppData } from "./app-provider";
+import { Badge } from "./ui/badge";
 
 const formSchema = z.object({
   brandName: z.string().min(1, "Brand name is required"),
@@ -79,7 +80,7 @@ export function PitchGeneratorForm() {
   const freeUseConsumed = isFreePlan && (userProfile?.pitchGenerationCount || 0) >= 1;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (freeUseConsumed) {
+    if (isFreePlan && freeUseConsumed) {
         toast({
             title: "Limit Reached",
             description: "Please upgrade to the Pro plan for unlimited pitch generations.",
@@ -238,14 +239,18 @@ export function PitchGeneratorForm() {
             )}
           />
 
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="mr-2 h-4 w-4" />
-            )}
-            Generate Pitch
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-2 h-4 w-4" />
+              )}
+              {isFreePlan ? 'Generate Your Free Pitch' : 'Generate Pitch'}
+            </Button>
+            {isFreePlan && <Badge variant="outline">1 Free Use</Badge>}
+          </div>
+
         </form>
       </Form>
 

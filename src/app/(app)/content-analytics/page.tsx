@@ -408,7 +408,7 @@ export default function ContentAnalyticsPage() {
   };
 
   const handleExtractMetrics = async () => {
-    if (!selectedFile || freeExtractionUsed) return;
+    if (!selectedFile || (isFreePlan && freeExtractionUsed)) return;
     setIsExtracting(true);
     try {
       const screenshotDataUri = await fileToDataUri(selectedFile);
