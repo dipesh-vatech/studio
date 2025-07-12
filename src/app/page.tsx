@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -160,11 +161,13 @@ export default function LandingPage() {
     {
       name: 'Free',
       price: '$0',
-      description: 'For individuals and starters.',
+      description: 'For individuals getting started.',
       features: [
         'Up to 10 deals',
-        'Manual Content Tracking',
-        'Basic AI Pitch Generator',
+        'Manual content & contract tracking',
+        '1 Free AI Pitch Generation',
+        '1 Free AI Metric Extraction',
+        'Dashboard & Scheduler',
         'Community Support',
       ],
       buttonText: 'Get Started',
@@ -177,10 +180,12 @@ export default function LandingPage() {
       isPopular: true,
       features: [
         'Unlimited deals',
-        'AI Performance Analysis',
-        'AI Content Idea Generation',
-        'AI Contract Analysis',
-        'Financial Analytics',
+        'Full Financial Analytics',
+        'AI Contract Analysis (PDF upload)',
+        'Unlimited AI Pitch Generation',
+        'Unlimited AI Metric Extraction',
+        'AI Post Performance Analysis',
+        'AI Content Idea & Timing Suggestions',
         'Priority Support',
       ],
       buttonText: 'Upgrade to Pro',
