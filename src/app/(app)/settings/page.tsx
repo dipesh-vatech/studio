@@ -49,6 +49,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(1, 'Name is required.'),
@@ -305,13 +306,30 @@ function ChangePasswordForm() {
 }
 
 function AccountSettings() {
-  const { deleteAccount } = useAppData();
+  const { user, deleteAccount, reauthenticateUser } = useAppData();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const { toast } = useToast();
 
-  const handleDelete = async () => {
+  const isPasswordProvider = user?.providerData.some(p => p.providerId === 'password');
+
+  const handleDeleteRequest = async () => {
     setIsDeleting(true);
+    setError('');
+
     try {
+      if (isPasswordProvider) {
+        // If password provider, first try to reauthenticate
+        if (!password) {
+            setError('Password is required to delete your account.');
+            setIsDeleting(false);
+            return;
+        }
+        await reauthenticateUser(password);
+      }
+      // If re-authentication is successful (or not needed for other providers), proceed to delete.
       await deleteAccount();
       toast({
         title: 'Account Deleted',
@@ -319,17 +337,18 @@ function AccountSettings() {
       });
       // The user will be redirected automatically by the auth state listener.
     } catch (error: any) {
-      toast({
-        title: 'Error Deleting Account',
-        description:
-          error.code === 'auth/requires-recent-login'
-            ? 'This is a sensitive action. Please log out and sign back in before trying again.'
-            : 'Could not delete your account. Please try again.',
-        variant: 'destructive',
-      });
-      setIsDeleting(false);
+       console.error('Error deleting account:', error);
+       if (error.code === 'auth/wrong-password') {
+         setError('The password you entered is incorrect. Please try again.');
+       } else if (error.code === 'auth/too-many-requests') {
+         setError('Too many attempts. Please try again later.');
+       } else {
+         setError('An unexpected error occurred. Please try again.');
+       }
+       setIsDeleting(false);
     }
   };
+
 
   return (
     <div className="space-y-6">
@@ -372,14 +391,18 @@ function AccountSettings() {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={handleDelete}
+                    onClick={() => {
+                        if (isPasswordProvider) {
+                           setShowConfirmDialog(true);
+                        } else {
+                           // For non-password providers, prompt to re-authenticate via popup
+                           handleDeleteRequest();
+                        }
+                    }}
                     disabled={isDeleting}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    {isDeleting && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Delete
+                    Continue
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -387,6 +410,39 @@ function AccountSettings() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Confirm Your Identity</DialogTitle>
+                <DialogDescription>
+                    For your security, please enter your password to confirm account deletion.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input 
+                      id="password" 
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                    />
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="ghost">Cancel</Button>
+                </DialogClose>
+                <Button variant="destructive" onClick={handleDeleteRequest} disabled={isDeleting}>
+                   {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                   Delete Account
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

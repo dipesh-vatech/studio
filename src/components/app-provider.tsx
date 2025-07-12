@@ -48,6 +48,10 @@ import {
   updateProfile,
   deleteUser,
   updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
+  GoogleAuthProvider,
 } from 'firebase/auth';
 import { ref, uploadBytes } from 'firebase/storage';
 import { extractContractDetails } from '@/ai/flows/extract-contract-details';
@@ -710,6 +714,15 @@ export function AppProvider({
     }
   };
 
+  const reauthenticateUser = async (password: string) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !currentUser.email) {
+      throw new Error("User not signed in or email is missing.");
+    }
+    const credential = EmailAuthProvider.credential(currentUser.email, password);
+    await reauthenticateWithCredential(currentUser, credential);
+  }
+
   const deleteAccount = async () => {
     if (!auth || !db) {
       throw new Error('Firebase not configured');
@@ -722,17 +735,11 @@ export function AppProvider({
     const userId = currentUser.uid;
 
     try {
-      // For more robust data cleanup (e.g., deleting all deals, contracts),
-      // using a Cloud Function triggered by user deletion is recommended.
-      // Here, we'll just delete the main user profile document.
       const userDocRef = doc(db, 'users', userId);
       await deleteDoc(userDocRef);
-
-      // Finally, delete the user from Firebase Authentication
       await deleteUser(currentUser);
     } catch (error) {
       console.error('Error deleting account:', error);
-      // Re-throw the error so the component can handle it and show a specific toast.
       throw error;
     }
   };
@@ -1112,6 +1119,7 @@ export function AppProvider({
         updateContractStatus,
         updateUserProfile,
         updateUserPassword,
+        reauthenticateUser,
         deleteAccount,
         updateNotificationSettings,
         dismissDealNotification,

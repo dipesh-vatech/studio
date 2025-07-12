@@ -113,6 +113,7 @@ export interface AppDataContextType {
     niche?: string;
   }) => Promise<void>;
   updateUserPassword: (password: string) => Promise<void>;
+  reauthenticateUser: (password: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
   updateNotificationSettings: (settings: NotificationSettings) => Promise<void>;
   dismissDealNotification: (dealId: string) => Promise<void>;
