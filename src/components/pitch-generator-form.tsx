@@ -117,7 +117,7 @@ export function PitchGeneratorForm() {
     });
   };
 
-  if (freeUseConsumed) {
+  if (freeUseConsumed && !pitchEmail) {
     return (
         <div className="grid md:grid-cols-2 gap-8">
             <UpgradePrompt />
@@ -138,121 +138,125 @@ export function PitchGeneratorForm() {
 
   return (
     <div className="grid md:grid-cols-2 gap-8">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="brandName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Brand Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. BrandFresh" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="niche"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your Niche</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Fashion & Lifestyle" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="followerCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Follower Count</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 50000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="engagementRate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Engagement Rate (%)</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.1" placeholder="e.g. 3.2" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="averageLikes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Average Likes</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 1500" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="averageComments"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Average Comments</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 250" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+      {freeUseConsumed ? (
+        <UpgradePrompt />
+      ) : (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="brandName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Brand Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. BrandFresh" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="niche"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Your Niche</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Fashion & Lifestyle" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="followerCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Follower Count</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g. 50000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="engagementRate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Engagement Rate (%)</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.1" placeholder="e.g. 3.2" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="averageLikes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Average Likes</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g. 1500" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="averageComments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Average Comments</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g. 250" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          <FormField
-            control={form.control}
-            name="pastCollaborationExamples"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Past Successes</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Describe successful past collaborations..."
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex items-center gap-4">
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-2 h-4 w-4" />
+            <FormField
+              control={form.control}
+              name="pastCollaborationExamples"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Past Successes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe successful past collaborations..."
+                      className="min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-              {isFreePlan ? 'Generate Your Free Pitch' : 'Generate Pitch'}
-            </Button>
-            {isFreePlan && <Badge variant="outline">1 Free Use</Badge>}
-          </div>
+            />
 
-        </form>
-      </Form>
+            <div className="flex items-center gap-4">
+              <Button type="submit" disabled={isLoading} className="w-full">
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                {isFreePlan ? 'Generate Your Free Pitch' : 'Generate Pitch'}
+              </Button>
+              {isFreePlan && <Badge variant="outline">1 Free Use</Badge>}
+            </div>
+
+          </form>
+        </Form>
+      )}
 
       <Card className="bg-muted/30">
         <CardHeader className="flex flex-row items-center justify-between">
