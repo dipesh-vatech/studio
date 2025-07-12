@@ -51,6 +51,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateContentIdeas } from '@/ai/flows/generate-content-ideas';
 import { suggestPostTime } from '@/ai/flows/suggest-post-time';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 type AiTask = 'ideas' | 'timing' | null;
 
