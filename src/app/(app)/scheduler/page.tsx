@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   eachDayOfInterval,
@@ -67,6 +67,17 @@ const statusColors: Record<DealStatus, string> = {
   Overdue: 'bg-red-500 hover:bg-red-600',
 };
 
+const statusTextBadgeColors: Record<DealStatus, string> = {
+  Upcoming: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200',
+  'In Progress':
+    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200',
+  'Awaiting Payment':
+    'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200',
+  Completed:
+    'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200',
+  Overdue: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200',
+};
+
 const statusBorderColors: Record<DealStatus, string> = {
   Upcoming: 'border-blue-500',
   'In Progress': 'border-yellow-500',
@@ -91,6 +102,14 @@ function AiAssistant({
   const [postTimeSuggestion, setPostTimeSuggestion] = useState<string>('');
 
   const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
+
+  useEffect(() => {
+    // When the deal changes (e.g., user opens a new sheet),
+    // reset the AI assistant state to match the new deal.
+    setContentIdeas(deal.aiContentIdeas || []);
+    setPostTimeSuggestion('');
+  }, [deal]);
+
 
   const handleGenerateIdeas = async () => {
     if (!deal || !userProfile) return;
@@ -474,9 +493,16 @@ export default function SchedulerPage() {
                 value={activeTab}
                 onValueChange={(value) => setActiveTab(value as DealStatus | 'all')}
               >
-                <TabsList>
+                <TabsList className="bg-transparent p-0 h-auto">
                   {tabFilters.map((tab) => (
-                    <TabsTrigger key={tab.value} value={tab.value}>
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className={cn(
+                        'text-muted-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none rounded-full data-[state=active]:font-semibold px-3 py-1 text-sm',
+                        tab.value !== 'all' && `data-[state=active]:${statusTextBadgeColors[tab.value as DealStatus]}`
+                      )}
+                    >
                       {tab.label}
                     </TabsTrigger>
                   ))}

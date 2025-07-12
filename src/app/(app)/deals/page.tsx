@@ -84,14 +84,14 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const statusColors: Record<DealStatus, string> = {
-  Upcoming: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  Upcoming: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200',
   'In Progress':
-    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200',
   'Awaiting Payment':
-    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+    'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200',
   Completed:
-    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  Overdue: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200',
+  Overdue: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200',
 };
 
 const newDealSchema = z.object({
@@ -626,15 +626,22 @@ export default function DealsPage() {
       </CardHeader>
       <CardContent className="p-6 pt-0">
         <Tabs defaultValue="all">
-          <TabsList>
+          <TabsList className="bg-transparent p-0 h-auto">
             {tabs.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value}>
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className={cn(
+                  'text-muted-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none rounded-full data-[state=active]:font-semibold px-3 py-1 text-sm',
+                  tab.value !== 'all' && `data-[state=active]:${statusColors[tab.value as DealStatus]}`
+                )}
+              >
                 {tab.label}
               </TabsTrigger>
             ))}
           </TabsList>
           {tabs.map((tab) => (
-            <TabsContent key={tab.value} value={tab.value}>
+            <TabsContent key={tab.value} value={tab.value} className="mt-4">
               <DealTable
                 deals={getDealsByStatus(tab.value)}
                 onStatusChange={updateDealStatus}
