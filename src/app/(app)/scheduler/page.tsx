@@ -23,7 +23,6 @@ import {
   Clock,
   Loader2,
   WandSparkles,
-  Filter,
 } from 'lucide-react';
 import { useAppData } from '@/components/app-provider';
 import { Button } from '@/components/ui/button';
@@ -57,14 +56,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 type AiTask = 'ideas' | 'timing' | null;
 
@@ -400,7 +391,7 @@ export default function SchedulerPage() {
   const { deals } = useAppData();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
-  const [statusFilters, setStatusFilters] = useState<DealStatus[]>([]);
+  const [activeTab, setActiveTab] = useState<DealStatus | 'all'>('all');
 
   const firstDayOfCurrentMonth = startOfMonth(currentDate);
 
@@ -414,9 +405,9 @@ export default function SchedulerPage() {
   const dealsByDate = useMemo(() => {
     const map = new Map<string, Deal[]>();
     const filteredDeals =
-      statusFilters.length > 0
-        ? deals.filter((deal) => statusFilters.includes(deal.status))
-        : deals;
+      activeTab === 'all'
+        ? deals
+        : deals.filter((deal) => deal.status === activeTab);
 
     filteredDeals.forEach((deal) => {
       try {
@@ -431,13 +422,7 @@ export default function SchedulerPage() {
       }
     });
     return map;
-  }, [deals, statusFilters]);
-
-  const handleStatusFilterChange = (status: DealStatus, checked: boolean) => {
-    setStatusFilters((prev) =>
-      checked ? [...prev, status] : prev.filter((s) => s !== status)
-    );
-  };
+  }, [deals, activeTab]);
 
   const nextMonth = () => {
     setCurrentDate(add(currentDate, { months: 1 }));
@@ -450,6 +435,14 @@ export default function SchedulerPage() {
   const handleDealClick = (deal: Deal) => {
     setSelectedDealId(deal.id);
   };
+  
+  const tabFilters: { value: DealStatus | 'all'; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'Upcoming', label: 'Upcoming' },
+    { value: 'In Progress', label: 'In Progress' },
+    { value: 'Overdue', label: 'Overdue' },
+    { value: 'Completed', label: 'Completed' },
+  ];
 
   return (
     <>
@@ -462,43 +455,32 @@ export default function SchedulerPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">
-              {format(currentDate, 'MMMM yyyy')}
-            </h2>
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Filter className="mr-2 h-4 w-4" />
-                    Filter
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {Object.keys(statusColors).map((status) => (
-                    <DropdownMenuCheckboxItem
-                      key={status}
-                      checked={statusFilters.includes(status as DealStatus)}
-                      onCheckedChange={(checked) =>
-                        handleStatusFilterChange(
-                          status as DealStatus,
-                          !!checked
-                        )
-                      }
-                    >
-                      {status}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+            <div className='flex items-center gap-2'>
               <Button variant="outline" size="icon" onClick={prevMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
+               <h2 className="text-xl font-semibold text-center sm:text-left w-36">
+                {format(currentDate, 'MMMM yyyy')}
+              </h2>
               <Button variant="outline" size="icon" onClick={nextMonth}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
+            </div>
+            <div className='w-full sm:w-auto overflow-x-auto'>
+              <Tabs 
+                defaultValue="all" 
+                value={activeTab}
+                onValueChange={(value) => setActiveTab(value as DealStatus | 'all')}
+              >
+                <TabsList>
+                  {tabFilters.map((tab) => (
+                    <TabsTrigger key={tab.value} value={tab.value}>
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             </div>
           </div>
 
