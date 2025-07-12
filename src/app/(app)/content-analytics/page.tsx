@@ -199,14 +199,19 @@ function PerformanceSkeleton() {
 
 
 function AnalysisResultDialog({ post, open, onOpenChange }: { post: PerformancePost, open: boolean, onOpenChange: (open: boolean) => void }) {
-  const { userProfile, isAdmin } = useAppData();
+  const { userProfile, isAdmin, saveAnalysisToPost } = useAppData();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalyzePostPerformanceOutput | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalyzePostPerformanceOutput | null>(post.aiAnalysis || null);
 
   const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
 
   async function getAnalysis() {
+    if (post.aiAnalysis) {
+      setAnalysisResult(post.aiAnalysis);
+      return;
+    }
+
     setIsLoading(true);
     setAnalysisResult(null);
     try {
@@ -222,6 +227,7 @@ function AnalysisResultDialog({ post, open, onOpenChange }: { post: PerformanceP
         niche: userProfile?.niche || 'General',
       });
       setAnalysisResult(result);
+      await saveAnalysisToPost(post.id, result);
     } catch (error) {
       console.error('Error analyzing post performance:', error);
       toast({

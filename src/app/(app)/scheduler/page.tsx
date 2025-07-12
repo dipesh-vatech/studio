@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   eachDayOfInterval,
@@ -49,7 +49,7 @@ import { suggestPostTime } from '@/ai/flows/suggest-post-time';
 type AiTask = 'ideas' | 'timing' | null;
 
 export default function SchedulerPage() {
-  const { deals, userProfile, isAdmin } = useAppData();
+  const { deals, userProfile, isAdmin, saveContentIdeasToDeal } = useAppData();
   const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
@@ -95,13 +95,20 @@ export default function SchedulerPage() {
   
   const handleDealClick = (deal: Deal) => {
     setSelectedDeal(deal);
-    setContentIdeas([]);
+    setContentIdeas(deal.aiContentIdeas || []);
     setPostTimeSuggestion('');
     setIsDialogOpen(true);
   };
 
   const handleGenerateIdeas = async () => {
     if (!selectedDeal || !userProfile) return;
+    
+    if (selectedDeal.aiContentIdeas?.length) {
+       toast({ title: 'Ideas already generated for this deal.' });
+       setContentIdeas(selectedDeal.aiContentIdeas);
+       return;
+    }
+
     setLoadingAi('ideas');
     try {
       const result = await generateContentIdeas({
@@ -111,6 +118,7 @@ export default function SchedulerPage() {
         niche: userProfile.niche || 'General',
       });
       setContentIdeas(result.ideas);
+      await saveContentIdeasToDeal(selectedDeal.id, result.ideas);
     } catch (error) {
       toast({
         title: 'Error generating ideas',
@@ -226,9 +234,9 @@ export default function SchedulerPage() {
                   <h3 className="font-semibold flex items-center gap-2"><WandSparkles className="h-5 w-5 text-primary" /> AI Assistant</h3>
                   {isProPlan ? (
                     <>
-                      <Button onClick={handleGenerateIdeas} disabled={loadingAi !== null} className="w-full">
+                      <Button onClick={handleGenerateIdeas} disabled={loadingAi !== null || !!selectedDeal.aiContentIdeas?.length} className="w-full">
                         {loadingAi === 'ideas' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lightbulb className="mr-2 h-4 w-4" />}
-                        Generate Content Ideas
+                        {selectedDeal.aiContentIdeas?.length ? 'Ideas Generated' : 'Generate Content Ideas'}
                       </Button>
                       <Button onClick={handleSuggestTime} disabled={loadingAi !== null} className="w-full">
                         {loadingAi === 'timing' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Clock className="mr-2 h-4 w-4" />}

@@ -1008,6 +1008,40 @@ export function AppProvider({
     }
   };
 
+  const saveContentIdeasToDeal = async (dealId: string, ideas: string[]) => {
+    if (!db || !user) return;
+    const dealRef = doc(db, "deals", dealId);
+    try {
+      await updateDoc(dealRef, { aiContentIdeas: ideas });
+      setDeals(prev => prev.map(d => d.id === dealId ? {...d, aiContentIdeas: ideas} : d));
+      toast({ title: "AI ideas saved!" });
+    } catch (error) {
+      console.error("Error saving content ideas: ", error);
+      toast({
+        title: "Error",
+        description: "Could not save AI content ideas.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveAnalysisToPost = async (postId: string, analysis: PerformancePost['aiAnalysis']) => {
+    if (!db || !user) return;
+    const postRef = doc(db, "performancePosts", postId);
+    try {
+      await updateDoc(postRef, { aiAnalysis: analysis });
+      setPerformancePosts(prev => prev.map(p => p.id === postId ? {...p, aiAnalysis: analysis} : p));
+      toast({ title: "AI analysis saved!" });
+    } catch (error) {
+      console.error("Error saving analysis: ", error);
+      toast({
+        title: "Error",
+        description: "Could not save AI analysis.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const signOutUser = async () => {
     if (auth) {
       await signOut(auth);
@@ -1053,6 +1087,8 @@ export function AppProvider({
         auth,
         db,
         storage,
+        saveContentIdeasToDeal,
+        saveAnalysisToPost
       }}
     >
       {children}

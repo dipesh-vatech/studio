@@ -19,6 +19,7 @@ export type Deal = {
   paid: boolean;
   notificationDismissed?: boolean;
   tasks: Task[];
+  aiContentIdeas?: string[];
 };
 
 export type Platform = "Instagram" | "TikTok" | "YouTube";
@@ -34,6 +35,11 @@ export type PerformancePost = {
   conversion: boolean;
   date: string;
   postDescription?: string;
+  aiAnalysis?: {
+    analysis: string;
+    suggestions: string[];
+    rating: number;
+  };
 };
 
 export type Contract = {
@@ -123,4 +129,6 @@ export interface AppDataContextType {
   auth: Auth | null;
   db: Firestore | null;
   storage: Storage | null;
+  saveContentIdeasToDeal: (dealId: string, ideas: string[]) => Promise<void>;
+  saveAnalysisToPost: (postId: string, analysis: PerformancePost['aiAnalysis']) => Promise<void>;
 }
