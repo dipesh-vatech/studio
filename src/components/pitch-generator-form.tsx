@@ -84,7 +84,7 @@ export function PitchGeneratorForm() {
         toast({ title: "Not Signed In", description: "You must be signed in to generate a pitch.", variant: "destructive" });
         return;
     }
-    if (isFreePlan && freeUseConsumed) {
+    if (freeUseConsumed) {
         toast({
             title: "Limit Reached",
             description: "Please upgrade to the Pro plan for unlimited pitch generations.",
@@ -125,11 +125,9 @@ export function PitchGeneratorForm() {
     });
   };
   
-  const showUpgradePrompt = freeUseConsumed && !pitchEmail;
-
   return (
     <div className="grid md:grid-cols-2 gap-8">
-      {showUpgradePrompt ? (
+      {freeUseConsumed ? (
         <UpgradePrompt />
        ) : (
         <Form {...form}>
