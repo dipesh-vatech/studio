@@ -12,6 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const GeneratePitchEmailInputSchema = z.object({
+  userName: z.string().describe("The influencer's name for the signature."),
   followerCount: z
     .number()
     .describe('The number of followers the influencer has.'),
@@ -64,6 +65,8 @@ const prompt = ai.definePrompt({
   The AI tool will decide which metrics to incorporate from the past content data, focusing on the most impressive and relevant ones to capture the brand's attention and demonstrate the influencer's value and potential for a successful partnership.
   Be sure to include a call to action. Keep the email to 3-4 short paragraphs.
   Do not include a subject line.
+  End the email with a professional closing (e.g., "Best," or "Regards,") followed by the user's name: {{{userName}}}.
+
   Pitch Email:
   `,
 });

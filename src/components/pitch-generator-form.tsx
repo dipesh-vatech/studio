@@ -61,7 +61,7 @@ export function PitchGeneratorForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [pitchEmail, setPitchEmail] = useState("");
   const { toast } = useToast();
-  const { userProfile, isAdmin, incrementPitchGenerationCount } = useAppData();
+  const { user, userProfile, isAdmin, incrementPitchGenerationCount } = useAppData();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -80,6 +80,10 @@ export function PitchGeneratorForm() {
   const freeUseConsumed = isFreePlan && (userProfile?.pitchGenerationCount || 0) >= 1;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+        toast({ title: "Not Signed In", description: "You must be signed in to generate a pitch.", variant: "destructive" });
+        return;
+    }
     if (isFreePlan && freeUseConsumed) {
         toast({
             title: "Limit Reached",
@@ -92,7 +96,11 @@ export function PitchGeneratorForm() {
     setIsLoading(true);
     setPitchEmail("");
     try {
-      const result = await generatePitchEmail(values as GeneratePitchEmailInput);
+      const input: GeneratePitchEmailInput = {
+        ...values,
+        userName: user.displayName || 'Creator',
+      };
+      const result = await generatePitchEmail(input);
       setPitchEmail(result.pitchEmail);
       if (isFreePlan) {
         await incrementPitchGenerationCount();
@@ -138,9 +146,7 @@ export function PitchGeneratorForm() {
 
   return (
     <div className="grid md:grid-cols-2 gap-8">
-      {freeUseConsumed ? (
-        <UpgradePrompt />
-      ) : (
+      {(freeUseConsumed && pitchEmail) || !isFreePlan ? (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid sm:grid-cols-2 gap-4">
@@ -251,11 +257,13 @@ export function PitchGeneratorForm() {
                 )}
                 {isFreePlan ? 'Generate Your Free Pitch' : 'Generate Pitch'}
               </Button>
-              {isFreePlan && <Badge variant="outline">1 Free Use</Badge>}
+              {isFreePlan && !freeUseConsumed && <Badge variant="outline">1 Free Use</Badge>}
             </div>
 
           </form>
         </Form>
+      ) : (
+        <UpgradePrompt />
       )}
 
       <Card className="bg-muted/30">
