@@ -23,7 +23,7 @@ import {
   Clock,
   Loader2,
   WandSparkles,
-  X,
+  Filter,
 } from 'lucide-react';
 import { useAppData } from '@/components/app-provider';
 import { Button } from '@/components/ui/button';
@@ -50,7 +50,6 @@ import type { Deal, DealStatus } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { generateContentIdeas } from '@/ai/flows/generate-content-ideas';
 import { suggestPostTime } from '@/ai/flows/suggest-post-time';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
   Tabs,
@@ -58,7 +57,14 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type AiTask = 'ideas' | 'timing' | null;
 
@@ -71,11 +77,11 @@ const statusColors: Record<DealStatus, string> = {
 };
 
 const statusBorderColors: Record<DealStatus, string> = {
-    Upcoming: 'border-blue-500',
-    'In Progress': 'border-yellow-500',
-    'Awaiting Payment': 'border-orange-500',
-    Completed: 'border-green-500',
-    Overdue: 'border-red-500',
+  Upcoming: 'border-blue-500',
+  'In Progress': 'border-yellow-500',
+  'Awaiting Payment': 'border-orange-500',
+  Completed: 'border-green-500',
+  Overdue: 'border-red-500',
 };
 
 function AiAssistant({
@@ -97,11 +103,6 @@ function AiAssistant({
 
   const handleGenerateIdeas = async () => {
     if (!deal || !userProfile) return;
-
-    if (contentIdeas.length > 0) {
-      toast({ title: 'Ideas already generated for this deal.' });
-      return;
-    }
 
     setLoadingAi('ideas');
     try {
@@ -143,7 +144,7 @@ function AiAssistant({
       setLoadingAi(null);
     }
   };
-  
+
   const renderUpgradePrompt = () => (
     <div className="text-center p-4 border border-dashed rounded-lg mt-4">
       <h4 className="font-semibold text-sm">Upgrade for Advanced AI</h4>
@@ -165,7 +166,7 @@ function AiAssistant({
         </CardTitle>
       </CardHeader>
       <CardContent>
-         <Tabs defaultValue="ideas">
+        <Tabs defaultValue="ideas">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="ideas">
               <Lightbulb className="mr-2 h-4 w-4" /> Ideas
@@ -182,26 +183,40 @@ function AiAssistant({
                   disabled={loadingAi !== null || contentIdeas.length > 0}
                   className="w-full"
                 >
-                  {loadingAi === 'ideas' ? ( <Loader2 className="mr-2 h-4 w-4 animate-spin" /> ) : ( <Lightbulb className="mr-2 h-4 w-4" /> )}
-                  {contentIdeas.length > 0 ? 'Ideas Generated' : 'Generate Content Ideas'}
+                  {loadingAi === 'ideas' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Lightbulb className="mr-2 h-4 w-4" />
+                  )}
+                  {contentIdeas.length > 0
+                    ? 'Ideas Generated'
+                    : 'Generate Content Ideas'}
                 </Button>
                 <div className="h-40 overflow-y-auto pr-2 pt-4">
                   {loadingAi === 'ideas' ? (
-                     <div className="flex h-full items-center justify-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>
+                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
                   ) : contentIdeas.length > 0 ? (
                     <div>
                       <ul className="space-y-2 text-sm list-disc list-inside bg-background/50 p-3 rounded-md">
-                        {contentIdeas.map((idea, i) => (<li key={i}>{idea}</li>))}
+                        {contentIdeas.map((idea, i) => (
+                          <li key={i}>{idea}</li>
+                        ))}
                       </ul>
                     </div>
                   ) : (
                     <div className="flex h-full items-center justify-center rounded-lg border border-dashed text-center text-muted-foreground">
-                      <p className="text-sm p-4">Your AI-generated content ideas will appear here.</p>
+                      <p className="text-sm p-4">
+                        Your AI-generated content ideas will appear here.
+                      </p>
                     </div>
                   )}
                 </div>
               </>
-            ) : renderUpgradePrompt()}
+            ) : (
+              renderUpgradePrompt()
+            )}
           </TabsContent>
           <TabsContent value="timing" className="mt-4">
             {isProPlan ? (
@@ -211,22 +226,34 @@ function AiAssistant({
                   disabled={loadingAi !== null}
                   className="w-full"
                 >
-                  {loadingAi === 'timing' ? (<Loader2 className="mr-2 h-4 w-4 animate-spin" />) : (<Clock className="mr-2 h-4 w-4" />)}
+                  {loadingAi === 'timing' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Clock className="mr-2 h-4 w-4" />
+                  )}
                   Suggest Best Post Times
                 </Button>
-                 <div className="h-40 overflow-y-auto pr-2 pt-4">
+                <div className="h-40 overflow-y-auto pr-2 pt-4">
                   {loadingAi === 'timing' ? (
-                     <div className="flex h-full items-center justify-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin" /></div>
+                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
                   ) : postTimeSuggestion ? (
-                     <p className="text-sm bg-background/50 p-3 rounded-md">{postTimeSuggestion}</p>
+                    <p className="text-sm bg-background/50 p-3 rounded-md">
+                      {postTimeSuggestion}
+                    </p>
                   ) : (
                     <div className="flex h-full items-center justify-center rounded-lg border border-dashed text-center text-muted-foreground">
-                       <p className="text-sm p-4">Your AI-generated time suggestions will appear here.</p>
+                      <p className="text-sm p-4">
+                        Your AI-generated time suggestions will appear here.
+                      </p>
                     </div>
                   )}
                 </div>
               </>
-            ) : renderUpgradePrompt()}
+            ) : (
+              renderUpgradePrompt()
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
@@ -247,7 +274,7 @@ function DealSheet({
     useAppData();
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
-  const deal = useMemo(() => deals.find(d => d.id === dealId), [deals, dealId]);
+  const deal = useMemo(() => deals.find((d) => d.id === dealId), [deals, dealId]);
 
   if (!deal) return null;
 
@@ -325,7 +352,8 @@ function DealSheet({
                           htmlFor={`task-${task.id}`}
                           className={cn(
                             'flex-1 cursor-pointer text-sm',
-                            task.completed && 'line-through text-muted-foreground'
+                            task.completed &&
+                              'line-through text-muted-foreground'
                           )}
                         >
                           {task.title}
@@ -372,6 +400,7 @@ export default function SchedulerPage() {
   const { deals } = useAppData();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+  const [statusFilters, setStatusFilters] = useState<DealStatus[]>([]);
 
   const firstDayOfCurrentMonth = startOfMonth(currentDate);
 
@@ -384,7 +413,12 @@ export default function SchedulerPage() {
 
   const dealsByDate = useMemo(() => {
     const map = new Map<string, Deal[]>();
-    deals.forEach((deal) => {
+    const filteredDeals =
+      statusFilters.length > 0
+        ? deals.filter((deal) => statusFilters.includes(deal.status))
+        : deals;
+
+    filteredDeals.forEach((deal) => {
       try {
         const dealDate = parseISO(deal.dueDate);
         const key = format(dealDate, 'yyyy-MM-dd');
@@ -397,7 +431,13 @@ export default function SchedulerPage() {
       }
     });
     return map;
-  }, [deals]);
+  }, [deals, statusFilters]);
+
+  const handleStatusFilterChange = (status: DealStatus, checked: boolean) => {
+    setStatusFilters((prev) =>
+      checked ? [...prev, status] : prev.filter((s) => s !== status)
+    );
+  };
 
   const nextMonth = () => {
     setCurrentDate(add(currentDate, { months: 1 }));
@@ -427,6 +467,32 @@ export default function SchedulerPage() {
               {format(currentDate, 'MMMM yyyy')}
             </h2>
             <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Filter className="mr-2 h-4 w-4" />
+                    Filter
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {Object.keys(statusColors).map((status) => (
+                    <DropdownMenuCheckboxItem
+                      key={status}
+                      checked={statusFilters.includes(status as DealStatus)}
+                      onCheckedChange={(checked) =>
+                        handleStatusFilterChange(
+                          status as DealStatus,
+                          !!checked
+                        )
+                      }
+                    >
+                      {status}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button variant="outline" size="icon" onClick={prevMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
