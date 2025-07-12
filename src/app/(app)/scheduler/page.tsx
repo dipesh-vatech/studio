@@ -234,9 +234,9 @@ export default function SchedulerPage() {
                   <h3 className="font-semibold flex items-center gap-2"><WandSparkles className="h-5 w-5 text-primary" /> AI Assistant</h3>
                   {isProPlan ? (
                     <>
-                      <Button onClick={handleGenerateIdeas} disabled={loadingAi !== null || !!selectedDeal.aiContentIdeas?.length} className="w-full">
+                      <Button onClick={handleGenerateIdeas} disabled={loadingAi !== null || !!contentIdeas.length} className="w-full">
                         {loadingAi === 'ideas' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lightbulb className="mr-2 h-4 w-4" />}
-                        {selectedDeal.aiContentIdeas?.length ? 'Ideas Generated' : 'Generate Content Ideas'}
+                        {contentIdeas.length > 0 ? 'Ideas Generated' : 'Generate Content Ideas'}
                       </Button>
                       <Button onClick={handleSuggestTime} disabled={loadingAi !== null} className="w-full">
                         {loadingAi === 'timing' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Clock className="mr-2 h-4 w-4" />}
