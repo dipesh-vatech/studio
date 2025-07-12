@@ -226,17 +226,19 @@ function AiAssistant({
 }
 
 function DealSheet({
-  deal,
+  dealId,
   open,
   onOpenChange,
 }: {
-  deal: Deal | null;
+  dealId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { updateTaskStatus, addTaskToDeal, saveContentIdeasToDeal } =
+  const { deals, updateTaskStatus, addTaskToDeal, saveContentIdeasToDeal } =
     useAppData();
   const [newTaskTitle, setNewTaskTitle] = useState('');
+
+  const deal = useMemo(() => deals.find(d => d.id === dealId), [deals, dealId]);
 
   if (!deal) return null;
 
@@ -360,7 +362,7 @@ function DealSheet({
 export default function SchedulerPage() {
   const { deals } = useAppData();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
 
   const firstDayOfCurrentMonth = startOfMonth(currentDate);
 
@@ -397,7 +399,7 @@ export default function SchedulerPage() {
   };
 
   const handleDealClick = (deal: Deal) => {
-    setSelectedDeal(deal);
+    setSelectedDealId(deal.id);
   };
 
   return (
@@ -483,11 +485,11 @@ export default function SchedulerPage() {
       </Card>
 
       <DealSheet
-        deal={selectedDeal}
-        open={!!selectedDeal}
+        dealId={selectedDealId}
+        open={!!selectedDealId}
         onOpenChange={(open) => {
           if (!open) {
-            setSelectedDeal(null);
+            setSelectedDealId(null);
           }
         }}
       />
