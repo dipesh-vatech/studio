@@ -124,29 +124,14 @@ export function PitchGeneratorForm() {
       description: "The pitch email has been copied to your clipboard.",
     });
   };
-
-  if (freeUseConsumed && !pitchEmail) {
-    return (
-        <div className="grid md:grid-cols-2 gap-8">
-            <UpgradePrompt />
-            <Card className="bg-muted/30">
-                <CardHeader>
-                    <CardTitle>Generated Email</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center text-muted-foreground">
-                        <WandSparkles className="h-8 w-8 mb-4" />
-                        <p>Upgrade to Pro to generate unlimited emails.</p>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-    );
-  }
+  
+  const showUpgradePrompt = freeUseConsumed && !pitchEmail;
 
   return (
     <div className="grid md:grid-cols-2 gap-8">
-      {(freeUseConsumed && pitchEmail) || !isFreePlan ? (
+      {showUpgradePrompt ? (
+        <UpgradePrompt />
+       ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid sm:grid-cols-2 gap-4">
@@ -248,22 +233,16 @@ export function PitchGeneratorForm() {
               )}
             />
 
-            <div className="flex items-center gap-4">
-              <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-2 h-4 w-4" />
-                )}
-                {isFreePlan ? 'Generate Your Free Pitch' : 'Generate Pitch'}
-              </Button>
-              {isFreePlan && !freeUseConsumed && <Badge variant="outline">1 Free Use</Badge>}
-            </div>
-
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-2 h-4 w-4" />
+              )}
+              {isFreePlan && !freeUseConsumed ? 'Generate Pitch (1 Free Use)' : 'Generate Pitch'}
+            </Button>
           </form>
         </Form>
-      ) : (
-        <UpgradePrompt />
       )}
 
       <Card className="bg-muted/30">
