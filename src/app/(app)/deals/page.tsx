@@ -259,10 +259,7 @@ const DealTable = ({
                             statusColors[deal.status]
                           )}
                         >
-                           <div className="flex items-center gap-2">
-                            <span className={cn("h-2 w-2 rounded-full", statusDotColors[deal.status])}></span>
-                            <SelectValue />
-                          </div>
+                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           {Object.keys(statusColors).map((status) => (
@@ -389,10 +386,7 @@ const DealTable = ({
                             statusColors[deal.status]
                           )}
                         >
-                          <div className="flex items-center gap-2">
-                              <span className={cn("h-2 w-2 rounded-full", statusDotColors[deal.status])}></span>
-                              <SelectValue />
-                            </div>
+                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           {Object.keys(statusColors).map((status) => (
