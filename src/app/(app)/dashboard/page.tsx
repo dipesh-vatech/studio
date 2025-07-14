@@ -29,15 +29,17 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useAppData } from '@/components/app-provider';
-import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
+import { formatDistanceToNow, isPast, parseISO, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { DealStatus } from '@/lib/types';
 import {
   generateWeeklyBriefing,
-  GenerateWeeklyBriefingOutput,
+  type GenerateWeeklyBriefingOutput,
 } from '@/ai/flows/generate-weekly-briefing';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const statusColors: Record<DealStatus, string> = {
   Upcoming:
@@ -53,25 +55,54 @@ const statusColors: Record<DealStatus, string> = {
 };
 
 function AiBriefingCard() {
-  const { deals, user, userProfile, isAdmin } = useAppData();
+  const {
+    deals,
+    user,
+    userProfile,
+    isAdmin,
+    saveWeeklyBriefing,
+    updateCompletedBriefingPoints,
+  } = useAppData();
   const [briefing, setBriefing] = useState<GenerateWeeklyBriefingOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [completedPoints, setCompletedPoints] = useState<number[]>([]);
 
   const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
+  const showBriefing =
+    userProfile?.weeklyBriefing &&
+    userProfile.briefingGeneratedAt &&
+    isToday(parseISO(userProfile.briefingGeneratedAt));
+
+  useEffect(() => {
+    if (showBriefing && userProfile?.weeklyBriefing) {
+      setBriefing(userProfile.weeklyBriefing);
+      setCompletedPoints(userProfile.completedBriefingPoints || []);
+    } else {
+      setBriefing(null);
+      setCompletedPoints([]);
+    }
+  }, [showBriefing, userProfile]);
+
+  const handlePointCompletion = (index: number) => {
+    const newCompletedPoints = completedPoints.includes(index)
+      ? completedPoints.filter((i) => i !== index)
+      : [...completedPoints, index];
+    setCompletedPoints(newCompletedPoints);
+    updateCompletedBriefingPoints(newCompletedPoints);
+  };
 
   const getBriefing = async () => {
     if (!user || !deals) return;
     setIsLoading(true);
     try {
-      // Serialize deals to plain objects before sending to the server action
-      const plainDeals = deals.map(deal => ({
+      const plainDeals = deals.map((deal) => ({
         id: deal.id,
         campaignName: deal.campaignName,
         brandName: deal.brandName,
         status: deal.status,
         dueDate: deal.dueDate,
         payment: deal.payment,
-        tasks: deal.tasks.map(task => ({
+        tasks: deal.tasks.map((task) => ({
           id: task.id,
           title: task.title,
           completed: task.completed,
@@ -82,10 +113,11 @@ function AiBriefingCard() {
         deals: plainDeals,
         userName: user.displayName || 'Creator',
       });
-      setBriefing(result);
+      await saveWeeklyBriefing(result);
+      setBriefing(result); // Set local state for immediate UI update
+      setCompletedPoints([]); // Reset completed points for new briefing
     } catch (error) {
       console.error('Error getting weekly briefing:', error);
-      // You could optionally set an error state here
     } finally {
       setIsLoading(false);
     }
@@ -95,14 +127,15 @@ function AiBriefingCard() {
     return (
       <Card className="bg-primary/5 border-primary/20">
         <CardHeader>
-           <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2">
             <WandSparkles />
             Unlock Your AI Weekly Briefing
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground mb-4">
-            Upgrade to the Pro plan to get a personalized summary of your weekly priorities, powered by AI.
+            Upgrade to the Pro plan to get a personalized summary of your weekly
+            priorities, powered by AI.
           </p>
           <Button asChild>
             <Link href="/settings?tab=billing">Upgrade to Pro</Link>
@@ -119,16 +152,17 @@ function AiBriefingCard() {
           <WandSparkles className="text-primary" />
           AI Weekly Briefing
         </CardTitle>
+        <CardDescription>
+            Your personalized priorities for today, {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {!briefing && !isLoading && (
           <div className="text-center p-4">
             <p className="text-muted-foreground mb-4">
-              Click the button to generate your personalized weekly plan.
+              Get your personalized plan for the day.
             </p>
-            <Button onClick={getBriefing}>
-              Generate Briefing
-            </Button>
+            <Button onClick={getBriefing}>Generate Briefing</Button>
           </div>
         )}
         {isLoading && (
@@ -142,8 +176,21 @@ function AiBriefingCard() {
             <ul className="space-y-3">
               {briefing.summaryPoints.map((point, index) => (
                 <li key={index} className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-1 shrink-0" />
-                  <span className="text-muted-foreground">{point}</span>
+                  <Checkbox
+                    id={`briefing-point-${index}`}
+                    className="h-5 w-5 mt-0.5 shrink-0"
+                    checked={completedPoints.includes(index)}
+                    onCheckedChange={() => handlePointCompletion(index)}
+                  />
+                  <Label
+                    htmlFor={`briefing-point-${index}`}
+                    className={cn(
+                      'text-muted-foreground cursor-pointer transition-colors',
+                      completedPoints.includes(index) && 'line-through'
+                    )}
+                  >
+                    {point}
+                  </Label>
                 </li>
               ))}
             </ul>

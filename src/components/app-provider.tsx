@@ -55,6 +55,7 @@ import {
 } from 'firebase/auth';
 import { ref, uploadBytes } from 'firebase/storage';
 import { extractContractDetails } from '@/ai/flows/extract-contract-details';
+import type { GenerateWeeklyBriefingOutput } from '@/ai/flows/generate-weekly-briefing';
 
 let auth: Auth;
 let db: Firestore;
@@ -181,6 +182,7 @@ export function AppProvider({
             onboardingCompleted: false,
             pitchGenerationCount: 0,
             metricExtractionCount: 0,
+            completedBriefingPoints: [],
           };
           await setDoc(userDocRef, defaultProfile);
           setUserProfile(defaultProfile);
@@ -1087,6 +1089,35 @@ export function AppProvider({
       toast({ title: 'Error', description: 'Could not update usage count.', variant: 'destructive'});
     }
   };
+  
+  const saveWeeklyBriefing = async (briefing: GenerateWeeklyBriefingOutput) => {
+    if (!user || !db) return;
+    const dataToSave = {
+      weeklyBriefing: briefing,
+      briefingGeneratedAt: new Date().toISOString(),
+      completedBriefingPoints: [],
+    };
+    setUserProfile(prev => prev ? { ...prev, ...dataToSave } : null);
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userRef, dataToSave);
+    } catch (error) {
+      console.error('Error saving weekly briefing:', error);
+      toast({ title: 'Error', description: 'Could not save your briefing.', variant: 'destructive'});
+    }
+  };
+
+  const updateCompletedBriefingPoints = async (indices: number[]) => {
+    if (!user || !db) return;
+    setUserProfile(prev => prev ? { ...prev, completedBriefingPoints: indices } : null);
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userRef, { completedBriefingPoints: indices });
+    } catch (error) {
+      console.error('Error updating completed briefing points:', error);
+      toast({ title: 'Error', description: 'Could not save your progress.', variant: 'destructive'});
+    }
+  };
 
   const signOutUser = async () => {
     if (auth) {
@@ -1138,6 +1169,8 @@ export function AppProvider({
         saveAnalysisToPost,
         incrementPitchGenerationCount,
         incrementMetricExtractionCount,
+        saveWeeklyBriefing,
+        updateCompletedBriefingPoints,
       }}
     >
       {children}

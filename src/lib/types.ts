@@ -1,4 +1,7 @@
+
 import type { Auth, Firestore, Storage } from 'firebase/app';
+import type { GenerateWeeklyBriefingOutput } from '@/ai/flows/generate-weekly-briefing';
+
 
 export type Task = {
   id: string;
@@ -83,6 +86,9 @@ export interface UserProfile {
   onboardingCompleted?: boolean;
   pitchGenerationCount?: number;
   metricExtractionCount?: number;
+  weeklyBriefing?: GenerateWeeklyBriefingOutput;
+  briefingGeneratedAt?: string; // ISO date string
+  completedBriefingPoints?: number[]; // Array of indices
 }
 
 import { type User } from 'firebase/auth';
@@ -136,4 +142,6 @@ export interface AppDataContextType {
   saveAnalysisToPost: (postId: string, analysis: PerformancePost['aiAnalysis']) => Promise<void>;
   incrementPitchGenerationCount: () => Promise<void>;
   incrementMetricExtractionCount: () => Promise<void>;
+  saveWeeklyBriefing: (briefing: GenerateWeeklyBriefingOutput) => Promise<void>;
+  updateCompletedBriefingPoints: (indices: number[]) => Promise<void>;
 }
