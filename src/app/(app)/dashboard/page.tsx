@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Activity,
@@ -35,7 +36,7 @@ import {
   generateWeeklyBriefing,
   GenerateWeeklyBriefingOutput,
 } from '@/ai/flows/generate-weekly-briefing';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 
 const statusColors: Record<DealStatus, string> = {
@@ -59,7 +60,7 @@ function AiBriefingCard() {
   const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
 
   const getBriefing = async () => {
-    if (!user || deals.length === 0) return;
+    if (!user || !deals) return;
     setIsLoading(true);
     try {
       const result = await generateWeeklyBriefing({
@@ -230,7 +231,7 @@ export default function Dashboard() {
   const stats = {
     active: deals.filter((d) => d.status === 'In Progress').length,
     overdue: deals.filter(
-      (d) => d.status === 'Overdue' || (d.status !== 'Completed' && isPast(parseISO(d.dueDate)))
+      (d) => d.status === 'Overdue' || (d.status !== 'Completed' && d.dueDate && isPast(parseISO(d.dueDate)))
     ).length,
     unpaid: deals.filter((d) => d.status === 'Awaiting Payment').length,
     upcoming: deals.filter((d) => d.status === 'Upcoming').length,
@@ -265,7 +266,7 @@ export default function Dashboard() {
 
   const reminders = deals
     .filter(
-      (deal) => deal.status === 'Upcoming' || deal.status === 'Overdue'
+      (deal) => deal.dueDate && (deal.status === 'Upcoming' || deal.status === 'Overdue')
     )
     .sort(
       (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
