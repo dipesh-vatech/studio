@@ -40,6 +40,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 const statusColors: Record<DealStatus, string> = {
   Upcoming:
@@ -66,8 +67,12 @@ function AiBriefingCard() {
   const [briefing, setBriefing] = useState<GenerateWeeklyBriefingOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [completedPoints, setCompletedPoints] = useState<number[]>([]);
+  const { toast } = useToast();
 
   const isProPlan = userProfile?.plan === 'Pro' || isAdmin;
+  const isFreePlan = userProfile?.plan === 'Free' && !isAdmin;
+  const freeUseConsumed = isFreePlan && (userProfile?.briefingGenerationCount || 0) >= 1;
+  
   const showBriefing =
     userProfile?.weeklyBriefing &&
     userProfile.briefingGeneratedAt &&
@@ -93,6 +98,16 @@ function AiBriefingCard() {
 
   const getBriefing = async () => {
     if (!user || !deals) return;
+
+    if (freeUseConsumed) {
+      toast({
+        title: 'Free Use Limit Reached',
+        description: 'Please upgrade to the Pro plan for daily AI briefings.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const plainDeals = deals.map((deal) => ({
@@ -118,59 +133,19 @@ function AiBriefingCard() {
       setCompletedPoints([]); // Reset completed points for new briefing
     } catch (error) {
       console.error('Error getting weekly briefing:', error);
+      toast({
+        title: 'Error Generating Briefing',
+        description: 'Could not generate your AI briefing. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!isProPlan) {
-    return (
-      <Card className="bg-primary/5 border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <WandSparkles />
-            Unlock Your AI Briefing
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-4">
-            Upgrade to the Pro plan to get a personalized summary of your daily
-            priorities, powered by AI.
-          </p>
-          <Button asChild>
-            <Link href="/settings?tab=billing">Upgrade to Pro</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <WandSparkles className="text-primary" />
-          AI Briefing
-        </CardTitle>
-        <CardDescription>
-            Your personalized priorities for today, {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {!briefing && !isLoading && (
-          <div className="text-center p-4">
-            <p className="text-muted-foreground mb-4">
-              Get your personalized plan for the day.
-            </p>
-            <Button onClick={getBriefing}>Generate Briefing</Button>
-          </div>
-        )}
-        {isLoading && (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
-          </div>
-        )}
-        {briefing && (
+  const renderContent = () => {
+    if (showBriefing && briefing) {
+       return (
           <div className="space-y-4">
             <p className="font-semibold text-lg">{briefing.greeting}</p>
             <ul className="space-y-3">
@@ -195,7 +170,61 @@ function AiBriefingCard() {
               ))}
             </ul>
           </div>
-        )}
+        );
+    }
+    
+    if (isLoading) {
+      return (
+         <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+      );
+    }
+
+    if (isFreePlan && freeUseConsumed) {
+        return (
+          <div className="text-center p-4">
+            <h4 className="font-semibold">Upgrade for Daily Briefings</h4>
+            <p className="text-muted-foreground text-sm my-2">
+              You've used your free AI briefing. Upgrade to Pro for personalized priorities every day.
+            </p>
+            <Button asChild size="sm">
+                <Link href="/settings?tab=billing">Upgrade Plan</Link>
+            </Button>
+          </div>
+        );
+    }
+
+    return (
+        <div className="text-center p-4">
+            <p className="text-muted-foreground mb-4">
+              Get your personalized plan for the day.
+            </p>
+            <Button onClick={getBriefing} disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                isFreePlan ? 'Generate Briefing (1 Free Use)' : 'Generate Briefing'
+              )}
+            </Button>
+          </div>
+    );
+  };
+
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <WandSparkles className="text-primary" />
+          AI Briefing
+        </CardTitle>
+        <CardDescription>
+            Your personalized priorities for today, {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+       {renderContent()}
       </CardContent>
     </Card>
   );

@@ -86,6 +86,7 @@ export interface UserProfile {
   onboardingCompleted?: boolean;
   pitchGenerationCount?: number;
   metricExtractionCount?: number;
+  briefingGenerationCount?: number;
   weeklyBriefing?: GenerateWeeklyBriefingOutput;
   briefingGeneratedAt?: string; // ISO date string
   completedBriefingPoints?: number[]; // Array of indices
@@ -144,4 +145,5 @@ export interface AppDataContextType {
   incrementMetricExtractionCount: () => Promise<void>;
   saveWeeklyBriefing: (briefing: GenerateWeeklyBriefingOutput) => Promise<void>;
   updateCompletedBriefingPoints: (indices: number[]) => Promise<void>;
+  incrementBriefingGenerationCount: () => Promise<void>;
 }

@@ -170,6 +170,9 @@ export function AppProvider({
           if (profileData.metricExtractionCount === undefined) {
              profileData.metricExtractionCount = 0;
           }
+           if (profileData.briefingGenerationCount === undefined) {
+             profileData.briefingGenerationCount = 0;
+          }
           setUserProfile(profileData);
         } else {
           // Create a default profile if it doesn't exist
@@ -182,6 +185,7 @@ export function AppProvider({
             onboardingCompleted: false,
             pitchGenerationCount: 0,
             metricExtractionCount: 0,
+            briefingGenerationCount: 0,
             completedBriefingPoints: [],
           };
           await setDoc(userDocRef, defaultProfile);
@@ -1089,6 +1093,21 @@ export function AppProvider({
       toast({ title: 'Error', description: 'Could not update usage count.', variant: 'destructive'});
     }
   };
+
+  const incrementBriefingGenerationCount = async () => {
+    if (!user || !db) return;
+    
+    // Optimistic update
+    setUserProfile(prev => prev ? {...prev, briefingGenerationCount: (prev.briefingGenerationCount || 0) + 1} : null);
+
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(userRef, { briefingGenerationCount: increment(1) });
+    } catch (error) {
+      console.error('Error incrementing briefing count:', error);
+      toast({ title: 'Error', description: 'Could not update usage count.', variant: 'destructive'});
+    }
+  };
   
   const saveWeeklyBriefing = async (briefing: GenerateWeeklyBriefingOutput) => {
     if (!user || !db) return;
@@ -1101,6 +1120,12 @@ export function AppProvider({
     const userRef = doc(db, 'users', user.uid);
     try {
       await updateDoc(userRef, dataToSave);
+      
+      const isFreePlan = userProfile?.plan === 'Free' && !isAdmin;
+      if (isFreePlan) {
+        await incrementBriefingGenerationCount();
+      }
+
     } catch (error) {
       console.error('Error saving weekly briefing:', error);
       toast({ title: 'Error', description: 'Could not save your briefing.', variant: 'destructive'});
@@ -1171,6 +1196,7 @@ export function AppProvider({
         incrementMetricExtractionCount,
         saveWeeklyBriefing,
         updateCompletedBriefingPoints,
+        incrementBriefingGenerationCount,
       }}
     >
       {children}
