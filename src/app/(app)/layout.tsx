@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/card';
 import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
 import { OnboardingDialog } from '@/components/onboarding-dialog';
+import { FeedbackWidget } from '@/components/feedback-widget';
 
 function ProtectedLayout({ children }: { children: ReactNode }) {
   const { user, userProfile, loadingAuth, deals, dismissDealNotification } = useAppData();
@@ -180,6 +181,7 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
+        <FeedbackWidget />
       </SidebarInset>
     </SidebarProvider>
   );
