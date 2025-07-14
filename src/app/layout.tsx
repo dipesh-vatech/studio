@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AppProvider } from '@/components/app-provider';
+import { FeedbackWidget } from '@/components/feedback-widget';
 
 export const metadata: Metadata = {
   title: 'CollabFlow',
@@ -42,6 +43,7 @@ export default async function RootLayout({
         {/* Pass the config to the AppProvider */}
         <AppProvider firebaseConfig={firebaseConfig}>
           {children}
+          <FeedbackWidget />
         </AppProvider>
         <Toaster />
       </body>
