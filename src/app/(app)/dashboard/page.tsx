@@ -129,12 +129,12 @@ function AiBriefingCard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <WandSparkles />
-            Unlock Your AI Weekly Briefing
+            Unlock Your AI Briefing
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground mb-4">
-            Upgrade to the Pro plan to get a personalized summary of your weekly
+            Upgrade to the Pro plan to get a personalized summary of your daily
             priorities, powered by AI.
           </p>
           <Button asChild>
@@ -150,7 +150,7 @@ function AiBriefingCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <WandSparkles className="text-primary" />
-          AI Weekly Briefing
+          AI Briefing
         </CardTitle>
         <CardDescription>
             Your personalized priorities for today, {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}.
