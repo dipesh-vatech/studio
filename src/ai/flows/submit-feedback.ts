@@ -9,9 +9,13 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { getFirestore } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
+
 
 const SubmitFeedbackInputSchema = z.object({
   feedback: z.string().min(10).describe('The user-provided feedback text.'),
+  userId: z.string().describe('The ID of the user submitting feedback.')
 });
 export type SubmitFeedbackInput = z.infer<typeof SubmitFeedbackInputSchema>;
 
@@ -20,6 +24,10 @@ const SubmitFeedbackOutputSchema = z.object({
   message: z.string(),
 });
 export type SubmitFeedbackOutput = z.infer<typeof SubmitFeedbackOutputSchema>;
+
+if (admin.apps.length === 0) {
+    admin.initializeApp();
+}
 
 export async function submitFeedback(
   input: SubmitFeedbackInput
@@ -34,14 +42,26 @@ const submitFeedbackFlow = ai.defineFlow(
     outputSchema: SubmitFeedbackOutputSchema,
   },
   async (input) => {
-    // For now, we'll just log the feedback.
-    // This could be extended to save to Firestore, send an email,
-    // or run sentiment analysis.
-    console.log('New user feedback received:', input.feedback);
+    try {
+      const db = getFirestore();
+      await db.collection('feedback').add({
+        userId: input.userId,
+        feedback: input.feedback,
+        submittedAt: new Date(),
+      });
 
-    return {
-      success: true,
-      message: 'Feedback received. Thank you!',
-    };
+      console.log(`New user feedback received from ${input.userId}:`, input.feedback);
+
+      return {
+        success: true,
+        message: 'Feedback received. Thank you!',
+      };
+    } catch (error) {
+       console.error("Error saving feedback to Firestore:", error);
+       return {
+         success: false,
+         message: "Could not save feedback. Please try again later."
+       }
+    }
   }
 );
