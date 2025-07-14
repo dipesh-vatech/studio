@@ -57,7 +57,7 @@ const prompt = ai.definePrompt({
       - Status: {{status}}
       - Due Date: {{dueDate}}
       - Payment: \${{payment}}
-      - Tasks: {{tasks.length}} total, {{countCompletedTasks tasks}} completed.
+      - Tasks: {{tasks.length}} total, {{../helpers.countCompletedTasks tasks}} completed.
       - Task List: 
       {{#each tasks}}
         - {{title}} ({{#if completed}}Completed{{else}}Incomplete{{/if}})
@@ -71,9 +71,6 @@ const prompt = ai.definePrompt({
     4.  **Tone:** Your tone should be encouraging, professional, and helpful. You are their trusted assistant.
     5.  **Output:** Return the output in the specified JSON format.
     `,
-    helpers: {
-      countCompletedTasks: (tasks: any[]) => tasks.filter(t => t.completed).length,
-    }
 });
 
 
@@ -90,7 +87,12 @@ const generateWeeklyBriefingFlow = ai.defineFlow(
                 summaryPoints: ["It's a quiet week! You have no active deals. A great time to plan new content or pitch to brands."],
             };
         }
-        const { output } = await prompt(input);
+        const { output } = await prompt({
+            ...input,
+            helpers: {
+                countCompletedTasks: (tasks: any[]) => tasks.filter(t => t.completed).length,
+            }
+        });
         return output!;
     }
 );
