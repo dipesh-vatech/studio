@@ -11,8 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MessageSquare, Loader2, ThumbsUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { submitFeedback } from '@/ai/flows/submit-feedback';
 import { useAppData } from './app-provider';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,13 +20,13 @@ export function FeedbackWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
-  const { user } = useAppData();
+  const { user, db } = useAppData();
 
   const handleSubmit = async () => {
-    if (!user) {
+    if (!user || !db) {
       toast({
-        title: 'Not Signed In',
-        description: 'You must be signed in to submit feedback.',
+        title: 'Error',
+        description: 'Cannot submit feedback. User not signed in or database is unavailable.',
         variant: 'destructive',
       });
       return;
@@ -43,22 +43,19 @@ export function FeedbackWidget() {
 
     setIsLoading(true);
     try {
-      const result = await submitFeedback({ feedback, userId: user.uid });
-      if (result.success) {
-        setIsSubmitted(true);
-        setFeedback('');
-        setTimeout(() => {
-            setIsOpen(false);
-            setTimeout(() => setIsSubmitted(false), 500); // Reset for next time
-        }, 2000);
-      } else {
-        toast({
-          title: 'Submission Failed',
-          description:
-            result.message || 'We could not submit your feedback. Please try again later.',
-          variant: 'destructive',
-        });
-      }
+      // Write directly to Firestore from the client
+      await addDoc(collection(db, 'feedback'), {
+        userId: user.uid,
+        feedback: feedback,
+        submittedAt: serverTimestamp(),
+      });
+
+      setIsSubmitted(true);
+      setFeedback('');
+      setTimeout(() => {
+        setIsOpen(false);
+        setTimeout(() => setIsSubmitted(false), 500); // Reset for next time
+      }, 2000);
     } catch (error) {
       console.error('Feedback submission error:', error);
       toast({

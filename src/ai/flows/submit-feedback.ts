@@ -9,8 +9,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import * as admin from 'firebase-admin';
-import { getFirestore } from 'firebase-admin/firestore';
 
 const SubmitFeedbackInputSchema = z.object({
   feedback: z.string().min(10).describe('The user-provided feedback text.'),
@@ -31,6 +29,9 @@ export async function submitFeedback(
   return submitFeedbackFlow(input);
 }
 
+// This flow now only logs the feedback to the server console.
+// The actual database write is handled on the client-side for simplicity
+// and to leverage existing client authentication.
 const submitFeedbackFlow = ai.defineFlow(
   {
     name: 'submitFeedbackFlow',
@@ -39,16 +40,6 @@ const submitFeedbackFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      if (admin.apps.length === 0) {
-        admin.initializeApp();
-      }
-      const db = getFirestore();
-      await db.collection('feedback').add({
-        userId: input.userId,
-        feedback: input.feedback,
-        submittedAt: new Date(),
-      });
-
       console.log(`New user feedback received from ${input.userId}:`, input.feedback);
 
       return {
@@ -56,10 +47,10 @@ const submitFeedbackFlow = ai.defineFlow(
         message: 'Feedback received. Thank you!',
       };
     } catch (error) {
-       console.error("Error saving feedback to Firestore:", error);
+       console.error("Error in feedback flow:", error);
        return {
          success: false,
-         message: "Could not save feedback. Please try again later."
+         message: "Could not process feedback. Please try again later."
        }
     }
   }
