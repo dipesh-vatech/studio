@@ -63,8 +63,23 @@ function AiBriefingCard() {
     if (!user || !deals) return;
     setIsLoading(true);
     try {
+      // Serialize deals to plain objects before sending to the server action
+      const plainDeals = deals.map(deal => ({
+        id: deal.id,
+        campaignName: deal.campaignName,
+        brandName: deal.brandName,
+        status: deal.status,
+        dueDate: deal.dueDate,
+        payment: deal.payment,
+        tasks: deal.tasks.map(task => ({
+          id: task.id,
+          title: task.title,
+          completed: task.completed,
+        })),
+      }));
+
       const result = await generateWeeklyBriefing({
-        deals: deals,
+        deals: plainDeals,
         userName: user.displayName || 'Creator',
       });
       setBriefing(result);
