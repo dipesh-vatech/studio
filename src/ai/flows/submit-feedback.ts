@@ -9,9 +9,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getFirestore } from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
-
+import { getFirestore } from 'firebase-admin/firestore';
 
 const SubmitFeedbackInputSchema = z.object({
   feedback: z.string().min(10).describe('The user-provided feedback text.'),
@@ -25,9 +24,6 @@ const SubmitFeedbackOutputSchema = z.object({
 });
 export type SubmitFeedbackOutput = z.infer<typeof SubmitFeedbackOutputSchema>;
 
-if (admin.apps.length === 0) {
-    admin.initializeApp();
-}
 
 export async function submitFeedback(
   input: SubmitFeedbackInput
@@ -43,6 +39,9 @@ const submitFeedbackFlow = ai.defineFlow(
   },
   async (input) => {
     try {
+      if (admin.apps.length === 0) {
+        admin.initializeApp();
+      }
       const db = getFirestore();
       await db.collection('feedback').add({
         userId: input.userId,

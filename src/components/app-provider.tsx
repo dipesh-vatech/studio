@@ -50,8 +50,6 @@ import {
   updatePassword,
   EmailAuthProvider,
   reauthenticateWithCredential,
-  reauthenticateWithPopup,
-  GoogleAuthProvider,
 } from 'firebase/auth';
 import { ref, uploadBytes } from 'firebase/storage';
 import { extractContractDetails } from '@/ai/flows/extract-contract-details';
