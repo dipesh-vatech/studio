@@ -58,6 +58,10 @@ const prompt = ai.definePrompt({
       - Due Date: {{dueDate}}
       - Payment: \${{payment}}
       - Tasks: {{tasks.length}} total, {{@root.helpers.countCompletedTasks tasks}} completed.
+      - Task List: 
+      {{#each tasks}}
+        - {{title}} ({{#if completed}}Completed{{else}}Incomplete{{/if}})
+      {{/each}}
     {{/each}}
 
     Follow these instructions precisely:
